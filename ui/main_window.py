@@ -47,13 +47,13 @@ class MainWindow:
         styles.setup_styles()
         
         # Optional: Mindestgröße setzen
-        self.root.minsize(1000, 800)
+        self.root.minsize(600, 800)
 
     def create_dashboard(self):
         """Erstellt das Dashboard mit Eingabefeld und Widgets"""
         # Entferne pack_propagate(False)
         self.dashboard_frame = tk.Frame(self.root, bg="#cccccc")
-        self.dashboard_frame.pack(side="bottom", fill="x", padx=25, pady=25)
+        self.dashboard_frame.pack(side="bottom", fill="x", padx=10, pady=10)
         
         # Konfiguriere Grid für gleichmäßige Spaltenverteilung
         self.dashboard_frame.columnconfigure(0, weight=1)
@@ -124,9 +124,8 @@ class MainWindow:
 
     def create_profit_container(self):
         """Erstellt den Container für Gewinnberechnung"""
-        self.profit_container = tk.Frame(self.root, bg="white", bd=1, relief="groove", height=300, padx=15, pady=15)
-        self.profit_container.pack(fill="both", padx=25, pady=(0,10))
-        self.profit_container.pack_propagate(False)  # Verhindert, dass sich der Container an den Inhalt anpasst
+        self.profit_container = tk.Frame(self.root, bg="white", bd=1, relief="groove")
+        self.profit_container.pack(fill="both", expand=True, padx=10, pady=(0,10))
 
         # Konfiguriere das Grid für 2 Reihen und 3 Spalten
         for i in range(2):
@@ -134,29 +133,31 @@ class MainWindow:
         for j in range(3):
             self.profit_container.grid_columnconfigure(j, weight=1)
 
+        # Entferne die zweite Methode create_profit_section() komplett
+
         # Widget 1: Gesamtinvestition
         self.total_invest_label = tk.Label(self.profit_container, text="Investiert: 0.00$", font=("Arial", 10, "bold"), bg="#f0f0f0")
-        self.total_invest_label.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        self.total_invest_label.grid(row=0, column=0, padx=2, pady=2, sticky="nsew")
 
         # Widget 2: Anzahl der Calls
         self.num_calls_label = tk.Label(self.profit_container, text="Calls: 0", font=("Arial", 10, "bold"), bg="#f0f0f0")
-        self.num_calls_label.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        self.num_calls_label.grid(row=0, column=1, padx=2, pady=2, sticky="nsew")
 
         # Widget 3: Gesamt Gewinn/Verlust (absolut)
         self.total_profit_label = tk.Label(self.profit_container, text="Gesamt Gewinn/Verlust: 0.00$", font=("Arial", 10, "bold"), bg="#f0f0f0")
-        self.total_profit_label.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
+        self.total_profit_label.grid(row=0, column=2, padx=2, pady=2, sticky="nsew")
 
         # Widget 4: Gewinn/Verlust in Prozent
         self.profit_percent_label = tk.Label(self.profit_container, text="Gewinn/Verlust (%): 0.00%", font=("Arial", 10, "bold"), bg="#f0f0f0")
-        self.profit_percent_label.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+        self.profit_percent_label.grid(row=1, column=0, padx=2, pady=2, sticky="nsew")
 
         # Widget 5: Durchschnittlicher Gewinn/Verlust pro Call
         self.avg_profit_label = tk.Label(self.profit_container, text="Durchschnitt pro Call: 0.00$", font=("Arial", 10, "bold"), bg="#f0f0f0")
-        self.avg_profit_label.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+        self.avg_profit_label.grid(row=1, column=1, padx=2, pady=2, sticky="nsew")
 
         # Widget 6: Aktueller Kontostand
         self.current_balance_label = tk.Label(self.profit_container, text="Kontostand: 500.00$", font=("Arial", 10, "bold"), bg="#f0f0f0")
-        self.current_balance_label.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
+        self.current_balance_label.grid(row=1, column=2, padx=2, pady=2, sticky="nsew")
 
 
     def create_profit_section(self, parent):
