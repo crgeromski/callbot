@@ -25,11 +25,7 @@ class MainBot:
             self.main_container.grid_columnconfigure(col, weight=1, pad=5)  # Reduziere Padding
         # Einheitliche Zeilenhöhen
         for row in range(3):
-            self.main_container.grid_rowconfigure(row, weight=1, pad=5)  # Reduziere Padding
-        # Passe die Zeilenhöhen an: Token/X-Post (größer), Stats/Call (mittel), Social/Placeholder (klein)
-        self.main_container.grid_rowconfigure(0, weight=2, pad=15)  # Mehr Platz für Token-Daten
-        self.main_container.grid_rowconfigure(1, weight=3, pad=15)  # Mehr Platz für Statistiken
-        self.main_container.grid_rowconfigure(2, weight=1, pad=15)  # Weniger Platz für Social Media
+            self.main_container.grid_rowconfigure(row, weight=1, pad=5)  # Gleichmäßige Höhen
 
         # Token-Frame für die obere linke Ecke erstellen
         self.token_frame = TokenFrame(self.main_container, self.shared_vars)

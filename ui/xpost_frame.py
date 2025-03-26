@@ -11,31 +11,60 @@ class XPostFrame:
         
     def create_frame(self):
         """Erstellt den Frame für X-Posts"""
-        self.frame = tk.Frame(self.parent, bg="white", padx=15, pady=15, bd=1, relief="groove")
+        self.frame = tk.Frame(
+            self.parent, 
+            bg="white", 
+            padx=10, 
+            pady=10, 
+            bd=1, 
+            relief="solid"
+        )
         self.frame.grid(row=0, column=1, sticky="nsew")
         
+        self.inner = tk.Frame(self.frame, bg="white")
+        self.inner.pack(fill="both", expand=True, padx=5, pady=5)
+        
         # X-Post Label
-        self.xpost_label = tk.Label(self.frame, text="X-Post", font=("Arial", 12, "bold"), bg="white", anchor="w")
-        self.xpost_label.pack(anchor="w")
+        self.xpost_label = tk.Label(
+            self.inner, 
+            text="X-Post", 
+            font=("Arial", 11, "bold"), 
+            bg="white", 
+            anchor="w"
+        )
+        self.xpost_label.pack(anchor="w", pady=(0, 8))
         
         # X-Post Textfeld (multiline)
-        self.xpost_text_widget = tk.Text(self.frame, width=60, height=3, wrap="word", 
-                                    relief="sunken", borderwidth=2)
+        self.xpost_text_widget = tk.Text(
+            self.inner, 
+            width=60, 
+            height=3, 
+            wrap="word", 
+            relief="sunken", 
+            borderwidth=2
+        )
         self.xpost_text_widget.insert("1.0", "")
         self.xpost_text_widget.config(state="disabled")  
         self.xpost_text_widget.pack(anchor="w", padx=0, pady=2)
         
         # Frame für Buttons
-        self.btn_subframe = tk.Frame(self.frame, bg="white")
+        self.btn_subframe = tk.Frame(self.inner, bg="white")
         self.btn_subframe.pack(anchor="w", pady=(5,0))
         
         # Button "Kopieren"
-        self.btn_copy = tk.Button(self.btn_subframe, text="Kopieren",
-                             command=self.copy_to_clipboard)
+        self.btn_copy = tk.Button(
+            self.btn_subframe, 
+            text="Kopieren",
+            command=self.copy_to_clipboard
+        )
         self.btn_copy.pack(side="left", padx=(0,10))
         
         # Button "Auf X posten"
-        self.btn_xpost = tk.Button(self.btn_subframe, text="Auf X posten", command=self.post_to_x)
+        self.btn_xpost = tk.Button(
+            self.btn_subframe, 
+            text="Auf X posten", 
+            command=self.post_to_x
+        )
         self.btn_xpost.pack(side="left")
     
     def copy_to_clipboard(self):
