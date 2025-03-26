@@ -117,11 +117,11 @@ class MainWindow:
         container_top.columnconfigure(1, weight=3)  # 30% Breite
         
         # Linker Teil (Token-Daten)
-        self.top_left = tk.Frame(container_top, bg="white", bd=1, relief="solid")
+        self.top_left = tk.Frame(container_top, bg="white", bd=1, relief="solid", padx=20, pady=20)
         self.top_left.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
-        
+            
         # Rechter Teil (DexLink-Eingabe)
-        self.top_right = tk.Frame(container_top, bg="white", bd=1, relief="solid")
+        self.top_right = tk.Frame(container_top, bg="white", bd=1, relief="solid", padx=20, pady=20)
         self.top_right.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
         
         # Container 2: Mittlerer Bereich (50% / 50%)
