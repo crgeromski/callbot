@@ -11,10 +11,9 @@ class MainBot:
     def __init__(self, main_window):
         self.main_window = main_window
         self.shared_vars = main_window.shared_vars
+        self.live_update_active = self.shared_vars['live_update_active'].get()
         
-        # Ersetze mit diesen Zeilen in main_bot.py:
-        self.main_container = tk.Frame(main_window.tabs['main'], bg="white")
-        self.main_container.pack(fill="both", expand=True, padx=10, pady=10)
+        self.main_container = main_window.tabs['main']
 
         # Grid-Einstellungen für den main_container
         for col in range(2):
@@ -26,14 +25,14 @@ class MainBot:
         # Token-Frame für die obere linke Ecke erstellen
         self.token_frame = TokenFrame(self.main_container, self.shared_vars)
         
-        # Container 5 und 6 für zukünftige Funktionen (HIER EINFÜGEN)
-        self.container5 = tk.Frame(self.main_container, bg="white", padx=20, pady=20, bd=1, relief="solid")
-        self.container5.grid(row=2, column=0, sticky="nsew")
-        tk.Label(self.container5, text="Zukünftige Funktion", font=("Arial", 11, "bold"), bg="white").pack(anchor="w")
         
-        self.container6 = tk.Frame(self.main_container, bg="white", padx=20, pady=20, bd=1, relief="solid")
-        self.container6.grid(row=2, column=1, sticky="nsew")
-        tk.Label(self.container6, text="Zukünftige Funktion", font=("Arial", 11, "bold"), bg="white").pack(anchor="w")
+        # Importiere die neuen Frame-Klassen, wenn sie noch nicht oben importiert sind
+        from ui.future_function_frame_1 import FutureFunctionFrame1
+        from ui.future_function_frame_2 import FutureFunctionFrame2
+
+        # Erstelle die Frames für zukünftige Funktionen
+        self.future_frame1 = FutureFunctionFrame1(self.main_container, self.shared_vars)
+        self.future_frame2 = FutureFunctionFrame2(self.main_container, self.shared_vars)
         
         # Backup-Zähler
         self.backup_counter = 0

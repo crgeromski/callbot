@@ -9,6 +9,8 @@ from ui.call_frame import CallFrame
 from ui.calls_tree import CallsTreeView
 from ui.archived_calls_tree import ArchivedCallsTreeView
 from ui.main_bot import MainBot
+from ui.future_function_frame_1 import FutureFunctionFrame1
+from ui.future_function_frame_2 import FutureFunctionFrame2
 
 def main():
     # Erstelle das Root-Fenster

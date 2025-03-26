@@ -15,10 +15,12 @@ class CallFrame:
         self.frame = tk.Frame(
             self.parent, 
             bg="white", 
-            padx=10, 
-            pady=10, 
-            bd=1, 
-            relief="solid"
+            padx=20, 
+            pady=20,
+            bd=1,
+            relief="solid",
+            highlightbackground="#cccccc",
+            highlightthickness=1
         )
         self.frame.grid(row=1, column=1, sticky="nsew")
         

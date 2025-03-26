@@ -5,10 +5,14 @@ import ui.styles as styles
 class SocialFrame:
     def create_frame(self):
         self.frame = tk.Frame(
-            self.parent,
-            bg="white",
-            padx=20,
-            pady=20
+            self.parent, 
+            bg="white", 
+            padx=20, 
+            pady=20,
+            bd=1,
+            relief="solid",
+            highlightbackground="#cccccc",
+            highlightthickness=1
         )
         self.frame.grid(row=1, column=0, sticky="nsew")  # Ändern von (2,0) zu (1,0)
         

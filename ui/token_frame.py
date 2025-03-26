@@ -9,8 +9,13 @@ class TokenFrame:
             self.parent, 
             bg="white", 
             padx=20, 
-            pady=20
+            pady=20,
+            bd=1,
+            relief="solid",
+            highlightbackground="#cccccc",
+            highlightthickness=1
         )
+        
         self.frame.grid(row=0, column=0, sticky="nsew")
         
         # Titel
