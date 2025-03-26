@@ -11,8 +11,9 @@ class TokenFrame:
 
     def create_frame(self):
         """Erstellt den Frame für Token-Daten"""
-        # Wir nutzen den Parent-Frame direkt
-        self.frame = self.parent
+        # Wir erstellen einen äußeren Frame mit Padding
+        self.frame = tk.Frame(self.parent, bg="white", padx=20, pady=20)
+        self.frame.pack(fill="both", expand=True)
         
         # Titel für Token-Daten
         tk.Label(
@@ -21,7 +22,7 @@ class TokenFrame:
             font=("Arial", 11, "bold"), 
             bg="white", 
             anchor="w"
-        ).pack(anchor="w", pady=(10,10))
+        ).pack(anchor="w", pady=(0,10))
         
         # Container für die Datenzeilen
         data_container = tk.Frame(self.frame, bg="white")
