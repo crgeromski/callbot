@@ -2,7 +2,6 @@
 import tkinter as tk
 from ui.main_window import MainWindow
 from ui.token_frame import TokenFrame
-from ui.dexlink_frame import DexLinkFrame
 from ui.stats_frame import StatsFrame
 from ui.social_frame import SocialFrame
 from ui.rugcheck_frame import RugCheckFrame
@@ -20,7 +19,6 @@ def main():
     
     # Erstelle die UI-Komponenten für den Main Bot Tab in den neuen Containern
     token_frame = TokenFrame(main_window.main_containers['top_left'], main_window.shared_vars, main_window)
-    dexlink_frame = DexLinkFrame(main_window.main_containers['top_right'], main_window.shared_vars, main_window)
     stats_frame = StatsFrame(main_window.main_containers['middle_left'], main_window.shared_vars, 
                             main_window.time_price_vars, main_window.time_buys_vars, main_window.time_sells_vars)
     social_frame = SocialFrame(main_window.main_containers['middle_right'], main_window.shared_vars, main_window)

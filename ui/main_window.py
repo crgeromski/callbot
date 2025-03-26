@@ -55,25 +55,82 @@ class MainWindow:
 
     def create_dashboard(self):
         """Erstellt das Dashboard mit Eingabefeld und Widgets"""
-        # Entferne pack_propagate(False)
         self.dashboard_frame = tk.Frame(self.root, bg="#cccccc")
         self.dashboard_frame.pack(side="bottom", fill="x", padx=10, pady=10)
         
-        # Konfiguriere Grid für gleichmäßige Spaltenverteilung
-        self.dashboard_frame.columnconfigure(0, weight=1)
-        self.dashboard_frame.columnconfigure(1, weight=1)
+        # Container für Buttons und Eingabefeld mit vertikaler Zentrierung
+        controls_container = tk.Frame(self.dashboard_frame, bg="#cccccc")
+        controls_container.pack(fill="x")
         
-        # Erstelle zwei Spalten im Dashboard
-        right_column = tk.Frame(self.dashboard_frame, bg="#cccccc")
-        right_column.grid(row=0, column=1, sticky="nsew")
+        # Linke Seite - Eingabefeld mit Paste-Button
+        left_section = tk.Frame(controls_container, bg="#cccccc")
+        left_section.pack(side="left")
         
-        # Control-Buttons in der rechten Spalte
-        control_section = tk.Frame(right_column, bg="#cccccc")
-        control_section.pack(anchor="e", fill="x", pady=5)
+        # Eingabefeld erstellen mit fester Breite
+        entry_frame = tk.Frame(left_section, bg="#cccccc")
+        entry_frame.pack(side="left", padx=(0, 10))
         
-        # Button zum Zurücksetzen des Kontostands
-        self.reset_budget_btn = tk.Button(control_section, text="Kontostand zurücksetzen", command=self.reset_budget)
-        self.reset_budget_btn.pack(side="right", padx=(10, 0))
+        # Höhe auf Knopfhöhe setzen und vertikale Zentrierung
+        entry = tk.Entry(entry_frame, textvariable=self.shared_vars['entry_var'], 
+                        font=("Arial", 10), width=20, 
+                        highlightthickness=1, bd=2)  # Angepasste Höhe durch Border
+        entry.pack(side="left", fill="y")
+        entry.bind("<Return>", lambda event: self.fetch_data())
+        
+        # Platzhaltertext hinzufügen
+        entry.insert(0, "Link oder CA einfügen")
+        entry.config(fg="#888888")
+        
+        # Event-Handler für Fokusgewinn und -verlust
+        def on_entry_focus_in(event):
+            if entry.get() == "Link oder CA einfügen":
+                entry.delete(0, "end")
+                entry.config(fg="black")
+
+        def on_entry_focus_out(event):
+            if not entry.get():
+                entry.insert(0, "Link oder CA einfügen")
+                entry.config(fg="#888888")
+
+        entry.bind("<FocusIn>", on_entry_focus_in)
+        entry.bind("<FocusOut>", on_entry_focus_out)
+        
+        # Paste-Button mit Icon
+        def paste_from_clipboard():
+            try:
+                clipboard_content = self.root.clipboard_get()
+                self.shared_vars['entry_var'].set(clipboard_content)
+                self.fetch_data()
+            except Exception as e:
+                import tkinter.messagebox as messagebox
+                messagebox.showerror("Fehler", f"Konnte Zwischenablage nicht verarbeiten: {e}")
+
+        paste_btn = tk.Button(
+            entry_frame, 
+            text="📋", 
+            width=2,
+            height=1,  # Höhenanpassung
+            command=paste_from_clipboard
+        )
+        paste_btn.pack(side="left", fill="y")
+        
+        # Rechte Seite - Button zum Zurücksetzen des Kontostands
+        right_section = tk.Frame(controls_container, bg="#cccccc")
+        right_section.pack(side="right")
+        
+        # Erstellen des Buttons mit Standardhöhe
+        self.reset_budget_btn = tk.Button(right_section, text="Kontostand zurücksetzen", command=self.reset_budget)
+        self.reset_budget_btn.pack(side="right")
+        
+        # Nach dem Erstellen des Reset-Buttons:
+        # Hole die Höhe des Reset-Buttons für bessere Abstimmung
+        self.dashboard_frame.update_idletasks()  # Aktualisiere Layout
+        button_height = self.reset_budget_btn.winfo_height()
+        
+        # Setze eine minimale Höhe für den Container, um vertikale Zentrierung zu gewährleisten
+        controls_container.configure(height=button_height)
+        left_section.configure(height=button_height)
+        right_section.configure(height=button_height)
         
 
     def create_notebook(self):
@@ -107,21 +164,17 @@ class MainWindow:
         # Main-Tab Konfiguration für vertikales Layout
         self.tab1.pack_propagate(False)
         
-        # Container 1: Oberer Bereich (70% links / 30% rechts)
+        # Container 1: Oberer Bereich 
         container_top = tk.Frame(self.tab1, bg="white")
         container_top.pack(fill="x", padx=10, pady=5)
         
-        # Container 1 in zwei Teile aufteilen
-        container_top.columnconfigure(0, weight=7) 
-        container_top.columnconfigure(1, weight=3) 
+        # Container-Konfiguration für volle Breite
+        container_top.columnconfigure(0, weight=1)
         
-        # Linker Teil (Token-Daten)
+        # Token-Daten auf volle Breite
         self.top_left = tk.Frame(container_top, bg="white", bd=1, relief="solid")
         self.top_left.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         
-        # Rechter Teil (DexLink-Eingabe)
-        self.top_right = tk.Frame(container_top, bg="white", bd=1, relief="solid")
-        self.top_right.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
         
         # Container 2: Mittlerer Bereich (50% / 50%)
         container_middle = tk.Frame(self.tab1, bg="white")
@@ -158,7 +211,6 @@ class MainWindow:
         # Speichere die Container im Dictionary für späteren Zugriff
         self.main_containers = {
             'top_left': self.top_left,
-            'top_right': self.top_right,
             'middle_left': self.middle_left,
             'middle_right': self.middle_right,
             'bottom_left': self.bottom_left,
