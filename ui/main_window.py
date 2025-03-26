@@ -34,7 +34,7 @@ class MainWindow:
 
         self.setup_window()
         self.create_notebook()
-        self.create_header()
+        self.create_dashboard()
         self.create_profit_container()
 
     def setup_window(self):
@@ -46,28 +46,48 @@ class MainWindow:
         # Styles einrichten
         styles.setup_styles()
 
-    def create_header(self):
-        """Erstellt den Header-Bereich mit Eingabefeld"""
-        self.header_frame = tk.Frame(self.root, bg="#cccccc")
-        self.header_frame.pack(side="top", fill="x", padx=25, pady=25)
-
-        lbl_header = tk.Label(self.header_frame, text="Dexscreener Link", bg="#cccccc", font=("Arial", 10, "bold"))
+    def create_dashboard(self):
+        """Erstellt das Dashboard mit Eingabefeld und Widgets"""
+        # Erhöhe die Höhe des Dashboards
+        self.dashboard_frame = tk.Frame(self.root, bg="#cccccc", height=200)
+        self.dashboard_frame.pack(side="bottom", fill="x", padx=25, pady=25)
+        self.dashboard_frame.pack_propagate(False)  # Verhindert automatische Größenanpassung
+        
+        # Erstelle zwei Spalten im Dashboard
+        left_column = tk.Frame(self.dashboard_frame, bg="#cccccc")
+        left_column.pack(side="left", fill="both", expand=True)
+        
+        right_column = tk.Frame(self.dashboard_frame, bg="#cccccc")
+        right_column.pack(side="right", fill="both", expand=True)
+        
+        # Eingabefeld-Sektion in der linken Spalte
+        input_section = tk.Frame(left_column, bg="#cccccc")
+        input_section.pack(anchor="w", fill="x", pady=5)
+        
+        lbl_header = tk.Label(input_section, text="Dexscreener Link", bg="#cccccc", font=("Arial", 10, "bold"))
         lbl_header.pack(anchor="w")
-
-        self.entry = tk.Entry(self.header_frame, textvariable=self.shared_vars['entry_var'], width=50)
+        
+        self.entry = tk.Entry(input_section, textvariable=self.shared_vars['entry_var'], width=50)
         self.entry.pack(anchor="w", pady=(5,0))
         self.entry.bind("<Return>", lambda event: self.fetch_data())
-
-        self.paste_button = tk.Button(self.header_frame, text="Zwischenablage einfügen", command=self.paste_and_fetch)
+        
+        self.paste_button = tk.Button(input_section, text="Zwischenablage einfügen", command=self.paste_and_fetch)
         self.paste_button.pack(anchor="w", pady=(5,0))
-
+        
+        # Control-Buttons in der rechten Spalte
+        control_section = tk.Frame(right_column, bg="#cccccc")
+        control_section.pack(anchor="e", fill="x", pady=5)
+        
         # Button zum Zurücksetzen des Kontostands
-        self.reset_budget_btn = tk.Button(self.header_frame, text="Kontostand zurücksetzen", command=self.reset_budget)
+        self.reset_budget_btn = tk.Button(control_section, text="Kontostand zurücksetzen", command=self.reset_budget)
         self.reset_budget_btn.pack(side="right", padx=(10, 0))
-
+        
         # Live Update Button
-        self.live_update_btn = tk.Button(self.header_frame, text="Live Update AN", command=self.toggle_live_update, bg="#d8ffd8")
+        self.live_update_btn = tk.Button(control_section, text="Live Update AN", command=self.toggle_live_update, bg="#d8ffd8")
         self.live_update_btn.pack(side="right", padx=(10, 0))
+        
+        # Gewinnrechner-Sektion (aus create_profit_container)
+        self.create_profit_section(self.dashboard_frame)
 
     def create_notebook(self):
         """Erstellt das Notebook mit Tabs"""
@@ -131,6 +151,48 @@ class MainWindow:
         self.current_balance_label = tk.Label(self.profit_container, text="Kontostand: 500.00$", font=("Arial", 10, "bold"), bg="#f0f0f0")
         self.current_balance_label.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
 
+
+    def create_profit_section(self, parent):
+        """Erstellt die Gewinnrechner-Sektion im Dashboard"""
+        profit_section = tk.Frame(parent, bg="white", bd=1, relief="groove", padx=15, pady=10)
+        profit_section.pack(fill="x", padx=25, pady=(10,0))
+        
+        # Titel für die Sektion
+        tk.Label(profit_section, text="Gewinnübersicht", font=("Arial", 10, "bold"), bg="white").pack(anchor="w")
+        
+        # Grid für die Statistik-Labels
+        stats_frame = tk.Frame(profit_section, bg="white")
+        stats_frame.pack(fill="x", pady=5)
+        
+        # Konfiguriere das Grid für 2 Reihen und 3 Spalten
+        for i in range(2):
+            stats_frame.grid_rowconfigure(i, weight=1)
+        for j in range(3):
+            stats_frame.grid_columnconfigure(j, weight=1)
+        
+        # Widget 1: Gesamtinvestition
+        self.total_invest_label = tk.Label(stats_frame, text="Investiert: 0.00$", font=("Arial", 9), bg="#f0f0f0")
+        self.total_invest_label.grid(row=0, column=0, padx=5, pady=2, sticky="nsew")
+        
+        # Widget 2: Anzahl der Calls
+        self.num_calls_label = tk.Label(stats_frame, text="Calls: 0", font=("Arial", 9), bg="#f0f0f0")
+        self.num_calls_label.grid(row=0, column=1, padx=5, pady=2, sticky="nsew")
+        
+        # Widget 3: Gesamt Gewinn/Verlust (absolut)
+        self.total_profit_label = tk.Label(stats_frame, text="Gesamt Gewinn/Verlust: 0.00$", font=("Arial", 9), bg="#f0f0f0")
+        self.total_profit_label.grid(row=0, column=2, padx=5, pady=2, sticky="nsew")
+        
+        # Widget 4: Gewinn/Verlust in Prozent
+        self.profit_percent_label = tk.Label(stats_frame, text="Gewinn/Verlust (%): 0.00%", font=("Arial", 9), bg="#f0f0f0")
+        self.profit_percent_label.grid(row=1, column=0, padx=5, pady=2, sticky="nsew")
+        
+        # Widget 5: Durchschnittlicher Gewinn/Verlust pro Call
+        self.avg_profit_label = tk.Label(stats_frame, text="Durchschnitt pro Call: 0.00$", font=("Arial", 9), bg="#f0f0f0")
+        self.avg_profit_label.grid(row=1, column=1, padx=5, pady=2, sticky="nsew")
+        
+        # Widget 6: Aktueller Kontostand
+        self.current_balance_label = tk.Label(stats_frame, text="Kontostand: 500.00$", font=("Arial", 9), bg="#f0f0f0")
+        self.current_balance_label.grid(row=1, column=2, padx=5, pady=2, sticky="nsew")
     # Platzhalter für Methoden, die später implementiert werden
     def fetch_data(self):
         """Daten vom API abrufen und anzeigen"""
