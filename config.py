@@ -15,6 +15,3 @@ DEFAULT_WINDOW_TITLE = "Dexscreener Bot"
 API_TIMEOUT = 10  # Sekunden
 UPDATE_INTERVAL = 30000  # Millisekunden (30 Sekunden)
 BACKUP_INTERVAL = 5  # Anzahl der Updates vor einem Backup
-
-
-#Testkommentar

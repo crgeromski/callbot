@@ -5,6 +5,7 @@ import data.api as api
 import data.storage as storage
 import utils.formatters as formatters
 from config import API_TIMEOUT, UPDATE_INTERVAL, BACKUP_INTERVAL
+from ui.token_frame import TokenFrame  # Diese Zeile hinzufügen
 
 class MainBot:
     def __init__(self, main_window):
@@ -21,15 +22,18 @@ class MainBot:
         
         # Grid-Einstellungen für den main_container
         for col in range(2):
-            self.main_container.grid_columnconfigure(col, weight=1, pad=15)
+            self.main_container.grid_columnconfigure(col, weight=1, pad=5)  # Reduziere Padding
+        # Einheitliche Zeilenhöhen
         for row in range(3):
-            self.main_container.grid_rowconfigure(row, weight=1, pad=15)
+            self.main_container.grid_rowconfigure(row, weight=1, pad=5)  # Reduziere Padding
+        # Passe die Zeilenhöhen an: Token/X-Post (größer), Stats/Call (mittel), Social/Placeholder (klein)
+        self.main_container.grid_rowconfigure(0, weight=2, pad=15)  # Mehr Platz für Token-Daten
+        self.main_container.grid_rowconfigure(1, weight=3, pad=15)  # Mehr Platz für Statistiken
+        self.main_container.grid_rowconfigure(2, weight=1, pad=15)  # Weniger Platz für Social Media
+
+        # Token-Frame für die obere linke Ecke erstellen
+        self.token_frame = TokenFrame(self.main_container, self.shared_vars)
         
-        # Platzhalter-Frame für die untere rechte Ecke
-        self.placeholder_frame = tk.Frame(self.main_container, bg="white", padx=15, pady=15, bd=1, relief="groove")
-        self.placeholder_frame.grid(row=2, column=1, sticky="nsew")
-        tk.Label(self.placeholder_frame, text="Platzhalter für zukünftige Funktionen", font=("Arial", 12, "bold"), 
-                bg="white", anchor="w").pack(anchor="w", pady=(0,10))
                 
         # Live-Update Steuerung
         self.live_update_active = True  # Standardmäßig an
