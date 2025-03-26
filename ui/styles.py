@@ -68,12 +68,12 @@ def create_data_row(parent, label_text, var, row, show_copy_button=True):
     entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
     
     if show_copy_button:
-        btn = tk.Button(parent, text="Kopieren", command=lambda: clipboard.copy_to_clipboard(parent.winfo_toplevel(), var.get()))
+        btn = tk.Button(parent, text="📋", width=2, command=lambda: clipboard.copy_to_clipboard(parent.winfo_toplevel(), var.get()))
         btn.grid(row=row, column=2, padx=5, pady=2)
 
 def create_link_row(parent, label_text, var, row):
     """
-    Wie create_data_row, aber Button "Aufrufen" öffnet den Link im Browser.
+    Wie create_data_row, aber Button "🔗" öffnet den Link im Browser.
     """
     import utils.browser as browser
     
@@ -83,5 +83,5 @@ def create_link_row(parent, label_text, var, row):
     entry = tk.Entry(parent, textvariable=var, state="readonly")
     entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
 
-    btn = tk.Button(parent, text="Aufrufen", command=lambda: browser.open_link(var.get()))
+    btn = tk.Button(parent, text="🔗", width=2, command=lambda: browser.open_link(var.get()))
     btn.grid(row=row, column=2, padx=5, pady=2)

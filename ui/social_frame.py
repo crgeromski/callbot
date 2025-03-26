@@ -32,7 +32,7 @@ class SocialFrame:
         ).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0,10))
         
         # Datenzeilen
-        styles.create_link_row(self.inner, "DexScreener", self.shared_vars['dexscreener_var'], 1)
+        styles.create_link_row(self.inner, "DexLink", self.shared_vars['dexscreener_var'], 1)
         styles.create_link_row(self.inner, "Website", self.shared_vars['website_var'], 2)
         styles.create_link_row(self.inner, "Twitter", self.shared_vars['twitter_var'], 3)
         styles.create_link_row(self.inner, "Telegram", self.shared_vars['telegram_var'], 4)

@@ -12,28 +12,18 @@ class StatsFrame:
         self.create_frame()
         
     def create_frame(self):
+        """Erstellt den Frame für Statistik-Daten"""
         self.frame = tk.Frame(
             self.parent, 
             bg="white", 
-            padx=20,  # Gleicher horizontaler Abstand wie Social Media Frame
-            pady=20,  # Gleicher vertikaler Abstand wie Social Media Frame
-            bd=1,
-            relief="solid",
-            highlightbackground="#cccccc",
-            highlightthickness=1
+            padx=20, 
+            pady=20
         )
-        self.frame.grid(row=0, column=1, sticky="nsew")
-        
-        # Erstellen Sie zuerst self.inner
-        self.inner = tk.Frame(self.frame, bg="white")
-        self.inner.pack(fill="both", expand=True)
-        
-        # Dann konfigurieren Sie die Spalten
-        self.inner.columnconfigure(1, weight=1)
+        self.frame.pack(fill="both", expand=True)
         
         # Titel hinzufügen
         title_label = tk.Label(
-            self.inner, 
+            self.frame, 
             text="Statistiken", 
             font=("Arial", 11, "bold"), 
             bg="white", 
@@ -42,10 +32,9 @@ class StatsFrame:
         title_label.pack(anchor="w", pady=(0,10))
         
         # Erster Untercontainer für Statistikdaten
-        stats_data_container = tk.Frame(self.inner, bg="white", bd=1, relief="solid")
+        stats_data_container = tk.Frame(self.frame, bg="white", bd=1, relief="solid")
         stats_data_container.pack(fill="x", pady=(0,10))
         stats_data_container.columnconfigure(1, weight=1)  # Die Spalte mit den Entry-Feldern soll sich ausdehnen
-
         
         # Datenzeilen in den ersten Container
         styles.create_data_row(stats_data_container, "Market Cap", self.shared_vars['mcap_var'], 1, show_copy_button=False)
@@ -53,7 +42,7 @@ class StatsFrame:
         styles.create_data_row(stats_data_container, "24h Volumen", self.shared_vars['vol24_var'], 3, show_copy_button=False)
         
         # Zweiter Untercontainer für Timeframes
-        timeframes_container = tk.Frame(self.inner, bg="white", bd=1, relief="solid")
+        timeframes_container = tk.Frame(self.frame, bg="white", bd=1, relief="solid")
         timeframes_container.pack(fill="x")
 
         # Timeframes-Frame erstellen
@@ -62,7 +51,15 @@ class StatsFrame:
         for i in range(4):  # Für die 4 Zeitrahmen (5M, 1H, 6H, 24H)
             self.timeframes_frame.columnconfigure(i, weight=1)
 
-        # Rest des Codes bleibt gleich
+        # Timeframes-Titel
+        tk.Label(
+            timeframes_container,
+            text="Preisänderungen & Transaktionen",
+            font=("Arial", 10, "bold"),
+            bg="white",
+            anchor="w"
+        ).pack(anchor="w", padx=10, pady=(10,5))
+        
         for i, label_text in enumerate(["5M", "1H", "6H", "24H"]):
             # Label für jeden Timeframe
             tk.Label(

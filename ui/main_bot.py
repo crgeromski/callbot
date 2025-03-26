@@ -5,34 +5,12 @@ import data.api as api
 import data.storage as storage
 import utils.formatters as formatters
 from config import API_TIMEOUT, UPDATE_INTERVAL, BACKUP_INTERVAL
-from ui.token_frame import TokenFrame  # Diese Zeile hinzufügen
 
 class MainBot:
     def __init__(self, main_window):
         self.main_window = main_window
         self.shared_vars = main_window.shared_vars
         self.live_update_active = self.shared_vars['live_update_active'].get()
-        
-        self.main_container = main_window.tabs['main']
-
-        # Grid-Einstellungen für den main_container
-        #for col in range(2):
-            #self.main_container.grid_columnconfigure(col, weight=1, uniform="col")
-        # Einheitliche Zeilenhöhen
-        #for row in range(3):
-            #self.main_container.grid_rowconfigure(row, weight=1, uniform="row")
-
-        # Token-Frame für die obere linke Ecke erstellen
-        self.token_frame = TokenFrame(self.main_container, self.shared_vars)
-        
-        
-        # Importiere die neuen Frame-Klassen, wenn sie noch nicht oben importiert sind
-        #from ui.future_function_frame_1 import FutureFunctionFrame1
-        #from ui.future_function_frame_2 import FutureFunctionFrame2
-
-        # Erstelle die Frames für zukünftige Funktionen
-        #self.future_frame1 = FutureFunctionFrame1(self.main_container, self.shared_vars)
-        #self.future_frame2 = FutureFunctionFrame2(self.main_container, self.shared_vars)
         
         # Backup-Zähler
         self.backup_counter = 0
@@ -42,6 +20,9 @@ class MainBot:
         self.main_window.paste_and_fetch = self.paste_and_fetch
         self.main_window.toggle_live_update = self.toggle_live_update
         self.main_window.reset_budget = self.reset_budget
+        
+        # Platzhalter für after_id
+        self.live_update_after_id = None
         
     def fetch_data(self):
         """Liest den Link aus entry_var, konvertiert ihn ggf. und ruft die API ab."""
@@ -139,10 +120,6 @@ class MainBot:
         self.shared_vars['telegram_var'].set(next((s.get("url") for s in socials if s.get("type") == "telegram"), "N/A"))
         self.shared_vars['discord_var'].set(next((s.get("url") for s in socials if s.get("type") == "discord"), "N/A"))
         
-        # X-Post aktualisieren
-        if hasattr(self.main_window, 'xpost_frame'):
-            self.main_window.xpost_frame.update_xpost_container()
-            
     def paste_and_fetch(self):
         """Fügt den Inhalt der Zwischenablage in das Eingabefeld ein und ruft die API ab"""
         try:
@@ -245,7 +222,8 @@ class MainBot:
             storage.backup_calls()
             storage.save_budget(float(self.main_window.current_balance_label.cget("text").split(":")[1].strip().rstrip("$")))
             self.backup_counter = 0
-            
+
+
     def update_ui_stats(self):
         """Aktualisiert die statistischen Daten im UI"""
         # Aktualisiere die Treeviews
@@ -263,53 +241,25 @@ class MainBot:
         avg_profit = total_profit / num_calls if num_calls > 0 else 0.0
         current_balance = storage.load_budget()
         
-        # Update UI-Labels
-        # Update UI-Labels
+        # Update Profit-Labels
         self.update_profit_entry(self.main_window.total_invest_label, f"Investiert: {total_invest:.2f}$")
         self.update_profit_entry(self.main_window.num_calls_label, f"Calls: {num_calls}")
         self.update_profit_entry(self.main_window.total_profit_label, f"Gesamt Gewinn/Verlust: {total_profit:.2f}$", 
-                                color="#d8ffd8" if total_profit > 0 else "#ffd8d8" if total_profit < 0 else "white")
-
+                               color="#d8ffd8" if total_profit > 0 else "#ffd8d8" if total_profit < 0 else "white")
+                               
         self.update_profit_entry(self.main_window.profit_percent_label, f"Gewinn/Verlust (%): {profit_percentage:.2f}%",
-                                color="#d8ffd8" if profit_percentage > 0 else "#ffd8d8" if profit_percentage < 0 else "white")
-                                
+                               color="#d8ffd8" if profit_percentage > 0 else "#ffd8d8" if profit_percentage < 0 else "white")
+                               
         self.update_profit_entry(self.main_window.avg_profit_label, f"Durchschnitt pro Call: {avg_profit:.2f}$",
-                                color="#d8ffd8" if avg_profit > 0 else "#ffd8d8" if avg_profit < 0 else "white")
-                                
+                               color="#d8ffd8" if avg_profit > 0 else "#ffd8d8" if avg_profit < 0 else "white")
+                               
         self.update_profit_entry(self.main_window.current_balance_label, f"Kontostand: {current_balance:.2f}$",
-                                color="#d8ffd8" if current_balance > 500 else "#ffd8d8" if current_balance < 500 else "white")
-            
-        # Prozent-Label aktualisieren und einfärben
-        self.main_window.profit_percent_label.config(text=f"Gewinn/Verlust (%): {profit_percentage:.2f}%")
-        if profit_percentage > 0:
-            self.main_window.profit_percent_label.config(bg="#d8ffd8")
-        elif profit_percentage < 0:
-            self.main_window.profit_percent_label.config(bg="#ffd8d8")
-        else:
-            self.main_window.profit_percent_label.config(bg="white")
-            
-        # Durchschnitt pro Call aktualisieren und einfärben
-        self.main_window.avg_profit_label.config(text=f"Durchschnitt pro Call: {avg_profit:.2f}$")
-        if avg_profit > 0:
-            self.main_window.avg_profit_label.config(bg="#d8ffd8")
-        elif avg_profit < 0:
-            self.main_window.avg_profit_label.config(bg="#ffd8d8")
-        else:
-            self.main_window.avg_profit_label.config(bg="white")
-            
-        # Kontostand aktualisieren und einfärben
-        self.main_window.current_balance_label.config(text=f"Kontostand: {current_balance:.2f}$")
-        if current_balance > 500:
-            self.main_window.current_balance_label.config(bg="#d8ffd8")
-        elif current_balance < 500:
-            self.main_window.current_balance_label.config(bg="#ffd8d8")
-        else:
-            self.main_window.current_balance_label.config(bg="white")
+                               color="#d8ffd8" if current_balance > 500 else "#ffd8d8" if current_balance < 500 else "white")
 
     def update_profit_entry(self, entry_widget, text, color="white"):
         """Aktualisiert ein Entry-Widget im Gewinnrechner mit neuem Text und Farbe"""
         entry_widget.config(state="normal")
         entry_widget.delete(0, tk.END)
         entry_widget.insert(0, text)
-        entry_widget.config(state="readonly", readonlybackground=color)
-
+        entry_widget.config(state="readonly", readonlybackground=color)        
+    
