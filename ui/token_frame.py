@@ -18,6 +18,10 @@ class TokenFrame:
         
         self.frame.grid(row=0, column=0, sticky="nsew")
         
+        # Konfiguriere die Spalten für responsive Entry-Felder
+        self.frame.columnconfigure(1, weight=1)
+    
+        
         # Titel
         tk.Label(
             self.frame, 

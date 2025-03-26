@@ -19,7 +19,7 @@ class FutureFunctionFrame2:
             highlightbackground="#cccccc",
             highlightthickness=1
         )
-        self.frame.grid(row=2, column=1, sticky="nsew")
+        #self.frame.grid(row=2, column=1, sticky="nsew")
         
         self.inner = tk.Frame(self.frame, bg="white")
         self.inner.pack(fill="both", expand=True, padx=5, pady=5)

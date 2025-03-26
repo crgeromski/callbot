@@ -63,8 +63,8 @@ def create_data_row(parent, label_text, var, row):
     
     lbl = tk.Label(parent, text=label_text, font=("Arial", 10, "bold"), anchor="w")
     lbl.grid(row=row, column=0, padx=5, pady=2, sticky="w")
-    entry = tk.Entry(parent, textvariable=var, width=60, state="readonly")
-    entry.grid(row=row, column=1, padx=5, pady=2, sticky="w")
+    entry = tk.Entry(parent, textvariable=var, state="readonly")
+    entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
     btn = tk.Button(parent, text="Kopieren", command=lambda: clipboard.copy_to_clipboard(parent.winfo_toplevel(), var.get()))
     btn.grid(row=row, column=2, padx=5, pady=2)
 
@@ -77,8 +77,8 @@ def create_link_row(parent, label_text, var, row):
     lbl = tk.Label(parent, text=label_text, font=("Arial", 10, "bold"), anchor="w")
     lbl.grid(row=row, column=0, padx=5, pady=2, sticky="w")
 
-    entry = tk.Entry(parent, textvariable=var, width=60, state="readonly")
-    entry.grid(row=row, column=1, padx=5, pady=2, sticky="w")
+    entry = tk.Entry(parent, textvariable=var, state="readonly")
+    entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
 
     btn = tk.Button(parent, text="Aufrufen", command=lambda: browser.open_link(var.get()))
     btn.grid(row=row, column=2, padx=5, pady=2)

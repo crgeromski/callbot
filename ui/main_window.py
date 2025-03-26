@@ -35,7 +35,6 @@ class MainWindow:
         self.setup_window()
         self.create_dashboard()
         self.create_notebook()
-        
         self.create_profit_container()
 
     def setup_window(self):

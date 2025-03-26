@@ -41,7 +41,6 @@ class XPostFrame:
         # X-Post Textfeld (multiline)
         self.xpost_text_widget = tk.Text(
             self.inner, 
-            width=60, 
             height=3, 
             wrap="word", 
             relief="sunken", 
@@ -49,7 +48,7 @@ class XPostFrame:
         )
         self.xpost_text_widget.insert("1.0", "")
         self.xpost_text_widget.config(state="disabled")  
-        self.xpost_text_widget.pack(anchor="w", padx=0, pady=2)
+        self.xpost_text_widget.pack(anchor="w", padx=0, pady=2, fill="x", expand=True)
         
         # Frame für Buttons
         self.btn_subframe = tk.Frame(self.inner, bg="white")

@@ -19,6 +19,9 @@ class SocialFrame:
         self.inner = tk.Frame(self.frame, bg="white")
         self.inner.pack(fill="both", expand=True, padx=5, pady=5)
         
+        # Konfiguriere die Spalten für responsive Entry-Felder
+        self.inner.columnconfigure(1, weight=1)
+        
         # Titel
         tk.Label(
             self.inner, 

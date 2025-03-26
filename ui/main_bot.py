@@ -16,23 +16,23 @@ class MainBot:
         self.main_container = main_window.tabs['main']
 
         # Grid-Einstellungen für den main_container
-        for col in range(2):
-            self.main_container.grid_columnconfigure(col, weight=1, uniform="col")
+        #for col in range(2):
+            #self.main_container.grid_columnconfigure(col, weight=1, uniform="col")
         # Einheitliche Zeilenhöhen
-        for row in range(3):
-            self.main_container.grid_rowconfigure(row, weight=1, uniform="row")
+        #for row in range(3):
+            #self.main_container.grid_rowconfigure(row, weight=1, uniform="row")
 
         # Token-Frame für die obere linke Ecke erstellen
         self.token_frame = TokenFrame(self.main_container, self.shared_vars)
         
         
         # Importiere die neuen Frame-Klassen, wenn sie noch nicht oben importiert sind
-        from ui.future_function_frame_1 import FutureFunctionFrame1
-        from ui.future_function_frame_2 import FutureFunctionFrame2
+        #from ui.future_function_frame_1 import FutureFunctionFrame1
+        #from ui.future_function_frame_2 import FutureFunctionFrame2
 
         # Erstelle die Frames für zukünftige Funktionen
-        self.future_frame1 = FutureFunctionFrame1(self.main_container, self.shared_vars)
-        self.future_frame2 = FutureFunctionFrame2(self.main_container, self.shared_vars)
+        #self.future_frame1 = FutureFunctionFrame1(self.main_container, self.shared_vars)
+        #self.future_frame2 = FutureFunctionFrame2(self.main_container, self.shared_vars)
         
         # Backup-Zähler
         self.backup_counter = 0
