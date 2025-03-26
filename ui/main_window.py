@@ -47,7 +47,7 @@ class MainWindow:
         styles.setup_styles()
         
         # Optional: Mindestgröße setzen
-        self.root.minsize(400, 800)
+        self.root.minsize(630, 800)
 
     def create_dashboard(self):
         """Erstellt das Dashboard mit Eingabefeld und Widgets"""

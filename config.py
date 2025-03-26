@@ -8,7 +8,7 @@ BUDGET_FILE = "budget_backup.txt"
 
 # Standardwerte
 DEFAULT_BUDGET = 500.0
-DEFAULT_WINDOW_SIZE = "600x1127+1913+0"
+DEFAULT_WINDOW_SIZE = "630x1127+1913+0"
 DEFAULT_WINDOW_TITLE = "Dexscreener Bot"
 
 # API Konfiguration

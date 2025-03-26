@@ -51,13 +51,14 @@ def setup_styles():
     style.map("Treeview", 
               background=[("selected", "#e0e0e0")])
 
-def create_data_row(parent, label_text, var, row):
+def create_data_row(parent, label_text, var, row, show_copy_button=True):
     """
     Legt eine Label+Entry+Button-Zeile in einem Grid-Parent an.
     parent: Frame, der grid verwendet.
     label_text: Beschriftung
     var: StringVar zum Anzeigen
     row: Zeilennummer in der grid
+    show_copy_button: Ob der Kopieren-Button angezeigt werden soll
     """
     import utils.clipboard as clipboard
     
@@ -65,8 +66,10 @@ def create_data_row(parent, label_text, var, row):
     lbl.grid(row=row, column=0, padx=5, pady=2, sticky="w")
     entry = tk.Entry(parent, textvariable=var, state="readonly")
     entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
-    btn = tk.Button(parent, text="Kopieren", command=lambda: clipboard.copy_to_clipboard(parent.winfo_toplevel(), var.get()))
-    btn.grid(row=row, column=2, padx=5, pady=2)
+    
+    if show_copy_button:
+        btn = tk.Button(parent, text="Kopieren", command=lambda: clipboard.copy_to_clipboard(parent.winfo_toplevel(), var.get()))
+        btn.grid(row=row, column=2, padx=5, pady=2)
 
 def create_link_row(parent, label_text, var, row):
     """

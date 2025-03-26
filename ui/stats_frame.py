@@ -44,11 +44,13 @@ class StatsFrame:
         # Erster Untercontainer für Statistikdaten
         stats_data_container = tk.Frame(self.inner, bg="white", bd=1, relief="solid")
         stats_data_container.pack(fill="x", pady=(0,10))
+        stats_data_container.columnconfigure(1, weight=1)  # Die Spalte mit den Entry-Feldern soll sich ausdehnen
+
         
         # Datenzeilen in den ersten Container
-        styles.create_data_row(stats_data_container, "Market Cap", self.shared_vars['mcap_var'], 1)
-        styles.create_data_row(stats_data_container, "Liquidity (USD)", self.shared_vars['liq_var'], 2)
-        styles.create_data_row(stats_data_container, "24h Volumen", self.shared_vars['vol24_var'], 3)
+        styles.create_data_row(stats_data_container, "Market Cap", self.shared_vars['mcap_var'], 1, show_copy_button=False)
+        styles.create_data_row(stats_data_container, "Liquidity (USD)", self.shared_vars['liq_var'], 2, show_copy_button=False)
+        styles.create_data_row(stats_data_container, "24h Volumen", self.shared_vars['vol24_var'], 3, show_copy_button=False)
         
         # Zweiter Untercontainer für Timeframes
         timeframes_container = tk.Frame(self.inner, bg="white", bd=1, relief="solid")
@@ -83,8 +85,8 @@ class StatsFrame:
             bs_label_frame = tk.Frame(col_frame, bg="white")
             bs_label_frame.grid(row=1, column=0, pady=1)
             
-            tk.Label(bs_label_frame, text="Buys", font=("Arial", 8), bg="white").pack(side="left", padx=(0,5))
-            tk.Label(bs_label_frame, text="Sells", font=("Arial", 8), bg="white").pack(side="left", padx=(5,0))
+            tk.Label(bs_label_frame, text="B", font=("Arial", 8, "bold"), bg="white").pack(side="left", padx=(0,5))
+            tk.Label(bs_label_frame, text="S", font=("Arial", 8, "bold"), bg="white").pack(side="left", padx=(5,0))
             
             bs_entry_frame = tk.Frame(col_frame, bg="white")
             bs_entry_frame.grid(row=2, column=0, pady=1, sticky="ew")
