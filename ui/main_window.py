@@ -51,17 +51,23 @@ class MainWindow:
 
     def create_dashboard(self):
         """Erstellt das Dashboard mit Eingabefeld und Widgets"""
-        # Erhöhe die Höhe des Dashboards
-        self.dashboard_frame = tk.Frame(self.root, bg="#cccccc", height=200)
+        # Entferne pack_propagate(False)
+        self.dashboard_frame = tk.Frame(self.root, bg="#cccccc")
         self.dashboard_frame.pack(side="bottom", fill="x", padx=25, pady=25)
-        self.dashboard_frame.pack_propagate(False)  # Verhindert automatische Größenanpassung
+        
+        # Konfiguriere Grid für gleichmäßige Spaltenverteilung
+        self.dashboard_frame.columnconfigure(0, weight=1)
+        self.dashboard_frame.columnconfigure(1, weight=1)
         
         # Erstelle zwei Spalten im Dashboard
         left_column = tk.Frame(self.dashboard_frame, bg="#cccccc")
-        left_column.pack(side="left", fill="both", expand=True)
+        left_column.grid(row=0, column=0, sticky="nsew")
         
         right_column = tk.Frame(self.dashboard_frame, bg="#cccccc")
-        right_column.pack(side="right", fill="both", expand=True)
+        right_column.grid(row=0, column=1, sticky="nsew")
+        
+        # Rest des Codes bleibt unverändert, nur mit grid() statt pack()
+        ...
         
         # Eingabefeld-Sektion in der linken Spalte
         input_section = tk.Frame(left_column, bg="#cccccc")
@@ -89,8 +95,6 @@ class MainWindow:
         self.live_update_btn = tk.Button(control_section, text="Live Update AN", command=self.toggle_live_update, bg="#d8ffd8")
         self.live_update_btn.pack(side="right", padx=(10, 0))
         
-        # Gewinnrechner-Sektion (aus create_profit_container)
-        self.create_profit_section(self.dashboard_frame)
 
     def create_notebook(self):
         """Erstellt das Notebook mit Tabs"""

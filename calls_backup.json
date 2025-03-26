@@ -5,11 +5,24 @@
         "MCAP_at_Call": "170K",
         "Liquidity_at_Call": "52K",
         "Link": "https://dexscreener.com/solana/arukuwwuravmb47ze76fypb66dw48akuahuv7ociuicj",
-        "Aktuelles_MCAP": "68K",
-        "Live_Liquidity": "33K",
-        "X_Factor": "0.4X",
-        "PL_Percent": "-60%",
-        "PL_Dollar": "-6.00$",
+        "Aktuelles_MCAP": "78K",
+        "Live_Liquidity": "35K",
+        "X_Factor": "0.5X",
+        "PL_Percent": "-54%",
+        "PL_Dollar": "-5.41$",
+        "Invest": "10"
+    },
+    {
+        "Datum": "26.03.2025",
+        "Symbol": "$BOP",
+        "MCAP_at_Call": "187K",
+        "Liquidity_at_Call": "48K",
+        "Link": "https://dexscreener.com/solana/c8gghnmuqnpw7ugie4fm5yclz3tjpbmliybjsg3qc9be",
+        "Aktuelles_MCAP": "178K",
+        "Live_Liquidity": "47K",
+        "X_Factor": "1.0X",
+        "PL_Percent": "-5%",
+        "PL_Dollar": "-0.48$",
         "Invest": "10"
     }
 ]
