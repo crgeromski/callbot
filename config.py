@@ -17,3 +17,4 @@ UPDATE_INTERVAL = 30000  # Millisekunden (30 Sekunden)
 BACKUP_INTERVAL = 5  # Anzahl der Updates vor einem Backup
 
 
+#Testkommentar
