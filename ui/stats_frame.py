@@ -32,7 +32,7 @@ class StatsFrame:
         title_label.pack(anchor="w", pady=(0,10))
         
         # Erster Untercontainer für Statistikdaten
-        stats_data_container = tk.Frame(self.frame, bg="white", bd=1, relief="solid")
+        stats_data_container = tk.Frame(self.frame, bg="white")
         stats_data_container.pack(fill="x", pady=(0,10))
         stats_data_container.columnconfigure(1, weight=1)  # Die Spalte mit den Entry-Feldern soll sich ausdehnen
         
@@ -42,7 +42,7 @@ class StatsFrame:
         styles.create_data_row(stats_data_container, "24h Volumen", self.shared_vars['vol24_var'], 3, show_copy_button=False)
         
         # Zweiter Untercontainer für Timeframes
-        timeframes_container = tk.Frame(self.frame, bg="white", bd=1, relief="solid")
+        timeframes_container = tk.Frame(self.frame, bg="white")
         timeframes_container.pack(fill="x")
 
         # Timeframes-Frame erstellen

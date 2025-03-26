@@ -117,27 +117,27 @@ class MainWindow:
         container_top.columnconfigure(1, weight=3)  # 30% Breite
         
         # Linker Teil (Token-Daten)
-        self.top_left = tk.Frame(container_top, bg="white", bd=1, relief="solid", padx=20, pady=20)
+        self.top_left = tk.Frame(container_top, bg="white", bd=1, relief="solid")
         self.top_left.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
-            
+        
         # Rechter Teil (DexLink-Eingabe)
-        self.top_right = tk.Frame(container_top, bg="white", bd=1, relief="solid", padx=20, pady=20)
+        self.top_right = tk.Frame(container_top, bg="white", bd=1, relief="solid")
         self.top_right.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
         
         # Container 2: Mittlerer Bereich (50% / 50%)
         container_middle = tk.Frame(self.tab1, bg="white")
-        container_middle.pack(fill="both", expand=True, padx=10, pady=5)
-        
-        # Container 2 in zwei Teile aufteilen
-        container_middle.columnconfigure(0, weight=1)  # 50% Breite
-        container_middle.columnconfigure(1, weight=1)  # 50% Breite
-        
+        container_middle.pack(fill="x", padx=10, pady=5)
+
+        # Container 2 in zwei Teile aufteilen - mit fester Größe
+        container_middle.columnconfigure(0, minsize=300, weight=1)  # 50% Breite, mindestens 300px
+        container_middle.columnconfigure(1, minsize=300, weight=1)  # 50% Breite, mindestens 300px
+
         # Linker Teil (Statistiken)
-        self.middle_left = tk.Frame(container_middle, bg="white", bd=1, relief="solid")
+        self.middle_left = tk.Frame(container_middle, bg="white", bd=1, relief="solid", width=300)
         self.middle_left.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
-        
+
         # Rechter Teil (Social Media)
-        self.middle_right = tk.Frame(container_middle, bg="white", bd=1, relief="solid")
+        self.middle_right = tk.Frame(container_middle, bg="white", bd=1, relief="solid", width=300)
         self.middle_right.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
         
         # Container 3: Unterer Bereich (50% / 50%)
