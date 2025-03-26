@@ -54,11 +54,10 @@ class StatsFrame:
         # Timeframes-Titel
         tk.Label(
             timeframes_container,
-            text="Preisänderungen & Transaktionen",
             font=("Arial", 10, "bold"),
             bg="white",
             anchor="w"
-        ).pack(anchor="w", padx=10, pady=(10,5))
+        ).pack(anchor="w", padx=10, pady=(2,5))
         
         for i, label_text in enumerate(["5M", "1H", "6H", "24H"]):
             # Label für jeden Timeframe
@@ -67,23 +66,25 @@ class StatsFrame:
                 text=label_text, 
                 font=("Arial", 10, "bold"), 
                 bg="white"
-            ).grid(row=0, column=i, padx=10)
+            ).grid(row=0, column=i, padx=5)
             
             # Frame für jede Spalte
             col_frame = tk.Frame(self.timeframes_frame, bg="white")
-            col_frame.grid(row=1, column=i, padx=10, pady=2)
+            col_frame.grid(row=1, column=i, padx=2, pady=2)
             
             # Verwenden Sie grid statt pack für konsistentere Ausrichtung
             pc_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_pc = tk.Entry(col_frame, textvariable=pc_var, state="readonly", justify="center")
+            e_pc = tk.Entry(col_frame, textvariable=pc_var, state="readonly", justify="center", font=("Arial", 10, "bold"))
             e_pc.grid(row=0, column=0, pady=1, padx=2, sticky="ew")
             col_frame.columnconfigure(0, weight=1)
             
             bs_label_frame = tk.Frame(col_frame, bg="white")
-            bs_label_frame.grid(row=1, column=0, pady=1)
-            
-            tk.Label(bs_label_frame, text="B", font=("Arial", 8, "bold"), bg="white").pack(side="left", padx=(0,5))
-            tk.Label(bs_label_frame, text="S", font=("Arial", 8, "bold"), bg="white").pack(side="left", padx=(5,0))
+            bs_label_frame.grid(row=1, column=0, pady=1, sticky="ew")
+            bs_label_frame.columnconfigure(0, weight=1, uniform="bs_labels")
+            bs_label_frame.columnconfigure(1, weight=1, uniform="bs_labels")
+
+            tk.Label(bs_label_frame, text="B", font=("Arial", 8, "bold"), bg="white").grid(row=0, column=0, padx=2)
+            tk.Label(bs_label_frame, text="S", font=("Arial", 8, "bold"), bg="white").grid(row=0, column=1, padx=2)
             
             bs_entry_frame = tk.Frame(col_frame, bg="white")
             bs_entry_frame.grid(row=2, column=0, pady=1, sticky="ew")
@@ -92,11 +93,11 @@ class StatsFrame:
             bs_entry_frame.columnconfigure(1, weight=1, uniform="bs_entries")
 
             buys_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_buys = tk.Entry(bs_entry_frame, textvariable=buys_var, state="readonly", bg="white", justify="center", width=8)
+            e_buys = tk.Entry(bs_entry_frame, textvariable=buys_var, state="readonly", bg="white", justify="center", width=8, font=("Arial", 8, "bold"))
             e_buys.grid(row=0, column=0, padx=2, sticky="ew")
 
             sells_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_sells = tk.Entry(bs_entry_frame, textvariable=sells_var, state="readonly", bg="white", justify="center", width=8) 
+            e_sells = tk.Entry(bs_entry_frame, textvariable=sells_var, state="readonly", bg="white", justify="center", width=8, font=("Arial", 8, "bold"))
             e_sells.grid(row=0, column=1, padx=2, sticky="ew")
             
             self.time_price_vars.append((pc_var, e_pc)) 

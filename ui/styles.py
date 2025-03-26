@@ -80,7 +80,7 @@ def create_link_row(parent, label_text, var, row):
     lbl = tk.Label(parent, text=label_text, font=("Arial", 10, "bold"), anchor="w")
     lbl.grid(row=row, column=0, padx=5, pady=2, sticky="w")
 
-    entry = tk.Entry(parent, textvariable=var, state="readonly")
+    entry = tk.Entry(parent, textvariable=var, state="readonly", font=("Arial", 10, "bold"))
     entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
 
     btn = tk.Button(parent, text="🔗", width=2, command=lambda: browser.open_link(var.get()))

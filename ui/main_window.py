@@ -47,6 +47,8 @@ class MainWindow:
         self.root.configure(bg="#cccccc")
         # Styles einrichten
         styles.setup_styles()
+        # Globale Tastenkombination für Strg+V
+        self.root.bind("<Control-v>", lambda e: self.paste_and_fetch())
         
         # Optional: Mindestgröße setzen
         self.root.minsize(630, 800)
@@ -110,8 +112,8 @@ class MainWindow:
         container_top.pack(fill="x", padx=10, pady=5)
         
         # Container 1 in zwei Teile aufteilen
-        container_top.columnconfigure(0, weight=7)  # 70% Breite
-        container_top.columnconfigure(1, weight=3)  # 30% Breite
+        container_top.columnconfigure(0, weight=7) 
+        container_top.columnconfigure(1, weight=3) 
         
         # Linker Teil (Token-Daten)
         self.top_left = tk.Frame(container_top, bg="white", bd=1, relief="solid")
@@ -222,7 +224,7 @@ class MainWindow:
 
     def create_profit_entry(self, initial_text):
         """Erstellt ein Entry-Widget für den Gewinnrechner im einheitlichen Stil"""
-        entry = tk.Entry(self.profit_container, justify="center", font=("Arial", 9))
+        entry = tk.Entry(self.profit_container, justify="center", font=("Arial", 9, "bold"))
         entry.insert(0, initial_text)
         entry.config(state="readonly", readonlybackground="white")
         return entry
