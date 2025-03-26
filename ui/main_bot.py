@@ -12,20 +12,16 @@ class MainBot:
         self.main_window = main_window
         self.shared_vars = main_window.shared_vars
         
-        # Container für die linke und rechte Spalte
+        # Ersetze mit diesen Zeilen in main_bot.py:
         self.main_container = tk.Frame(main_window.tabs['main'], bg="white")
-        self.main_container.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        
-        # Konfiguriere die Größenanpassung für das Tab
-        main_window.tabs['main'].grid_rowconfigure(0, weight=1)
-        main_window.tabs['main'].grid_columnconfigure(0, weight=1)
-        
+        self.main_container.pack(fill="both", expand=True, padx=10, pady=10)
+
         # Grid-Einstellungen für den main_container
         for col in range(2):
-            self.main_container.grid_columnconfigure(col, weight=1, pad=5)  # Reduziere Padding
+            self.main_container.grid_columnconfigure(col, weight=1, uniform="col")
         # Einheitliche Zeilenhöhen
         for row in range(3):
-            self.main_container.grid_rowconfigure(row, weight=1, pad=5)  # Gleichmäßige Höhen
+            self.main_container.grid_rowconfigure(row, weight=1, uniform="row")
 
         # Token-Frame für die obere linke Ecke erstellen
         self.token_frame = TokenFrame(self.main_container, self.shared_vars)

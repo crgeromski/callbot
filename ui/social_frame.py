@@ -4,15 +4,6 @@ import ui.styles as styles
 
 class SocialFrame:
     def create_frame(self):
-        """Erstellt den Frame für Social Media Links"""
-        self.frame = tk.Frame(
-            self.parent, 
-            bg="white", 
-            padx=10, 
-            pady=10, 
-            bd=1, 
-            relief="solid"
-        )
         self.frame.grid(row=2, column=0, sticky="nsew")
         
         self.inner = tk.Frame(self.frame, bg="white")

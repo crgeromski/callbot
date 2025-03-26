@@ -3,25 +3,15 @@ import tkinter as tk
 import ui.styles as styles
 
 class TokenFrame:
-    def __init__(self, parent, shared_vars):
-        self.parent = parent
-        self.shared_vars = shared_vars
-        self.create_frame()
-        
     def create_frame(self):
         """Erstellt den Frame für Token-Daten"""
         self.frame = tk.Frame(
             self.parent, 
             bg="white", 
-            padx=10, 
-            pady=10, 
-            bd=1, 
-            relief="solid"
+            padx=20, 
+            pady=20
         )
         self.frame.grid(row=0, column=0, sticky="nsew")
-        
-        self.inner = tk.Frame(self.frame, bg="white")
-        self.inner.pack(fill="both", expand=True, padx=5, pady=5)
         
         # Titel
         tk.Label(
