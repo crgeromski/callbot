@@ -73,9 +73,6 @@ class MainWindow:
         self.reset_budget_btn = tk.Button(control_section, text="Kontostand zurücksetzen", command=self.reset_budget)
         self.reset_budget_btn.pack(side="right", padx=(10, 0))
         
-        # Live Update Button
-        self.live_update_btn = tk.Button(control_section, text="Live Update AN", command=self.toggle_live_update, bg="#d8ffd8")
-        self.live_update_btn.pack(side="right", padx=(10, 0))
 
     def create_notebook(self):
         """Erstellt das Notebook mit Tabs und die drei Hauptcontainer im Main-Tab"""

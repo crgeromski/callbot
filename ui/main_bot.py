@@ -10,7 +10,7 @@ class MainBot:
     def __init__(self, main_window):
         self.main_window = main_window
         self.shared_vars = main_window.shared_vars
-        self.live_update_active = self.shared_vars['live_update_active'].get()
+        self.live_update_active = True  # Immer aktiv
         
         # Backup-Zähler
         self.backup_counter = 0
@@ -23,6 +23,10 @@ class MainBot:
         
         # Platzhalter für after_id
         self.live_update_after_id = None
+
+    def toggle_live_update(self):
+        """Diese Methode bleibt für Kompatibilität, tut aber nichts mehr."""
+        pass
         
     def fetch_data(self):
         """Liest den Link aus entry_var, konvertiert ihn ggf. und ruft die API ab."""
@@ -146,25 +150,9 @@ class MainBot:
             self.main_window.current_balance_label.config(text=f"Kontostand: 500.00$", bg="white")
             messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt.")
             
-    def toggle_live_update(self):
-        """Schaltet die Live-Daten-Aktualisierung an oder aus"""
-        self.live_update_active = not self.live_update_active
-        if self.live_update_active:
-            self.main_window.live_update_btn.config(text="Live Update AN", bg="#d8ffd8")
-            self.auto_refresh_calls()  # Starte den Call-Update-Loop
-        else:
-            self.main_window.live_update_btn.config(text="Live Update AUS", bg="#ffd8d8")
-            if self.live_update_after_id is not None:
-                self.main_window.root.after_cancel(self.live_update_after_id)
-                self.live_update_after_id = None
-            print("Live-Update gestoppt.")
             
     def auto_refresh_calls(self):
-        """Aktualisiert regelmäßig die Calls"""
-        if not self.live_update_active:
-            return
-            
-        calls = storage.load_call_data()
+        calls = storage.load_call_data()  # Diese Zeile war nach der entfernten Prüfung
         updated_calls = []
         for call in calls:
             if call.get("abgeschlossen", False):
@@ -220,7 +208,20 @@ class MainBot:
         # Backup alle X Durchläufe
         if self.backup_counter >= BACKUP_INTERVAL:
             storage.backup_calls()
-            storage.save_budget(float(self.main_window.current_balance_label.cget("text").split(":")[1].strip().rstrip("$")))
+            try:
+                label_text = self.main_window.current_balance_label.cget("text")
+                if ":" in label_text:
+                    balance_text = label_text.split(":", 1)[1].strip().rstrip("$")
+                    storage.save_budget(float(balance_text))
+                else:
+                    # Falls das Label nicht wie erwartet formatiert ist, laden wir den aktuellen Wert aus der Datei
+                    current_budget = storage.load_budget()
+                    storage.save_budget(current_budget)
+            except Exception as e:
+                print(f"Fehler beim Speichern des Budgets: {e}")
+                # Wir versuchen, auf den gespeicherten Wert zurückzugreifen
+                current_budget = storage.load_budget()
+                storage.save_budget(current_budget)
             self.backup_counter = 0
 
 

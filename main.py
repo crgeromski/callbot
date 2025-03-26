@@ -49,9 +49,7 @@ def main():
     calls_tree.update_tree()
     archived_calls_tree.update_tree()
     
-    # Starte das Live-Update, wenn es aktiv ist
-    if main_window.shared_vars['live_update_active'].get():
-        main_bot.auto_refresh_calls()
+    main_bot.auto_refresh_calls()
     
     # Starte die Hauptschleife
     root.mainloop()
