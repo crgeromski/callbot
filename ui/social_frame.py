@@ -3,6 +3,12 @@ import tkinter as tk
 import ui.styles as styles
 
 class SocialFrame:
+    def __init__(self, parent, shared_vars, main_window=None):
+        self.parent = parent
+        self.shared_vars = shared_vars
+        self.main_window = main_window
+        self.create_frame()
+        
     def create_frame(self):
         """Erstellt den Frame für Social Media Kanäle"""
         self.frame = tk.Frame(
@@ -87,14 +93,6 @@ class SocialFrame:
             if hasattr(self, 'main_window') and self.main_window and hasattr(self.main_window, 'notebook'):
                 self.main_window.notebook.select(self.main_window.tabs['calls'])
                 
-            messagebox.showinfo("Erfolg", "Call wurde erfolgreich erstellt.")
                 
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Calls: {e}")
-
-
-    def __init__(self, parent, shared_vars, main_window=None):
-        self.parent = parent
-        self.shared_vars = shared_vars
-        self.main_window = main_window
-        self.create_frame()

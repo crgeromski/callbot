@@ -71,8 +71,6 @@ class RecommendationFrame:
             # Wechsle zum Calls-Tab
             if self.main_window and hasattr(self.main_window, 'notebook'):
                 self.main_window.notebook.select(self.main_window.tabs['calls'])
-                
-            messagebox.showinfo("Erfolg", "Call wurde erfolgreich erstellt.")
-                
+                                
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Calls: {e}")

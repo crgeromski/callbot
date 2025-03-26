@@ -5,11 +5,11 @@
         "MCAP_at_Call": "170K",
         "Liquidity_at_Call": "52K",
         "Link": "https://dexscreener.com/solana/arukuwwuravmb47ze76fypb66dw48akuahuv7ociuicj",
-        "Aktuelles_MCAP": "45K",
-        "Live_Liquidity": "26K",
-        "X_Factor": "0.3X",
-        "PL_Percent": "-74%",
-        "PL_Dollar": "-7.35$",
+        "Aktuelles_MCAP": "41K",
+        "Live_Liquidity": "25K",
+        "X_Factor": "0.2X",
+        "PL_Percent": "-76%",
+        "PL_Dollar": "-7.59$",
         "Invest": "10"
     },
     {
@@ -18,11 +18,11 @@
         "MCAP_at_Call": "187K",
         "Liquidity_at_Call": "48K",
         "Link": "https://dexscreener.com/solana/c8gghnmuqnpw7ugie4fm5yclz3tjpbmliybjsg3qc9be",
-        "Aktuelles_MCAP": "210K",
+        "Aktuelles_MCAP": "211K",
         "Live_Liquidity": "51K",
         "X_Factor": "1.1X",
-        "PL_Percent": "12%",
-        "PL_Dollar": "1.23$",
+        "PL_Percent": "13%",
+        "PL_Dollar": "1.28$",
         "Invest": "10"
     },
     {
@@ -31,11 +31,37 @@
         "MCAP_at_Call": "495K",
         "Liquidity_at_Call": "93K",
         "Link": "https://dexscreener.com/solana/6kbnbdrpucestt1v9vtmhb52kw6zbv3uf9is9dwrhpbu",
-        "Aktuelles_MCAP": "239K",
-        "Live_Liquidity": "65K",
+        "Aktuelles_MCAP": "225K",
+        "Live_Liquidity": "63K",
         "X_Factor": "0.5X",
-        "PL_Percent": "-52%",
-        "PL_Dollar": "-5.17$",
+        "PL_Percent": "-55%",
+        "PL_Dollar": "-5.45$",
+        "Invest": "10"
+    },
+    {
+        "Datum": "26.03.2025",
+        "Symbol": "$PORK",
+        "MCAP_at_Call": "258K",
+        "Liquidity_at_Call": "67K",
+        "Link": "https://dexscreener.com/solana/6kbnbdrpucestt1v9vtmhb52kw6zbv3uf9is9dwrhpbu",
+        "Aktuelles_MCAP": "225K",
+        "Live_Liquidity": "63K",
+        "X_Factor": "0.9X",
+        "PL_Percent": "-13%",
+        "PL_Dollar": "-1.28$",
+        "Invest": "10"
+    },
+    {
+        "Datum": "26.03.2025",
+        "Symbol": "$anime",
+        "MCAP_at_Call": "11K",
+        "Liquidity_at_Call": "11K",
+        "Link": "https://dexscreener.com/solana/fsnwitxwrddhdengjl5jeng8sywm4aa5cmdu9y6xbmqo",
+        "Aktuelles_MCAP": "11K",
+        "Live_Liquidity": "11K",
+        "X_Factor": "1.0X",
+        "PL_Percent": "0%",
+        "PL_Dollar": "0.00$",
         "Invest": "10"
     }
 ]

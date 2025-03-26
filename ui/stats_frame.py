@@ -99,7 +99,7 @@ class StatsFrame:
             e_sells = tk.Entry(bs_entry_frame, textvariable=sells_var, state="readonly", bg="white", justify="center", width=8) 
             e_sells.grid(row=0, column=1, padx=2, sticky="ew")
             
-            self.time_price_vars.append(pc_var)
+            self.time_price_vars.append((pc_var, e_pc)) 
             self.time_buys_vars.append((buys_var, e_buys))
             self.time_sells_vars.append((sells_var, e_sells))
         
@@ -117,5 +117,17 @@ class StatsFrame:
                 buys_entry.config(readonlybackground="#d8ffd8")
             elif s_val > b_val:
                 sells_entry.config(readonlybackground="#ffd8d8")
+        except:
+            pass
+
+    def color_price_change_entry(self, entry, value_str):
+        """Hintergrund einfärben: Grün wenn positiv, Rot wenn negativ."""
+        entry.config(readonlybackground="white")
+        try:
+            value = float(value_str.rstrip("%"))
+            if value > 0:
+                entry.config(readonlybackground="#d8ffd8")
+            elif value < 0:
+                entry.config(readonlybackground="#ffd8d8")
         except:
             pass

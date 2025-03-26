@@ -71,8 +71,6 @@ class CallFrame:
             # Aktualisiere die Treeview
             if hasattr(self.main_window, 'update_calls_tree'):
                 self.main_window.update_calls_tree()
-                
-            messagebox.showinfo("Erfolg", "Call wurde erfolgreich erstellt.")
-                
+                                
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Calls: {e}")

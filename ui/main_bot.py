@@ -80,12 +80,31 @@ class MainBot:
             tx_data = pair_info.get("txns", {}).get(lab, {})
             buys = str(tx_data.get("buys", "N/A"))
             sells = str(tx_data.get("sells", "N/A"))
+            
+            formatted_pc = formatters.format_percentage(pc_str)
+            
             if i < len(self.main_window.time_price_vars):
-                self.main_window.time_price_vars[i].set(formatters.format_percentage(pc_str))
+                # Bei den Preis-Variablen gehen wir davon aus, dass sie jetzt als (var, entry) Tupel gespeichert sind
+                price_var, price_entry = self.main_window.time_price_vars[i]
+                price_var.set(formatted_pc)
+                
+                # Farbe direkt setzen basierend auf dem Wert
+                try:
+                    pc_value = float(pc_str) if pc_str != "N/A" else 0
+                    if pc_value > 0:
+                        price_entry.config(readonlybackground="#d8ffd8")  # Grün für positiv
+                    elif pc_value < 0:
+                        price_entry.config(readonlybackground="#ffd8d8")  # Rot für negativ
+                    else:
+                        price_entry.config(readonlybackground="white")  # Neutral für 0
+                except (ValueError, TypeError):
+                    price_entry.config(readonlybackground="white")  # Fallback
+                    
+                # Buys/Sells-Aktualisierung
                 self.main_window.time_buys_vars[i][0].set(buys)
                 self.main_window.time_sells_vars[i][0].set(sells)
                 
-                # Färbe die Felder ein
+                # Färbe die Buys/Sells-Felder ein
                 if hasattr(self.main_window, 'stats_frame'):
                     self.main_window.stats_frame.color_buys_sells_entries(
                         self.main_window.time_buys_vars[i][1], 
