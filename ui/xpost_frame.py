@@ -13,9 +13,11 @@ class XPostFrame:
         """Erstellt den Frame für X-Posts"""
         self.frame = tk.Frame(
             self.parent, 
-            bg="white"  # Entferne bd=1, relief="solid"
+            bg="white",
+            padx=20,
+            pady=20
         )
-        self.frame.grid(row=0, column=1, sticky="nsew")
+        self.frame.grid(row=1, column=1, sticky="nsew")  # Ändern von (0,1) zu (1,1)
         
         self.inner = tk.Frame(self.frame, bg="white")
         self.inner.pack(fill="both", expand=True)

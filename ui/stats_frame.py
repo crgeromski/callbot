@@ -15,50 +15,83 @@ class StatsFrame:
         """Erstellt den Frame für Statistiken"""
         self.frame = tk.Frame(
             self.parent, 
-            bg="white"  # Entferne bd=1, relief="solid"
+            bg="white",
+            padx=20,
+            pady=20
         )
-        self.frame.grid(row=1, column=0, sticky="nsew")
+        self.frame.grid(row=0, column=1, sticky="nsew")  # Ändern von (1,0) zu (0,1)
         
         self.inner = tk.Frame(self.frame, bg="white")
         self.inner.pack(fill="both", expand=True)
         
+        # Titel hinzufügen (fehlte)
+        title_label = tk.Label(
+            self.inner, 
+            text="Statistiken", 
+            font=("Arial", 11, "bold"), 
+            bg="white", 
+            anchor="w"
+        )
+        title_label.pack(anchor="w", pady=(0,10))
+        
+        # Erstelle einen Container für die Datenzeilen, der pack verwendet
+        data_container = tk.Frame(self.inner, bg="white")
+        data_container.pack(fill="both", expand=True)
+        
         # Datenzeilen
-        styles.create_data_row(self.inner, "Market Cap", self.shared_vars['mcap_var'], 1)
-        styles.create_data_row(self.inner, "Liquidity (USD)", self.shared_vars['liq_var'], 2)
-        styles.create_data_row(self.inner, "24h Volumen", self.shared_vars['vol24_var'], 3)
+        styles.create_data_row(data_container, "Market Cap", self.shared_vars['mcap_var'], 1)
+        styles.create_data_row(data_container, "Liquidity (USD)", self.shared_vars['liq_var'], 2)
+        styles.create_data_row(data_container, "24h Volumen", self.shared_vars['vol24_var'], 3)
         
         # Timeframes-Frame
         self.timeframes_frame = tk.Frame(self.inner, bg="white")
-        self.timeframes_frame.grid(row=4, column=0, columnspan=3, pady=10, sticky="n")
-        self.timeframes_frame.grid_configure(padx=50)
+        self.timeframes_frame.pack(pady=10, anchor="n")
+
+        # Timeframe-Beschriftungen in einem eigenen Container
+        tf_labels_frame = tk.Frame(self.timeframes_frame, bg="white")
+        tf_labels_frame.pack(fill="x")
         
-        # Timeframe-Beschriftungen
-        lbl_5m = tk.Label(self.timeframes_frame, text="5M", font=("Arial", 10, "bold"), bg="white")
-        lbl_5m.grid(row=0, column=0, padx=10)
-        lbl_1h = tk.Label(self.timeframes_frame, text="1H", font=("Arial", 10, "bold"), bg="white")
-        lbl_1h.grid(row=0, column=1, padx=10)
-        lbl_6h = tk.Label(self.timeframes_frame, text="6H", font=("Arial", 10, "bold"), bg="white")
-        lbl_6h.grid(row=0, column=2, padx=10)
-        lbl_24h = tk.Label(self.timeframes_frame, text="24H", font=("Arial", 10, "bold"), bg="white")
-        lbl_24h.grid(row=0, column=3, padx=10)
+        lbl_5m = tk.Label(tf_labels_frame, text="5M", font=("Arial", 10, "bold"), bg="white")
+        lbl_5m.pack(side="left", padx=10)
+        lbl_1h = tk.Label(tf_labels_frame, text="1H", font=("Arial", 10, "bold"), bg="white")
+        lbl_1h.pack(side="left", padx=10)
+        lbl_6h = tk.Label(tf_labels_frame, text="6H", font=("Arial", 10, "bold"), bg="white")
+        lbl_6h.pack(side="left", padx=10)
+        lbl_24h = tk.Label(tf_labels_frame, text="24H", font=("Arial", 10, "bold"), bg="white")
+        lbl_24h.pack(side="left", padx=10)
+        
+        # Frame für die Entry-Widgets
+        entries_frame = tk.Frame(self.timeframes_frame, bg="white")
+        entries_frame.pack(fill="x", pady=5)
         
         # Erstelle Entries für die Timeframes
         for i in range(4):
+            entry_frame = tk.Frame(entries_frame, bg="white")
+            entry_frame.pack(side="left", padx=10)
+            
             pc_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_pc = tk.Entry(self.timeframes_frame, textvariable=pc_var, width=7, state="readonly")
-            e_pc.grid(row=1, column=i, padx=2, pady=1)
-            subf = tk.Frame(self.timeframes_frame, bg="white")
-            subf.grid(row=2, column=i, padx=5, pady=1)
+            e_pc = tk.Entry(entry_frame, textvariable=pc_var, width=7, state="readonly")
+            e_pc.pack(pady=1)
+            
+            subf = tk.Frame(entry_frame, bg="white")
+            subf.pack(pady=1)
+            
             lb_b = tk.Label(subf, text="Buys", font=("Arial", 8), bg="white")
-            lb_b.grid(row=0, column=0, padx=(0,5), sticky="e")
+            lb_b.pack(side="left", padx=(0,5))
             lb_s = tk.Label(subf, text="Sells", font=("Arial", 8), bg="white")
-            lb_s.grid(row=0, column=1, padx=(5,0), sticky="w")
+            lb_s.pack(side="left", padx=(5,0))
+            
+            buys_sells_frame = tk.Frame(subf, bg="white")
+            buys_sells_frame.pack(pady=1)
+            
             buys_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_buys = tk.Entry(subf, textvariable=buys_var, width=7, state="readonly", bg="white")
-            e_buys.grid(row=1, column=0, padx=2, pady=1)
+            e_buys = tk.Entry(buys_sells_frame, textvariable=buys_var, width=7, state="readonly", bg="white")
+            e_buys.pack(side="left", padx=2)
+            
             sells_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_sells = tk.Entry(subf, textvariable=sells_var, width=7, state="readonly", bg="white")
-            e_sells.grid(row=1, column=1, padx=2, pady=1)
+            e_sells = tk.Entry(buys_sells_frame, textvariable=sells_var, width=7, state="readonly", bg="white")
+            e_sells.pack(side="left", padx=2)
+            
             self.time_price_vars.append(pc_var)
             self.time_buys_vars.append((buys_var, e_buys))
             self.time_sells_vars.append((sells_var, e_sells))

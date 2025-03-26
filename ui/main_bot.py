@@ -26,10 +26,14 @@ class MainBot:
         # Token-Frame für die obere linke Ecke erstellen
         self.token_frame = TokenFrame(self.main_container, self.shared_vars)
         
-                
-        # Live-Update Steuerung
-        self.live_update_active = True  # Standardmäßig an
-        self.live_update_after_id = None
+        # Container 5 und 6 für zukünftige Funktionen (HIER EINFÜGEN)
+        self.container5 = tk.Frame(self.main_container, bg="white", padx=20, pady=20, bd=1, relief="solid")
+        self.container5.grid(row=2, column=0, sticky="nsew")
+        tk.Label(self.container5, text="Zukünftige Funktion", font=("Arial", 11, "bold"), bg="white").pack(anchor="w")
+        
+        self.container6 = tk.Frame(self.main_container, bg="white", padx=20, pady=20, bd=1, relief="solid")
+        self.container6.grid(row=2, column=1, sticky="nsew")
+        tk.Label(self.container6, text="Zukünftige Funktion", font=("Arial", 11, "bold"), bg="white").pack(anchor="w")
         
         # Backup-Zähler
         self.backup_counter = 0

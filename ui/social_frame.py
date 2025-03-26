@@ -4,7 +4,13 @@ import ui.styles as styles
 
 class SocialFrame:
     def create_frame(self):
-        self.frame.grid(row=2, column=0, sticky="nsew")
+        self.frame = tk.Frame(
+            self.parent,
+            bg="white",
+            padx=20,
+            pady=20
+        )
+        self.frame.grid(row=1, column=0, sticky="nsew")  # Ändern von (2,0) zu (1,0)
         
         self.inner = tk.Frame(self.frame, bg="white")
         self.inner.pack(fill="both", expand=True, padx=5, pady=5)
