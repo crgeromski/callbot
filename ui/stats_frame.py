@@ -87,16 +87,18 @@ class StatsFrame:
             tk.Label(bs_label_frame, text="Sells", font=("Arial", 8), bg="white").pack(side="left", padx=(5,0))
             
             bs_entry_frame = tk.Frame(col_frame, bg="white")
-            bs_entry_frame.grid(row=2, column=0, pady=1)
-            
-            buys_var = tk.StringVar(self.parent.winfo_toplevel())
+            bs_entry_frame.grid(row=2, column=0, pady=1, sticky="ew")
+            # Konfiguriere die Spalten für gleichmäßige Aufteilung
+            bs_entry_frame.columnconfigure(0, weight=1, uniform="bs_entries")
+            bs_entry_frame.columnconfigure(1, weight=1, uniform="bs_entries")
 
+            buys_var = tk.StringVar(self.parent.winfo_toplevel())
             e_buys = tk.Entry(bs_entry_frame, textvariable=buys_var, state="readonly", bg="white", justify="center")
-            e_buys.pack(side="left", padx=2, fill="x", expand=True)
+            e_buys.grid(row=0, column=0, padx=2, sticky="ew")
 
             sells_var = tk.StringVar(self.parent.winfo_toplevel())
             e_sells = tk.Entry(bs_entry_frame, textvariable=sells_var, state="readonly", bg="white", justify="center") 
-            e_sells.pack(side="left", padx=2, fill="x", expand=True)
+            e_sells.grid(row=0, column=1, padx=2, sticky="ew")
             
             self.time_price_vars.append(pc_var)
             self.time_buys_vars.append((buys_var, e_buys))

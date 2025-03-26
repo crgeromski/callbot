@@ -264,17 +264,20 @@ class MainBot:
         current_balance = storage.load_budget()
         
         # Update UI-Labels
-        self.main_window.total_invest_label.config(text=f"Investiert: {total_invest:.2f}$")
-        self.main_window.num_calls_label.config(text=f"Calls: {num_calls}")
-        self.main_window.total_profit_label.config(text=f"Gesamt Gewinn/Verlust: {total_profit:.2f}$")
-        
-        # Profit-Label einfärben
-        if total_profit > 0:
-            self.main_window.total_profit_label.config(bg="#d8ffd8")
-        elif total_profit < 0:
-            self.main_window.total_profit_label.config(bg="#ffd8d8")
-        else:
-            self.main_window.total_profit_label.config(bg="white")
+        # Update UI-Labels
+        self.update_profit_entry(self.main_window.total_invest_label, f"Investiert: {total_invest:.2f}$")
+        self.update_profit_entry(self.main_window.num_calls_label, f"Calls: {num_calls}")
+        self.update_profit_entry(self.main_window.total_profit_label, f"Gesamt Gewinn/Verlust: {total_profit:.2f}$", 
+                                color="#d8ffd8" if total_profit > 0 else "#ffd8d8" if total_profit < 0 else "white")
+
+        self.update_profit_entry(self.main_window.profit_percent_label, f"Gewinn/Verlust (%): {profit_percentage:.2f}%",
+                                color="#d8ffd8" if profit_percentage > 0 else "#ffd8d8" if profit_percentage < 0 else "white")
+                                
+        self.update_profit_entry(self.main_window.avg_profit_label, f"Durchschnitt pro Call: {avg_profit:.2f}$",
+                                color="#d8ffd8" if avg_profit > 0 else "#ffd8d8" if avg_profit < 0 else "white")
+                                
+        self.update_profit_entry(self.main_window.current_balance_label, f"Kontostand: {current_balance:.2f}$",
+                                color="#d8ffd8" if current_balance > 500 else "#ffd8d8" if current_balance < 500 else "white")
             
         # Prozent-Label aktualisieren und einfärben
         self.main_window.profit_percent_label.config(text=f"Gewinn/Verlust (%): {profit_percentage:.2f}%")
@@ -302,4 +305,11 @@ class MainBot:
             self.main_window.current_balance_label.config(bg="#ffd8d8")
         else:
             self.main_window.current_balance_label.config(bg="white")
+
+    def update_profit_entry(self, entry_widget, text, color="white"):
+        """Aktualisiert ein Entry-Widget im Gewinnrechner mit neuem Text und Farbe"""
+        entry_widget.config(state="normal")
+        entry_widget.delete(0, tk.END)
+        entry_widget.insert(0, text)
+        entry_widget.config(state="readonly", readonlybackground=color)
 
