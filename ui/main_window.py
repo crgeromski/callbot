@@ -33,18 +33,22 @@ class MainWindow:
         self.time_sells_vars = []
 
         self.setup_window()
-        self.create_notebook()
         self.create_dashboard()
+        self.create_notebook()
+        
         self.create_profit_container()
 
     def setup_window(self):
         """Grundlegende Fenstereinstellungen"""
         self.root.title(DEFAULT_WINDOW_TITLE)
-        self.root.geometry(DEFAULT_WINDOW_SIZE)
-        self.root.resizable(False, False)
+        # self.root.geometry(DEFAULT_WINDOW_SIZE)  # Diese Zeile auskommentieren oder entfernen
+        self.root.resizable(True, True)  # Erlaube Größenänderung
         self.root.configure(bg="#cccccc")
         # Styles einrichten
         styles.setup_styles()
+        
+        # Optional: Mindestgröße setzen
+        self.root.minsize(1000, 800)
 
     def create_dashboard(self):
         """Erstellt das Dashboard mit Eingabefeld und Widgets"""
