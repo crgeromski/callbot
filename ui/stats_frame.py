@@ -12,22 +12,24 @@ class StatsFrame:
         self.create_frame()
         
     def create_frame(self):
-        """Erstellt den Frame für Statistiken"""
         self.frame = tk.Frame(
             self.parent, 
             bg="white", 
-            padx=20, 
-            pady=20,
+            padx=20,  # Gleicher horizontaler Abstand wie Social Media Frame
+            pady=20,  # Gleicher vertikaler Abstand wie Social Media Frame
             bd=1,
             relief="solid",
             highlightbackground="#cccccc",
             highlightthickness=1
         )
-        
         self.frame.grid(row=0, column=1, sticky="nsew")
         
+        # Erstellen Sie zuerst self.inner
         self.inner = tk.Frame(self.frame, bg="white")
         self.inner.pack(fill="both", expand=True)
+        
+        # Dann konfigurieren Sie die Spalten
+        self.inner.columnconfigure(1, weight=1)
         
         # Titel hinzufügen
         title_label = tk.Label(
@@ -69,21 +71,19 @@ class StatsFrame:
             col_frame = tk.Frame(self.timeframes_frame, bg="white")
             col_frame.grid(row=1, column=i, padx=10, pady=2)
             
-            # Preis-Änderung
+            # Verwenden Sie grid statt pack für konsistentere Ausrichtung
             pc_var = tk.StringVar(self.parent.winfo_toplevel())
             e_pc = tk.Entry(col_frame, textvariable=pc_var, width=7, state="readonly")
-            e_pc.pack(pady=1)
+            e_pc.grid(row=0, column=0, pady=1)
             
-            # Buys/Sells Labels
             bs_label_frame = tk.Frame(col_frame, bg="white")
-            bs_label_frame.pack(pady=1)
+            bs_label_frame.grid(row=1, column=0, pady=1)
             
             tk.Label(bs_label_frame, text="Buys", font=("Arial", 8), bg="white").pack(side="left", padx=(0,5))
             tk.Label(bs_label_frame, text="Sells", font=("Arial", 8), bg="white").pack(side="left", padx=(5,0))
             
-            # Buys/Sells Entries
             bs_entry_frame = tk.Frame(col_frame, bg="white")
-            bs_entry_frame.pack(pady=1)
+            bs_entry_frame.grid(row=2, column=0, pady=1)
             
             buys_var = tk.StringVar(self.parent.winfo_toplevel())
             e_buys = tk.Entry(bs_entry_frame, textvariable=buys_var, width=7, state="readonly", bg="white")
