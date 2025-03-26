@@ -13,16 +13,12 @@ class XPostFrame:
         """Erstellt den Frame für X-Posts"""
         self.frame = tk.Frame(
             self.parent, 
-            bg="white", 
-            padx=10, 
-            pady=10, 
-            bd=1, 
-            relief="solid"
+            bg="white"  # Entferne bd=1, relief="solid"
         )
         self.frame.grid(row=0, column=1, sticky="nsew")
         
         self.inner = tk.Frame(self.frame, bg="white")
-        self.inner.pack(fill="both", expand=True, padx=5, pady=5)
+        self.inner.pack(fill="both", expand=True)
         
         # X-Post Label
         self.xpost_label = tk.Label(
@@ -33,6 +29,8 @@ class XPostFrame:
             anchor="w"
         )
         self.xpost_label.pack(anchor="w", pady=(0, 8))
+        
+        # Rest des Codes bleibt unverändert
         
         # X-Post Textfeld (multiline)
         self.xpost_text_widget = tk.Text(

@@ -15,25 +15,12 @@ class StatsFrame:
         """Erstellt den Frame für Statistiken"""
         self.frame = tk.Frame(
             self.parent, 
-            bg="white", 
-            padx=10, 
-            pady=10, 
-            bd=1, 
-            relief="solid"
+            bg="white"  # Entferne bd=1, relief="solid"
         )
         self.frame.grid(row=1, column=0, sticky="nsew")
         
         self.inner = tk.Frame(self.frame, bg="white")
-        self.inner.pack(fill="both", expand=True, padx=5, pady=5)
-        
-        # Titel
-        tk.Label(
-            self.inner, 
-            text="Statistiken", 
-            font=("Arial", 11, "bold"), 
-            bg="white", 
-            anchor="w"
-        ).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0,10))
+        self.inner.pack(fill="both", expand=True)
         
         # Datenzeilen
         styles.create_data_row(self.inner, "Market Cap", self.shared_vars['mcap_var'], 1)

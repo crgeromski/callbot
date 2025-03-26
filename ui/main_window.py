@@ -82,6 +82,10 @@ class MainWindow:
         self.tab2 = tk.Frame(self.notebook, bg="white")
         self.tab3 = tk.Frame(self.notebook, bg="white")
         
+        # Konfiguriere Grid für gleichmäßige Spaltenbreite im Main Bot Tab
+        self.tab1.grid_columnconfigure(0, weight=1)  # Linke Spalte
+        self.tab1.grid_columnconfigure(1, weight=1)  # Rechte Spalte
+        
         self.notebook.add(self.tab1, text="Main Bot")
         self.notebook.add(self.tab2, text="Meine Calls")
         self.notebook.add(self.tab3, text="Abgeschlossene Calls")
