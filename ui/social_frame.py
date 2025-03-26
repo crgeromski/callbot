@@ -14,7 +14,7 @@ class SocialFrame:
             highlightbackground="#cccccc",
             highlightthickness=1
         )
-        self.frame.grid(row=1, column=0, sticky="nsew")  # Ändern von (2,0) zu (1,0)
+        self.frame.pack(fill="both", expand=True)
         
         self.inner = tk.Frame(self.frame, bg="white")
         self.inner.pack(fill="both", expand=True, padx=5, pady=5)

@@ -126,7 +126,7 @@ class MainWindow:
         
         # Container 2: Mittlerer Bereich (50% / 50%)
         container_middle = tk.Frame(self.tab1, bg="white")
-        container_middle.pack(fill="x", padx=10, pady=5)
+        container_middle.pack(fill="both", expand=True, padx=10, pady=5)
         
         # Container 2 in zwei Teile aufteilen
         container_middle.columnconfigure(0, weight=1)  # 50% Breite
