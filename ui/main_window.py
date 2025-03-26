@@ -40,14 +40,14 @@ class MainWindow:
     def setup_window(self):
         """Grundlegende Fenstereinstellungen"""
         self.root.title(DEFAULT_WINDOW_TITLE)
-        # self.root.geometry(DEFAULT_WINDOW_SIZE)  # Diese Zeile auskommentieren oder entfernen
+        self.root.geometry(DEFAULT_WINDOW_SIZE)
         self.root.resizable(True, True)  # Erlaube Größenänderung
         self.root.configure(bg="#cccccc")
         # Styles einrichten
         styles.setup_styles()
         
         # Optional: Mindestgröße setzen
-        self.root.minsize(600, 800)
+        self.root.minsize(400, 800)
 
     def create_dashboard(self):
         """Erstellt das Dashboard mit Eingabefeld und Widgets"""
@@ -110,8 +110,8 @@ class MainWindow:
         self.tab3 = tk.Frame(self.notebook, bg="white")
         
         # Konfiguriere Grid für gleichmäßige Spaltenbreite im Main Bot Tab
-        self.tab1.grid_columnconfigure(0, weight=1)  # Linke Spalte
-        self.tab1.grid_columnconfigure(1, weight=1)  # Rechte Spalte
+        self.tab1.grid_columnconfigure(0, weight=1, uniform="equal_columns")  # Linke Spalte
+        self.tab1.grid_columnconfigure(1, weight=1, uniform="equal_columns")  # Rechte Spalte
         
         self.notebook.add(self.tab1, text="Main Bot")
         self.notebook.add(self.tab2, text="Meine Calls")

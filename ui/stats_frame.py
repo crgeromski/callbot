@@ -56,6 +56,9 @@ class StatsFrame:
 
         # Timeframes-Frame erstellen
         self.timeframes_frame = tk.Frame(timeframes_container, bg="white")
+        # Konfiguriere die Spalten für gleichmäßige Verteilung
+        for i in range(4):  # Für die 4 Zeitrahmen (5M, 1H, 6H, 24H)
+            self.timeframes_frame.columnconfigure(i, weight=1)
 
         # Rest des Codes bleibt gleich
         for i, label_text in enumerate(["5M", "1H", "6H", "24H"]):
@@ -73,8 +76,9 @@ class StatsFrame:
             
             # Verwenden Sie grid statt pack für konsistentere Ausrichtung
             pc_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_pc = tk.Entry(col_frame, textvariable=pc_var, width=7, state="readonly")
-            e_pc.grid(row=0, column=0, pady=1)
+            e_pc = tk.Entry(col_frame, textvariable=pc_var, state="readonly", justify="center")
+            e_pc.grid(row=0, column=0, pady=1, padx=2, sticky="ew")
+            col_frame.columnconfigure(0, weight=1)
             
             bs_label_frame = tk.Frame(col_frame, bg="white")
             bs_label_frame.grid(row=1, column=0, pady=1)
@@ -86,19 +90,20 @@ class StatsFrame:
             bs_entry_frame.grid(row=2, column=0, pady=1)
             
             buys_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_buys = tk.Entry(bs_entry_frame, textvariable=buys_var, width=7, state="readonly", bg="white")
-            e_buys.pack(side="left", padx=2)
-            
+
+            e_buys = tk.Entry(bs_entry_frame, textvariable=buys_var, state="readonly", bg="white", justify="center")
+            e_buys.pack(side="left", padx=2, fill="x", expand=True)
+
             sells_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_sells = tk.Entry(bs_entry_frame, textvariable=sells_var, width=7, state="readonly", bg="white")
-            e_sells.pack(side="left", padx=2)
+            e_sells = tk.Entry(bs_entry_frame, textvariable=sells_var, state="readonly", bg="white", justify="center") 
+            e_sells.pack(side="left", padx=2, fill="x", expand=True)
             
             self.time_price_vars.append(pc_var)
             self.time_buys_vars.append((buys_var, e_buys))
             self.time_sells_vars.append((sells_var, e_sells))
         
         # Timeframes-Frame packen
-        self.timeframes_frame.pack(pady=10, anchor="w")
+        self.timeframes_frame.pack(pady=10, fill="x")
     
     def color_buys_sells_entries(self, buys_entry, sells_entry, buys_str, sells_str):
         """Hintergrund einfärben: Grün wenn Buys > Sells, Rot wenn Sells > Buys."""
