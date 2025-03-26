@@ -23,7 +23,7 @@ def main():
     dexlink_frame = DexLinkFrame(main_window.main_containers['top_right'], main_window.shared_vars, main_window)
     stats_frame = StatsFrame(main_window.main_containers['middle_left'], main_window.shared_vars, 
                             main_window.time_price_vars, main_window.time_buys_vars, main_window.time_sells_vars)
-    social_frame = SocialFrame(main_window.main_containers['middle_right'], main_window.shared_vars)
+    social_frame = SocialFrame(main_window.main_containers['middle_right'], main_window.shared_vars, main_window)
     
     # Platzhalter-Frames für zukünftige Funktionen
     rugcheck_frame = RugCheckFrame(main_window.main_containers['bottom_left'], main_window.shared_vars)

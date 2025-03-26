@@ -14,9 +14,25 @@ def format_k(num):
         return f"{val:.0f}"
 
 def format_percentage(num):
-    """Zahl mit %-Suffix."""
+    """
+    Zahl mit %-Suffix, gerundet auf sinnvolle Werte.
+    Für kleine Werte: 1 Dezimalstelle (z.B. 2.5%)
+    Für mittlere Werte: Ohne Dezimalstellen (z.B. 25%)
+    Für große Werte: Ohne Dezimalstellen (z.B. 250%)
+    """
     try:
-        return f"{float(num)}%"
+        value = float(num)
+        abs_value = abs(value)
+        
+        if abs_value < 10:
+            # Kleine Werte: Eine Dezimalstelle
+            return f"{value:.1f}%"
+        elif abs_value < 100:
+            # Mittlere Werte: Keine Dezimalstellen
+            return f"{int(value)}%"
+        else:
+            # Große Werte: Keine Dezimalstellen
+            return f"{int(value)}%"
     except:
         return str(num)
 

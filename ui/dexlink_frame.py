@@ -45,10 +45,19 @@ class DexLinkFrame:
         entry.bind("<Return>", lambda event: self.main_window.fetch_data())
         
         # Paste-Button mit Icon
+        def paste_from_clipboard():
+            try:
+                clipboard_content = self.main_window.root.clipboard_get()
+                self.shared_vars['entry_var'].set(clipboard_content)
+                self.main_window.fetch_data()
+            except Exception as e:
+                import tkinter.messagebox as messagebox
+                messagebox.showerror("Fehler", f"Konnte Zwischenablage nicht verarbeiten: {e}")
+
         paste_btn = tk.Button(
             entry_frame, 
             text="📋", 
             width=2,
-            command=self.main_window.paste_and_fetch
+            command=paste_from_clipboard
         )
         paste_btn.pack(side="right")

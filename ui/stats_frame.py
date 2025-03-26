@@ -92,11 +92,11 @@ class StatsFrame:
             bs_entry_frame.columnconfigure(1, weight=1, uniform="bs_entries")
 
             buys_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_buys = tk.Entry(bs_entry_frame, textvariable=buys_var, state="readonly", bg="white", justify="center")
+            e_buys = tk.Entry(bs_entry_frame, textvariable=buys_var, state="readonly", bg="white", justify="center", width=8)
             e_buys.grid(row=0, column=0, padx=2, sticky="ew")
 
             sells_var = tk.StringVar(self.parent.winfo_toplevel())
-            e_sells = tk.Entry(bs_entry_frame, textvariable=sells_var, state="readonly", bg="white", justify="center") 
+            e_sells = tk.Entry(bs_entry_frame, textvariable=sells_var, state="readonly", bg="white", justify="center", width=8) 
             e_sells.grid(row=0, column=1, padx=2, sticky="ew")
             
             self.time_price_vars.append(pc_var)

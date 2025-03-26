@@ -29,32 +29,8 @@ class RecommendationFrame:
             anchor="w"
         ).pack(anchor="w", pady=(0,10))
         
-        # Call-Erstellung-Bereich
-        call_frame = tk.Frame(self.frame, bg="white", bd=1, relief="solid", padx=10, pady=10)
-        call_frame.pack(fill="x", pady=(0, 10))
-        
-        tk.Label(
-            call_frame,
-            text="Call erstellen",
-            font=("Arial", 10, "bold"),
-            bg="white"
-        ).pack(anchor="w")
-        
-        tk.Label(
-            call_frame,
-            text="Erstellt einen neuen Call mit den aktuellen Token-Daten",
-            font=("Arial", 9),
-            bg="white"
-        ).pack(anchor="w", pady=(0, 10))
-        
-        # Button zum Erstellen eines Calls
-        self.create_call_btn = tk.Button(
-            call_frame,
-            text="Call erstellen",
-            command=self.create_call
-        )
-        self.create_call_btn.pack(side="left")
-        
+
+
         # Platzhalter für zukünftige Empfehlungsfunktion
         placeholder = tk.Frame(self.frame, bg="#f0f0f0", bd=1, relief="solid")
         placeholder.pack(fill="both", expand=True, pady=10)
