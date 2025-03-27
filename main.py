@@ -1,4 +1,4 @@
-# Hauptanwendung
+# Hauptanwendung mit korrekter RugCheck-Referenzierung
 import tkinter as tk
 from ui.main_window import MainWindow
 from ui.token_frame import TokenFrame
@@ -22,14 +22,16 @@ def main():
     stats_frame = StatsFrame(main_window.main_containers['middle_left'], main_window.shared_vars, 
                             main_window.time_price_vars, main_window.time_buys_vars, main_window.time_sells_vars)
     social_frame = SocialFrame(main_window.main_containers['middle_right'], main_window.shared_vars, main_window)
-    main_window.social_frame = social_frame
     
-    # Platzhalter-Frames für zukünftige Funktionen
-    rugcheck_frame = RugCheckFrame(main_window.main_containers['bottom_left'], main_window.shared_vars)
+    # RugCheck und Recommendation-Frames
+    rugcheck_frame = RugCheckFrame(main_window.main_containers['bottom_left'], main_window.shared_vars, main_window)
     recommendation_frame = RecommendationFrame(main_window.main_containers['bottom_right'], main_window.shared_vars, main_window)
     
-    # Speichere Referenzen für den späteren Zugriff
+    # Speichere Referenzen für den späteren Zugriff - WICHTIG!
     main_window.stats_frame = stats_frame
+    main_window.social_frame = social_frame
+    main_window.rugcheck_frame = rugcheck_frame  # Speichere die Referenz auf den RugCheck-Frame
+    main_window.recommendation_frame = recommendation_frame
     
     # Erstelle die Treeviews für die Call-Tabs
     calls_tree = CallsTreeView(main_window.tabs['calls'], main_window)
@@ -48,6 +50,7 @@ def main():
     calls_tree.update_tree()
     archived_calls_tree.update_tree()
     
+    # Auto-Refresh starten
     main_bot.auto_refresh_calls()
     
     # Starte die Hauptschleife

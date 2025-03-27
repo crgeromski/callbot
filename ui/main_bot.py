@@ -151,8 +151,21 @@ class MainBot:
         
         # Aktualisiere die RugCheck-Daten, falls verfügbar
         if hasattr(self.main_window, 'rugcheck_frame'):
-            token_address = base_token.get("address", "")
-            self.main_window.rugcheck_frame.update_metrics(token_address)
+            try:
+                token_address = base_token.get("address", "")
+                if token_address and token_address != "N/A":
+                    import threading
+                    # Starte die Aktualisierung in einem separaten Thread, um die Hauptanwendung nicht zu blockieren
+                    threading.Thread(
+                        target=self.main_window.rugcheck_frame.update_metrics,
+                        args=(token_address,),
+                        daemon=True
+                    ).start()
+            except Exception as e:
+                print(f"Fehler bei der RugCheck-Aktualisierung: {e}")
+                # Bei Fehler zeigen wir einen Status an, falls möglich
+                if hasattr(self.main_window.rugcheck_frame, 'update_status_var'):
+                    self.main_window.rugcheck_frame.update_status_var.set(f"Fehler bei der Aktualisierung: {str(e)[:30]}...")
 
     def paste_and_fetch(self):
         """Fügt den Inhalt der Zwischenablage in das Eingabefeld ein und ruft die API ab"""

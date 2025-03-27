@@ -1,8 +1,9 @@
-# RugCheck Frame
+# RugCheck Frame mit verbesserter Fehlerbehandlung
 import tkinter as tk
 from tkinter import messagebox
 import data.axiom_api as axiom_api
 import config
+import threading
 
 class RugCheckFrame:
     def __init__(self, parent, shared_vars, main_window=None):
@@ -12,6 +13,7 @@ class RugCheckFrame:
         self.metrics_vars = {}  # StringVars für die Metriken
         self.metrics_entries = {}  # Entry-Widgets für die Metriken
         self.is_loading = False  # Flag für Ladevorgang
+        self.api_available = False  # Flag für API-Verfügbarkeit
         self.create_frame()
         
     def create_frame(self):
@@ -81,8 +83,19 @@ class RugCheckFrame:
         # Reset-Werte setzen
         self.reset_metrics()
         
-        # API-Key prüfen
-        self.check_api_key()
+        # Aktualisierungsstatus
+        self.update_status_var = tk.StringVar(value="")
+        self.update_status_label = tk.Label(
+            self.frame,
+            textvariable=self.update_status_var,
+            font=("Arial", 8, "italic"),
+            bg="white",
+            fg="#666666"
+        )
+        self.update_status_label.pack(anchor="w", pady=(10,0))
+        
+        # API-Key in separatem Thread prüfen, um die UI nicht zu blockieren
+        threading.Thread(target=self.check_api_key, daemon=True).start()
         
     def _create_metric_tile(self, key, label_text, row, col):
         """Erstellt eine Metrik-Kachel im Grid"""
@@ -123,29 +136,47 @@ class RugCheckFrame:
         
     def check_api_key(self):
         """Prüft, ob der API-Key funktioniert"""
-        if not config.AXIOM_API_KEY:
-            self.api_status_var.set("API: Kein Key")
-            self.api_status_label.config(fg="red")
-            return
-        
-        # Starte Thread zur API-Prüfung, um UI nicht zu blockieren
-        import threading
-        
-        def check_key():
+        try:
+            if not config.AXIOM_API_KEY:
+                self.api_status_var.set("API: Kein Key")
+                self.api_status_label.config(fg="red")
+                self.api_available = False
+                return
+            
+            # API-Test mit größerem Timeout
             is_valid = axiom_api.test_api_key()
+            
             if is_valid:
                 self.api_status_var.set("API: Verbunden")
                 self.api_status_label.config(fg="green")
+                self.api_available = True
             else:
                 self.api_status_var.set("API: Fehler")
                 self.api_status_label.config(fg="red")
-        
-        threading.Thread(target=check_key).start()
+                self.api_available = False
+        except Exception as e:
+            print(f"API-Key Test Fehler: {e}")
+            self.api_status_var.set("API: Nicht erreichbar")
+            self.api_status_label.config(fg="red")
+            self.api_available = False
     
     def update_metrics(self, token_address=None):
         """Aktualisiert die Metriken mit Daten von Axiom"""
+        # Setze den Status auf "Anfrage gesendet"
+        self.update_status_var.set("Letzte Aktualisierung: gerade eben")
+        
+        # Wenn API nicht verfügbar ist, zeige Hinweis und kehre zurück
+        if not self.api_available:
+            for key in self.metrics_vars:
+                self.metrics_vars[key].set("API offline")
+                if key in self.metrics_entries:
+                    self.metrics_entries[key].config(readonlybackground="#101010", fg="#666666")
+            self.update_status_var.set("API nicht verfügbar - keine Daten abrufbar")
+            return
+        
         # Verhindere mehrfaches Laden
         if self.is_loading:
+            self.update_status_var.set("Aktualisierung läuft bereits...")
             return
             
         self.is_loading = True
@@ -166,6 +197,7 @@ class RugCheckFrame:
         if not token_address or not axiom_api.is_solana_address_format(token_address):
             self.is_loading = False
             self.reset_metrics()
+            self.update_status_var.set("Keine gültige Token-Adresse gefunden")
             return
             
         # Setze Loading-Status
@@ -173,35 +205,38 @@ class RugCheckFrame:
             self.metrics_vars[key].set("Laden...")
             
         # Starte Thread für API-Abfrage, um UI nicht zu blockieren
-        import threading
-        
-        def fetch_data():
-            try:
-                # Holen der Token-Daten
-                token_data = axiom_api.fetch_axiom_data(token_address)
-                
-                # Wenn keine Daten zurückgegeben wurden, reset und return
-                if not token_data:
-                    self.reset_metrics("N/A")
-                    return
-                
-                # Hole weitere Daten
-                holders_data = axiom_api.fetch_top_holders(token_address)
-                traders_data = axiom_api.fetch_top_traders(token_address)
-                
-                # Extrahiere die Metriken
-                metrics = axiom_api.extract_rugcheck_metrics(token_data, holders_data, traders_data)
-                
-                # Aktualisiere die UI
-                self.update_ui_with_metrics(metrics)
-            except Exception as e:
-                print(f"Fehler beim Laden der Axiom-Daten: {e}")
-                self.reset_metrics("Fehler")
-            finally:
-                self.is_loading = False
-        
-        # Starte Thread
-        threading.Thread(target=fetch_data).start()
+        threading.Thread(target=lambda: self._fetch_data(token_address), daemon=True).start()
+    
+    def _fetch_data(self, token_address):
+        """Holte Daten von der API im Hintergrund"""
+        try:
+            # Holen der Token-Daten mit erhöhtem Timeout
+            timeout = 20  # Erhöhter Timeout
+            token_data = axiom_api.fetch_axiom_data(token_address, timeout)
+            
+            # Wenn keine Daten zurückgegeben wurden, reset und return
+            if not token_data:
+                self.reset_metrics("N/A")
+                self.update_status_var.set("Keine Daten von der API erhalten")
+                return
+            
+            # Hole weitere Daten
+            holders_data = axiom_api.fetch_top_holders(token_address, timeout)
+            traders_data = axiom_api.fetch_top_traders(token_address, timeout)
+            
+            # Extrahiere die Metriken
+            metrics = axiom_api.extract_rugcheck_metrics(token_data, holders_data, traders_data)
+            
+            # Aktualisiere die UI
+            self.update_ui_with_metrics(metrics)
+            self.update_status_var.set("Daten erfolgreich aktualisiert")
+            
+        except Exception as e:
+            print(f"Fehler beim Laden der Axiom-Daten: {e}")
+            self.reset_metrics("Fehler")
+            self.update_status_var.set(f"Fehler: {str(e)[:50]}...")
+        finally:
+            self.is_loading = False
     
     def update_ui_with_metrics(self, metrics):
         """Aktualisiert die UI mit den extrahierten Metriken"""
