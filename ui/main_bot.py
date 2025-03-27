@@ -163,6 +163,8 @@ class MainBot:
             
     def reset_budget(self):
         """Setzt den Kontostand auf 500$ zurück, nach Bestätigung durch den Benutzer."""
+        from tkinter import messagebox
+        
         # Zeige ein Bestätigungsdialog
         confirm = messagebox.askyesno(
             "Kontostand zurücksetzen",
@@ -244,7 +246,6 @@ class MainBot:
                 storage.save_budget(current_budget)
             self.backup_counter = 0
 
-
     def update_ui_stats(self):
         """Aktualisiert die statistischen Daten im UI"""
         # Aktualisiere die Treeviews
@@ -266,16 +267,16 @@ class MainBot:
         self.update_profit_entry(self.main_window.total_invest_label, f"Investiert: {total_invest:.2f}$")
         self.update_profit_entry(self.main_window.num_calls_label, f"Calls: {num_calls}")
         self.update_profit_entry(self.main_window.total_profit_label, f"Gesamt Gewinn/Verlust: {total_profit:.2f}$", 
-                               color="#d8ffd8" if total_profit > 0 else "#ffd8d8" if total_profit < 0 else "white")
-                               
+                            color="#d8ffd8" if total_profit > 0 else "#ffd8d8" if total_profit < 0 else "white")
+                            
         self.update_profit_entry(self.main_window.profit_percent_label, f"Gewinn/Verlust (%): {profit_percentage:.2f}%",
-                               color="#d8ffd8" if profit_percentage > 0 else "#ffd8d8" if profit_percentage < 0 else "white")
-                               
+                            color="#d8ffd8" if profit_percentage > 0 else "#ffd8d8" if profit_percentage < 0 else "white")
+                            
         self.update_profit_entry(self.main_window.avg_profit_label, f"Durchschnitt pro Call: {avg_profit:.2f}$",
-                               color="#d8ffd8" if avg_profit > 0 else "#ffd8d8" if avg_profit < 0 else "white")
-                               
+                            color="#d8ffd8" if avg_profit > 0 else "#ffd8d8" if avg_profit < 0 else "white")
+                            
         self.update_profit_entry(self.main_window.current_balance_label, f"Kontostand: {current_balance:.2f}$",
-                               color="#d8ffd8" if current_balance > 500 else "#ffd8d8" if current_balance < 500 else "white")
+                            color="#d8ffd8" if current_balance > 500 else "#ffd8d8" if current_balance < 500 else "white")
 
     def update_profit_entry(self, entry_widget, text, color="white"):
         """Aktualisiert ein Entry-Widget im Gewinnrechner mit neuem Text und Farbe"""

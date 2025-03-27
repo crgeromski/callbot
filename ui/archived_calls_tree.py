@@ -105,7 +105,31 @@ class ArchivedCallsTreeView:
             
     def on_archived_double_click(self, event):
         """Reagiert auf Doppelklick in der Treeview für archivierte Calls"""
-        pass  # Keine Aktion mehr bei Doppelklick
+        item = self.archived_calls_tree.identify_row(event.y)
+        if item:
+            # Hole alle Werte der ausgewählten Zeile
+            values = self.archived_calls_tree.item(item, "values")
+            
+            # Suche nach dem Link für diesen Call
+            calls = storage.load_call_data()
+            matching_calls = [call for call in calls if 
+                              call.get("Symbol") == values[1] and  # Symbol stimmt überein
+                              call.get("Datum") == values[0] and  # Datum stimmt überein
+                              call.get("abgeschlossen", False)]   # Nur abgeschlossene Calls
+            
+            if matching_calls and len(matching_calls) > 0:
+                call = matching_calls[0]
+                link = call.get("Link")
+                
+                if link:
+                    # Setze den Link in die Entry-Variable
+                    self.main_window.shared_vars['entry_var'].set(link)
+                    
+                    # Rufe Daten ab
+                    self.main_window.fetch_data()
+                    
+                    # Wechsle zum Main Bot Tab
+                    self.main_window.notebook.select(self.main_window.tabs['main'])
     
     def delete_selected_archived_call(self):
         """Löscht die ausgewählten Calls aus der Liste der abgeschlossenen Calls."""

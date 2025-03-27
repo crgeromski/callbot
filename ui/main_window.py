@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import ui.styles as styles
 from config import DEFAULT_WINDOW_SIZE, DEFAULT_WINDOW_TITLE
+import data.storage as storage
 
 class MainWindow:
     def __init__(self, root):
@@ -294,8 +295,24 @@ class MainWindow:
 
     def reset_budget(self):
         """Kontostand zurücksetzen"""
-        # Diese Methode wird später implementiert
-        pass
+        # Rufe die reset_budget Methode des MainBot auf
+        if hasattr(self, 'main_bot'):
+            import data.storage as storage  # Lokaler Import
+            self.main_bot.reset_budget()
+            
+        """Setzt den Kontostand auf 500$ zurück, nach Bestätigung durch den Benutzer."""
+        # Zeige ein Bestätigungsdialog
+        confirm = messagebox.askyesno(
+            "Kontostand zurücksetzen",
+            "Möchtest du den Kontostand wirklich auf 500$ zurücksetzen?\nDiese Aktion kann nicht rückgängig gemacht werden.",
+            icon="warning"
+        )
+        
+        if confirm:
+            storage.save_budget(500.0)
+            # Aktualisiere das Label
+            self.main_window.current_balance_label.config(text=f"Kontostand: 500.00$", bg="white")
+            messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt.")
 
     def toggle_live_update(self):
         """Live-Update ein-/ausschalten"""

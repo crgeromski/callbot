@@ -122,9 +122,28 @@ class CallsTreeView:
         """Reagiert auf Doppelklick in der Treeview"""
         item = self.calls_tree.identify_row(event.y)
         if item:
+            # Hole alle Werte der ausgewählten Zeile
             values = self.calls_tree.item(item, "values")
-            # Da kein Link mehr vorhanden, machen wir nichts beim Doppelklick
-            pass
+            
+            # Suche nach dem Link für diesen Call
+            calls = storage.load_call_data()
+            matching_calls = [call for call in calls if 
+                              call.get("Symbol") == values[1] and  # Symbol stimmt überein
+                              call.get("Datum") == values[0]]     # Datum stimmt überein
+            
+            if matching_calls and len(matching_calls) > 0:
+                call = matching_calls[0]
+                link = call.get("Link")
+                
+                if link:
+                    # Setze den Link in die Entry-Variable
+                    self.main_window.shared_vars['entry_var'].set(link)
+                    
+                    # Rufe Daten ab
+                    self.main_window.fetch_data()
+                    
+                    # Wechsle zum Main Bot Tab
+                    self.main_window.notebook.select(self.main_window.tabs['main'])
     
     def delete_selected_call(self):
         """Löscht die ausgewählten Calls aus der Liste"""

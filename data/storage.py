@@ -91,3 +91,41 @@ def calculate_total_profit() -> tuple:
         total_profit += profit
     profit_percentage = (total_profit / DEFAULT_BUDGET) * 100
     return total_profit, profit_percentage
+
+def find_call_by_symbol(symbol: str, data=None):
+    """
+    Findet einen Call anhand des Symbols.
+    
+    Args:
+        symbol: Token-Symbol zum Suchen (z.B. '$MUPPET')
+        data: Optional. Vorhandene Daten von der API, falls bereits abgerufen.
+    
+    Returns:
+        Dictionary mit Call-Daten oder None, wenn kein Eintrag gefunden wurde.
+    """
+    if not data:
+        from data.api import fetch_dexscreener_data
+        from utils.formatters import parse_km
+        import json
+
+    # Hole aktuellste Calls
+    calls = load_call_data()
+    target_call = next((call for call in calls if call.get("Symbol", "") == symbol), None)
+    
+    if not target_call:
+        return None
+    
+    # Wenn kein Datenparameter übergeben wurde, rufe Daten von API ab
+    if not data:
+        link = target_call.get("Link", "")
+        if not link:
+            return None
+        
+        data = fetch_dexscreener_data(link)
+    
+    if not data or 'pairs' not in data or not data['pairs']:
+        return None
+    
+    pair_info = data['pairs'][0]
+    
+    return pair_info
