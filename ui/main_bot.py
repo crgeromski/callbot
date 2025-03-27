@@ -132,7 +132,15 @@ class MainBot:
             else:
                 # Fallback auf Suchseite
                 self.shared_vars['dexscreener_var'].set(f"https://dexscreener.com/search?q={address}")
-                
+
+        # Setze den Screenshot-Kopier-Button zurück
+        if hasattr(self.main_window, 'social_frame') and hasattr(self.main_window.social_frame, 'copy_last_screenshot_button'):
+            self.main_window.social_frame.copy_last_screenshot_button.config(state="disabled")
+            # Setze auch last_screenshot zurück
+            if hasattr(self.main_window.social_frame, 'last_screenshot'):
+                self.main_window.social_frame.last_screenshot = None
+
+
         # Website und soziale Medien
         info = pair_info.get("info", {})
         websites = info.get("websites", [])
@@ -142,6 +150,9 @@ class MainBot:
         self.shared_vars['twitter_var'].set(next((s.get("url") for s in socials if s.get("type") == "twitter"), "N/A"))
         self.shared_vars['telegram_var'].set(next((s.get("url") for s in socials if s.get("type") == "telegram"), "N/A"))
         self.shared_vars['discord_var'].set(next((s.get("url") for s in socials if s.get("type") == "discord"), "N/A"))
+
+
+
         
     def paste_and_fetch(self):
         """Fügt den Inhalt der Zwischenablage in das Eingabefeld ein und ruft die API ab"""
