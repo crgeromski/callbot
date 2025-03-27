@@ -132,12 +132,29 @@ class MainBot:
                 # Fallback auf Suchseite
                 self.shared_vars['dexscreener_var'].set(f"https://dexscreener.com/search?q={address}")
 
-        # Setze den Screenshot-Kopier-Button zurück
-        if hasattr(self.main_window, 'xpost_frame') and hasattr(self.main_window.xpost_frame, 'copy_last_screenshot_button'):
-            self.main_window.xpost_frame.copy_last_screenshot_button.config(state="disabled", bg="systemButtonFace")
-            # Setze auch last_screenshot zurück
-            if hasattr(self.main_window.xpost_frame, 'last_screenshot'):
-                self.main_window.xpost_frame.last_screenshot = None
+        # Setze last_screenshot zurück
+        if hasattr(self.main_window, 'xpost_frame') and hasattr(self.main_window.xpost_frame, 'last_screenshot'):
+            self.main_window.xpost_frame.last_screenshot = None
+            
+        # Setze alle Button-Farben zurück
+        if hasattr(self.main_window, 'xpost_frame'):
+            xpost_frame = self.main_window.xpost_frame
+            
+            # X-Button zurücksetzen
+            if hasattr(xpost_frame, 'original_button_bg') and xpost_frame.original_button_bg and hasattr(xpost_frame, 'btn_xpost'):
+                xpost_frame.btn_xpost.config(bg=xpost_frame.original_button_bg)
+                
+            # Screenshot-Button zurücksetzen
+            if hasattr(xpost_frame, 'original_screenshot_bg') and xpost_frame.original_screenshot_bg and hasattr(xpost_frame, 'screenshot_button'):
+                xpost_frame.screenshot_button.config(bg=xpost_frame.original_screenshot_bg)
+                
+            # Call-Button zurücksetzen
+            if hasattr(xpost_frame, 'original_call_bg') and xpost_frame.original_call_bg and hasattr(xpost_frame, 'call_button'):
+                xpost_frame.call_button.config(bg=xpost_frame.original_call_bg)
+                
+            # Aktuellen Link aktualisieren
+            if hasattr(xpost_frame, 'current_link'):
+                xpost_frame.current_link = self.shared_vars['entry_var'].get()
 
         # Website und soziale Medien
         info = pair_info.get("info", {})

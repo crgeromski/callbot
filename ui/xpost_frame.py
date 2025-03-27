@@ -8,6 +8,11 @@ class XPostFrame:
         self.parent = parent
         self.shared_vars = shared_vars
         self.last_screenshot = None  # Zum Speichern des Screenshots
+        self.current_link = ""  # Für die Überwachung von Linkänderungen
+        self.original_button_bg = None  # Für die X-Button
+        self.original_screenshot_bg = None  # Für Screenshot-Button
+        self.original_call_bg = None  # Für Call-Button
+        self.link_check_id = None  # ID für after-Aufrufe
         self.create_frame()
         
     def create_frame(self):
@@ -55,9 +60,26 @@ class XPostFrame:
         root = self.parent.winfo_toplevel()
         root.bind("<Button-1>", lambda event: self._check_focus_out(event))
         
-        # Frame für Buttons mit verbesserter Positionierung und Ausrichtung
+        # Screenshot-Buttons Bereich - NEUES LAYOUT: Screenshot-Button jetzt vor den anderen Buttons
+        self.screenshot_frame = tk.Frame(self.frame, bg="white")
+        self.screenshot_frame.pack(fill="x", pady=10)
+        
+        # Konfiguriere den Screenshot-Frame mit Gewicht für den Hauptbutton
+        self.screenshot_frame.columnconfigure(0, weight=1)
+        
+        # Screenshot erstellen Button - jetzt über die gesamte Breite
+        self.screenshot_button = tk.Button(
+            self.screenshot_frame,
+            text="Screenshot erstellen",
+            font=("Arial", 10, "bold"),
+            height=2,
+            command=self.take_chart_screenshot
+        )
+        self.screenshot_button.grid(row=0, column=0, sticky="ew", columnspan=2)
+        
+        # Frame für Buttons mit verbesserter Positionierung und Ausrichtung - JETZT NACH DEM SCREENSHOT-FRAME
         self.btn_frame = tk.Frame(self.frame, bg="white")
-        self.btn_frame.pack(fill="x", pady=10, after=text_container)
+        self.btn_frame.pack(fill="x", pady=10)
         
         # Konfiguriere den Button-Frame für gleichmäßige Aufteilung
         self.btn_frame.columnconfigure(0, weight=1)
@@ -83,40 +105,8 @@ class XPostFrame:
         )
         self.call_button.grid(row=0, column=1, sticky="ew", padx=(5, 0))
         
-        # Screenshot-Buttons Bereich - NEU hinzugefügt
-        self.screenshot_frame = tk.Frame(self.frame, bg="white")
-        self.screenshot_frame.pack(fill="x", pady=10)
-        
-        # Konfiguriere den Screenshot-Frame mit Gewicht für den Hauptbutton
-        self.screenshot_frame.columnconfigure(0, weight=1)
-        
-        # Screenshot erstellen Button
-        self.screenshot_button = tk.Button(
-            self.screenshot_frame,
-            text="Screenshot erstellen",
-            font=("Arial", 10, "bold"),
-            height=2,
-            command=self.take_chart_screenshot
-        )
-        self.screenshot_button.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        
-        # Button zum erneuten Kopieren des letzten Screenshots - quadratisch gestaltet
-        self.copy_last_screenshot_button = tk.Button(
-            self.screenshot_frame,
-            text="📋",
-            width=2,
-            height=2,
-            command=self.copy_last_screenshot_to_clipboard
-        )
-        self.copy_last_screenshot_button.grid(row=0, column=1, sticky="ns")
-        self.copy_last_screenshot_button.config(state="disabled", bg="systemButtonFace")  # Initial deaktiviert, Standardfarbe
-        
-        # Nach dem Erstellen und Platzieren des Buttons
-        # Wir warten auf die Aktualisierung der UI, um die tatsächliche Höhe zu bekommen
-        self.screenshot_frame.update_idletasks()
-        button_height = self.screenshot_button.winfo_height()
-        # Setze die Breite basierend auf der Höhe für einen quadratischen Button
-        self.copy_last_screenshot_button.config(width=button_height//10)  # Tkinter Button width ist in Texteinheiten, ca. 1/10 der Pixel
+        # Starte die Überwachung auf Linkänderungen
+        self.check_link_change()
     
     def post_to_x(self):
         """Öffnet X.com mit dem aktuellen Post-Inhalt"""
@@ -128,12 +118,14 @@ class XPostFrame:
         if url:
             browser.open_link(url)
             
-            # Visuelles Feedback für den Button
-            original_bg = self.btn_xpost.cget("bg")
+            # Setze grünen Hintergrund (bleibt aktiv bis neuer Link)
             self.btn_xpost.config(bg="#64c264")  # Grüner Hintergrund
             
-            # Zurücksetzen nach 1500 Millisekunden (1,5 Sekunden)
-            self.btn_xpost.after(1500, lambda: self.btn_xpost.config(bg=original_bg))
+            # Speichere den aktuellen Link, um später zu prüfen ob er sich geändert hat
+            self.current_link = self.shared_vars['entry_var'].get()
+            
+            # Beginne die Überwachung auf Linkänderungen
+            self.check_link_change()
     
     def create_call(self):
         """
@@ -165,12 +157,15 @@ class XPostFrame:
             if hasattr(root, 'update_calls_tree'):
                 root.update_calls_tree()
             
-            # Visuelles Feedback für den Button
-            original_bg = self.call_button.cget("bg")
+            # Speichere die Originalfarbe beim ersten Mal
+            if not hasattr(self, 'original_call_bg') or not self.original_call_bg:
+                self.original_call_bg = self.call_button.cget("bg")
+            
+            # Setze grünen Hintergrund (bleibt aktiv bis neuer Link)
             self.call_button.config(bg="#64c264")  # Grüner Hintergrund
             
-            # Zurücksetzen nach 1500 Millisekunden (1,5 Sekunden)
-            self.call_button.after(1500, lambda: self.call_button.config(bg=original_bg))
+            # Speichere den aktuellen Link für Vergleiche
+            self.current_link = self.shared_vars['entry_var'].get()
                 
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Calls: {e}")
@@ -204,9 +199,6 @@ class XPostFrame:
                 # Speichere das Bild in einer globalen Variable für späteren Zugriff
                 self.last_screenshot = screenshot
                 
-                # Aktiviere den Kopier-Button und färbe ihn hellgrün
-                self.copy_last_screenshot_button.config(state="normal", bg="#d8ffd8")
-                
                 # Kopiere in die Zwischenablage
                 import win32clipboard
                 from io import BytesIO
@@ -221,7 +213,15 @@ class XPostFrame:
                 win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
                 win32clipboard.CloseClipboard()
                 
-                # Keine Erfolgsmeldung mehr
+                # Speichere die Originalfarbe beim ersten Mal
+                if not hasattr(self, 'original_screenshot_bg') or not self.original_screenshot_bg:
+                    self.original_screenshot_bg = self.screenshot_button.cget("bg")
+                
+                # Setze grünen Hintergrund (bleibt aktiv bis neuer Link)
+                self.screenshot_button.config(bg="#64c264")  # Grüner Hintergrund
+                
+                # Speichere den aktuellen Link für Vergleiche
+                self.current_link = self.shared_vars['entry_var'].get()
         except Exception as e:
             from tkinter import messagebox
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Screenshots: {str(e)}")
@@ -229,29 +229,54 @@ class XPostFrame:
             # Reaktiviere den Button
             self.screenshot_button.config(state="normal")
 
-    def copy_last_screenshot_to_clipboard(self):
-        """Kopiert das letzte erstellte Screenshot in die Zwischenablage"""
-        if hasattr(self, 'last_screenshot') and self.last_screenshot:
-            try:
-                import win32clipboard
-                from io import BytesIO
+    def check_link_change(self):
+        """Überprüft, ob sich der Link geändert hat und setzt ggf. die Button-Farben zurück"""
+        # Breche alle vorherigen Überprüfungen ab
+        if self.link_check_id:
+            self.parent.after_cancel(self.link_check_id)
+            self.link_check_id = None
+            
+        current_link = self.shared_vars['entry_var'].get()
+        
+        # Wenn sich der Link geändert hat, Buttons zurücksetzen
+        if current_link != self.current_link and hasattr(self, 'current_link') and self.current_link:
+            # X-Button zurücksetzen
+            if hasattr(self, 'original_button_bg') and self.original_button_bg:
+                self.btn_xpost.config(bg=self.original_button_bg)
                 
-                output = BytesIO()
-                self.last_screenshot.convert('RGB').save(output, 'BMP')
-                data = output.getvalue()[14:]  # Die BMP-Header entfernen
-                output.close()
+            # Screenshot-Button zurücksetzen
+            if hasattr(self, 'original_screenshot_bg') and self.original_screenshot_bg:
+                self.screenshot_button.config(bg=self.original_screenshot_bg)
                 
-                win32clipboard.OpenClipboard()
-                win32clipboard.EmptyClipboard()
-                win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
-                win32clipboard.CloseClipboard()
-            except Exception as e:
-                from tkinter import messagebox
-                messagebox.showerror("Fehler", f"Fehler beim Kopieren des Screenshots: {str(e)}")
+            # Call-Button zurücksetzen
+            if hasattr(self, 'original_call_bg') and self.original_call_bg:
+                self.call_button.config(bg=self.original_call_bg)
+                
+            # Aktuellen Link aktualisieren
+            self.current_link = current_link
+        
+        # Plane nächste Überprüfung (alle 500ms)
+        self.link_check_id = self.parent.after(500, self.check_link_change)
     
     def update_xpost_container(self):
         """Befüllt das X-Post-Feld basierend auf current_data"""
         current_data = self.shared_vars['current_data']
+        
+        # WICHTIG: Aktualisiere die aktuellen Link-Informationen für die Button-Farbkontrolle
+        self.current_link = self.shared_vars['entry_var'].get()
+        
+        # WICHTIG: Setze die Button-Farben zurück
+        if hasattr(self, 'btn_xpost'):
+            self.btn_xpost.config(bg="SystemButtonFace")
+            self.original_button_bg = "SystemButtonFace"
+            
+        if hasattr(self, 'screenshot_button'):
+            self.screenshot_button.config(bg="SystemButtonFace")
+            self.original_screenshot_bg = "SystemButtonFace"
+            
+        if hasattr(self, 'call_button'):
+            self.call_button.config(bg="SystemButtonFace")
+            self.original_call_bg = "SystemButtonFace"
         
         if not current_data:
             self.xpost_text_widget.delete("1.0", "end")
@@ -317,3 +342,26 @@ class XPostFrame:
                 return self._is_child_of_widget(widget.master, parent)
         except:
             return False
+            
+    def copy_last_screenshot_to_clipboard(self):
+        """
+        Diese Methode wird nicht mehr verwendet, bleibt aber für die Kompatibilität
+        mit anderen Teilen des Programms, die sie möglicherweise aufrufen.
+        """
+        if hasattr(self, 'last_screenshot') and self.last_screenshot:
+            try:
+                import win32clipboard
+                from io import BytesIO
+                
+                output = BytesIO()
+                self.last_screenshot.convert('RGB').save(output, 'BMP')
+                data = output.getvalue()[14:]  # Die BMP-Header entfernen
+                output.close()
+                
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
+                win32clipboard.CloseClipboard()
+            except Exception as e:
+                from tkinter import messagebox
+                messagebox.showerror("Fehler", f"Fehler beim Kopieren des Screenshots: {str(e)}")
