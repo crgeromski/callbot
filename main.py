@@ -4,7 +4,6 @@ from ui.main_window import MainWindow
 from ui.token_frame import TokenFrame
 from ui.stats_frame import StatsFrame
 from ui.social_frame import SocialFrame
-from ui.rugcheck_frame import RugCheckFrame
 from ui.recommendation_frame import RecommendationFrame
 from ui.calls_tree import CallsTreeView
 from ui.archived_calls_tree import ArchivedCallsTreeView
@@ -24,13 +23,11 @@ def main():
     social_frame = SocialFrame(main_window.main_containers['middle_right'], main_window.shared_vars, main_window)
     
     # RugCheck und Recommendation-Frames
-    rugcheck_frame = RugCheckFrame(main_window.main_containers['bottom_left'], main_window.shared_vars, main_window)
     recommendation_frame = RecommendationFrame(main_window.main_containers['bottom_right'], main_window.shared_vars, main_window)
     
     # Speichere Referenzen für den späteren Zugriff - WICHTIG!
     main_window.stats_frame = stats_frame
     main_window.social_frame = social_frame
-    main_window.rugcheck_frame = rugcheck_frame  # Speichere die Referenz auf den RugCheck-Frame
     main_window.recommendation_frame = recommendation_frame
     
     # Erstelle die Treeviews für die Call-Tabs

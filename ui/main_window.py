@@ -201,9 +201,11 @@ class MainWindow:
         container_bottom.columnconfigure(0, weight=1)  # 50% Breite
         container_bottom.columnconfigure(1, weight=1)  # 50% Breite
         
-        # Linker Teil (RugCheck - zukünftig)
+        # Linker Teil (X-Post)
+        from ui.xpost_frame import XPostFrame
         self.bottom_left = tk.Frame(container_bottom, bg="white", bd=1, relief="solid")
         self.bottom_left.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+        xpost_frame = XPostFrame(self.bottom_left, self.shared_vars)
         
         # Rechter Teil (Empfehlung - zukünftig)
         self.bottom_right = tk.Frame(container_bottom, bg="white", bd=1, relief="solid")
@@ -223,20 +225,21 @@ class MainWindow:
 
     def create_placeholders(self):
         """Erstellt Platzhalter für zukünftige Funktionen"""
-        # RugCheck Platzhalter
-        rug_frame = tk.Frame(self.bottom_left, bg="white", padx=20, pady=20)
-        rug_frame.pack(fill="both", expand=True)
+        # X-Post Frame
+        xpost_frame = tk.Frame(self.bottom_left, bg="white", padx=20, pady=20)
+        xpost_frame.grid(row=0, column=0, sticky="nsew")  # Verwenden Sie grid statt pack
         
         tk.Label(
-            rug_frame, 
-            text="RugCheck (kommt bald)", 
+            xpost_frame, 
+            text="X-Post", 
             font=("Arial", 11, "bold"), 
-            bg="white"
+            bg="white", 
+            anchor="w"
         ).pack(anchor="w")
-        
-        # Empfehlung Platzhalter
+
+        # Optional: Empfehlung Platzhalter
         rec_frame = tk.Frame(self.bottom_right, bg="white", padx=20, pady=20)
-        rec_frame.pack(fill="both", expand=True)
+        rec_frame.grid(row=0, column=0, sticky="nsew")  # Auch hier grid
         
         tk.Label(
             rec_frame, 

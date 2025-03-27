@@ -11,14 +11,14 @@ class RecommendationFrame:
         self.create_frame()
         
     def create_frame(self):
-        """Erstellt den Frame für die Empfehlungsfunktion (kommt in Zukunft)"""
+        """Erstellt den Frame für die Empfehlungsfunktion"""
         self.frame = tk.Frame(
             self.parent, 
             bg="white", 
             padx=20, 
             pady=20
         )
-        self.frame.pack(fill="both", expand=True)
+        self.frame.grid(row=0, column=0, sticky="nsew")  # Ändern von pack() zu grid()
         
         # Titel
         tk.Label(
@@ -28,8 +28,6 @@ class RecommendationFrame:
             bg="white", 
             anchor="w"
         ).pack(anchor="w", pady=(0,10))
-        
-
 
         # Platzhalter für zukünftige Empfehlungsfunktion
         placeholder = tk.Frame(self.frame, bg="#f0f0f0", bd=1, relief="solid")

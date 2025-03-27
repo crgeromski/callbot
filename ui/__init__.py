@@ -10,5 +10,4 @@ from . import calls_tree
 from . import archived_calls_tree
 from . import main_bot
 from . import dexlink_frame
-from . import rugcheck_frame
 from . import recommendation_frame
