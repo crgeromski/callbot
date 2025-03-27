@@ -230,7 +230,7 @@ class XPostFrame:
             self.screenshot_button.config(state="normal")
 
     def check_link_change(self):
-        """Überprüft, ob sich der Link geändert hat und setzt ggf. die Button-Farben zurück"""
+        """Überprüft, ob sich der Link geändert hat und setzt ggf. die Button-Farben zurück oder aktiviert sie wenn der Call bereits gespeichert ist"""
         # Breche alle vorherigen Überprüfungen ab
         if self.link_check_id:
             self.parent.after_cancel(self.link_check_id)
@@ -238,21 +238,35 @@ class XPostFrame:
             
         current_link = self.shared_vars['entry_var'].get()
         
-        # Wenn sich der Link geändert hat, Buttons zurücksetzen
+        # Wenn sich der Link geändert hat
         if current_link != self.current_link and hasattr(self, 'current_link') and self.current_link:
-            # X-Button zurücksetzen
-            if hasattr(self, 'original_button_bg') and self.original_button_bg:
-                self.btn_xpost.config(bg=self.original_button_bg)
+            # Prüfe, ob der aktuelle Link bereits in gespeicherten Calls existiert
+            import data.storage as storage
+            calls = storage.load_call_data()
+            
+            # Prüfe, ob der Link in einem der aktiven Calls vorhanden ist
+            link_already_saved = any(
+                not call.get("abgeschlossen", False) and call.get("Link") == current_link 
+                for call in calls
+            )
+            
+            if link_already_saved:
+                # Wenn der Link bereits gespeichert ist, setze alle Buttons auf grün
+                self.btn_xpost.config(bg="#64c264")
+                self.screenshot_button.config(bg="#64c264")
+                self.call_button.config(bg="#64c264")
+            else:
+                # Wenn der Link nicht gespeichert ist, setze alle Buttons auf Standard zurück
+                if hasattr(self, 'original_button_bg') and self.original_button_bg:
+                    self.btn_xpost.config(bg=self.original_button_bg)
                 
-            # Screenshot-Button zurücksetzen
-            if hasattr(self, 'original_screenshot_bg') and self.original_screenshot_bg:
-                self.screenshot_button.config(bg=self.original_screenshot_bg)
+                if hasattr(self, 'original_screenshot_bg') and self.original_screenshot_bg:
+                    self.screenshot_button.config(bg=self.original_screenshot_bg)
                 
-            # Call-Button zurücksetzen
-            if hasattr(self, 'original_call_bg') and self.original_call_bg:
-                self.call_button.config(bg=self.original_call_bg)
-                
-            # Aktuellen Link aktualisieren
+                if hasattr(self, 'original_call_bg') and self.original_call_bg:
+                    self.call_button.config(bg=self.original_call_bg)
+            
+            # Aktualisiere den aktuellen Link
             self.current_link = current_link
         
         # Plane nächste Überprüfung (alle 500ms)
@@ -263,20 +277,42 @@ class XPostFrame:
         current_data = self.shared_vars['current_data']
         
         # WICHTIG: Aktualisiere die aktuellen Link-Informationen für die Button-Farbkontrolle
-        self.current_link = self.shared_vars['entry_var'].get()
+        new_link = self.shared_vars['entry_var'].get()
         
-        # WICHTIG: Setze die Button-Farben zurück
-        if hasattr(self, 'btn_xpost'):
-            self.btn_xpost.config(bg="SystemButtonFace")
-            self.original_button_bg = "SystemButtonFace"
+        # Prüfe, ob der aktuelle Link bereits in gespeicherten Calls existiert
+        import data.storage as storage
+        calls = storage.load_call_data()
+        
+        # Prüfe, ob der Link in einem der aktiven Calls vorhanden ist
+        link_already_saved = any(
+            not call.get("abgeschlossen", False) and call.get("Link") == new_link 
+            for call in calls
+        )
+        
+        # WICHTIG: Speichere die Button-Farben, falls noch nicht geschehen
+        if not hasattr(self, 'original_button_bg') or not self.original_button_bg:
+            self.original_button_bg = self.btn_xpost.cget("bg")
             
-        if hasattr(self, 'screenshot_button'):
-            self.screenshot_button.config(bg="SystemButtonFace")
-            self.original_screenshot_bg = "SystemButtonFace"
+        if not hasattr(self, 'original_screenshot_bg') or not self.original_screenshot_bg:
+            self.original_screenshot_bg = self.screenshot_button.cget("bg")
             
-        if hasattr(self, 'call_button'):
-            self.call_button.config(bg="SystemButtonFace")
-            self.original_call_bg = "SystemButtonFace"
+        if not hasattr(self, 'original_call_bg') or not self.original_call_bg:
+            self.original_call_bg = self.call_button.cget("bg")
+        
+        # Setze die Farben der Buttons basierend darauf, ob der Link bereits gespeichert ist
+        if link_already_saved:
+            # Wenn der Link bereits gespeichert ist, setze alle Buttons auf grün
+            self.btn_xpost.config(bg="#64c264")
+            self.screenshot_button.config(bg="#64c264")
+            self.call_button.config(bg="#64c264")
+        else:
+            # Wenn der Link nicht gespeichert ist, setze alle Buttons auf Standard zurück
+            self.btn_xpost.config(bg=self.original_button_bg)
+            self.screenshot_button.config(bg=self.original_screenshot_bg)
+            self.call_button.config(bg=self.original_call_bg)
+        
+        # Aktualisiere den aktuellen Link
+        self.current_link = new_link
         
         if not current_data:
             self.xpost_text_widget.delete("1.0", "end")
