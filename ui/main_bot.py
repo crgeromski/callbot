@@ -148,6 +148,11 @@ class MainBot:
         self.shared_vars['twitter_var'].set(next((s.get("url") for s in socials if s.get("type") == "twitter"), "N/A"))
         self.shared_vars['telegram_var'].set(next((s.get("url") for s in socials if s.get("type") == "telegram"), "N/A"))
         self.shared_vars['discord_var'].set(next((s.get("url") for s in socials if s.get("type") == "discord"), "N/A"))
+        
+        # Aktualisiere die RugCheck-Daten, falls verfügbar
+        if hasattr(self.main_window, 'rugcheck_frame'):
+            token_address = base_token.get("address", "")
+            self.main_window.rugcheck_frame.update_metrics(token_address)
 
     def paste_and_fetch(self):
         """Fügt den Inhalt der Zwischenablage in das Eingabefeld ein und ruft die API ab"""
