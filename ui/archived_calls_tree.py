@@ -25,7 +25,8 @@ class ArchivedCallsTreeView:
                 "PL_Dollar",
                 "Invest"
             ),
-            show="headings"
+            show="headings",
+            style="Treeview"  # Stelle sicher, dass der Standard-Style verwendet wird
         )
         
         # Definiere die Spaltenüberschriften
@@ -54,6 +55,8 @@ class ArchivedCallsTreeView:
         
         # Doppelklick-Event
         self.archived_calls_tree.bind("<Double-1>", self.on_archived_double_click)
+        # Klick-Event zum Aufheben der Auswahl
+        self.archived_calls_tree.bind("<Button-1>", self.on_archived_click)
         self.archived_calls_tree.pack(fill="both", expand=True)
         
         # Kontextmenü hinzufügen
@@ -62,6 +65,29 @@ class ArchivedCallsTreeView:
         
         # Einträge zum Kontextmenü hinzufügen
         self.context_menu.add_command(label="Call löschen", command=self.delete_selected_archived_call)
+        
+    def on_archived_click(self, event):
+        """Behandelt Klicks auf die Treeview und hebt die Auswahl auf, wenn nötig"""
+        # Identifiziere das Element unter dem Mauszeiger
+        item = self.archived_calls_tree.identify_row(event.y)
+        
+        # Wenn kein Element gefunden wurde (Klick ins Leere), 
+        # oder das geklickte Element bereits ausgewählt ist, hebe die Auswahl auf
+        if not item or item in self.archived_calls_tree.selection():
+            self.archived_calls_tree.selection_remove(self.archived_calls_tree.selection())
+        else:
+            # Prüfe die Tags der Zeile
+            row_tags = self.archived_calls_tree.item(item, "tags")
+            
+            # Setze den Hintergrund für das ausgewählte Element
+            if row_tags and "row_green" in row_tags:
+                self.archived_calls_tree.tag_configure("selected_green", background="#64c264")
+                self.archived_calls_tree.selection_set(item)
+                self.archived_calls_tree.item(item, tags=("row_green", "selected_green"))
+            elif row_tags and "row_red" in row_tags:
+                self.archived_calls_tree.tag_configure("selected_red", background="#f48a8a")
+                self.archived_calls_tree.selection_set(item)
+                self.archived_calls_tree.item(item, tags=("row_red", "selected_red"))
         
     def show_context_menu(self, event):
         """Zeigt das Kontextmenü bei Rechtsklick an"""

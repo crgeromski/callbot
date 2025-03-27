@@ -25,7 +25,8 @@ class CallsTreeView:
                 "PL_Dollar",
                 "Invest"
             ),
-            show="headings"
+            show="headings",
+            style="Treeview"  # Stelle sicher, dass der Standard-Style verwendet wird
         )
         
         # Definiere die Spaltenüberschriften
@@ -38,6 +39,10 @@ class CallsTreeView:
         self.calls_tree.heading("PL_Dollar", text="$ P/L")
         self.calls_tree.heading("Invest", text="Invest")
         
+        # Definiere Zeilen-Farbtags
+        self.calls_tree.tag_configure("row_green", background="#d8ffd8")
+        self.calls_tree.tag_configure("row_red", background="#ffd8d8")
+        
         # Definiere die Spaltenbreiten und Ausrichtung
         self.calls_tree.column("Datum", width=80, anchor="center")
         self.calls_tree.column("Symbol", width=80, anchor="center")
@@ -48,15 +53,14 @@ class CallsTreeView:
         self.calls_tree.column("PL_Dollar", width=80, anchor="center")
         self.calls_tree.column("Invest", width=80, anchor="center")
 
-        # Definiere die Zeilen-Farbtags für positives/negatives P/L
-        self.calls_tree.tag_configure("row_green", background="#d8ffd8")
-        self.calls_tree.tag_configure("row_red", background="#ffd8d8")
-        
         # Packe den Treeview in den Tab
         self.calls_tree.pack(fill="both", expand=True)
         
         # Binde das Doppelklick-Event an die Treeview
         self.calls_tree.bind("<Double-1>", self.on_treeview_double_click)
+        
+        # Binde das Klick-Event zum Aufheben der Auswahl
+        self.calls_tree.bind("<Button-1>", self.on_treeview_click)
         
         # Kontextmenü hinzufügen
         self.context_menu = tk.Menu(self.calls_tree, tearoff=0)
@@ -65,6 +69,29 @@ class CallsTreeView:
         # Einträge zum Kontextmenü hinzufügen
         self.context_menu.add_command(label="Call abschließen", command=self.close_selected_call)
         self.context_menu.add_command(label="Call löschen", command=self.delete_selected_call)
+        
+    def on_treeview_click(self, event):
+        """Behandelt Klicks auf die Treeview und hebt die Auswahl auf, wenn nötig"""
+        # Identifiziere das Element unter dem Mauszeiger
+        item = self.calls_tree.identify_row(event.y)
+        
+        # Wenn kein Element gefunden wurde (Klick ins Leere), 
+        # oder das geklickte Element bereits ausgewählt ist, hebe die Auswahl auf
+        if not item or item in self.calls_tree.selection():
+            self.calls_tree.selection_remove(self.calls_tree.selection())
+        else:
+            # Prüfe die Tags der Zeile
+            row_tags = self.calls_tree.item(item, "tags")
+            
+            # Setze den Hintergrund für das ausgewählte Element
+            if row_tags and "row_green" in row_tags:
+                self.calls_tree.tag_configure("selected_green", background="#64c264")
+                self.calls_tree.selection_set(item)
+                self.calls_tree.item(item, tags=("row_green", "selected_green"))
+            elif row_tags and "row_red" in row_tags:
+                self.calls_tree.tag_configure("selected_red", background="#f48a8a")
+                self.calls_tree.selection_set(item)
+                self.calls_tree.item(item, tags=("row_red", "selected_red"))
     
     def show_context_menu(self, event):
         """Zeigt das Kontextmenü bei Rechtsklick an"""
