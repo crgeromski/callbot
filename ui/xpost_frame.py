@@ -32,16 +32,27 @@ class XPostFrame:
         text_container = tk.Frame(self.frame, bg="white")
         text_container.pack(fill="both", expand=True, pady=5)
         
+        # Text-Widget mit reduzierter Höhe (nur 5 Zeilen) und bearbeitbar
         self.xpost_text_widget = tk.Text(
             text_container, 
-            height=10,  # Höhere Starthöhe für bessere Sichtbarkeit
+            height=6,  # Reduzierte Höhe auf 5 Zeilen
             wrap="word", 
             relief="sunken", 
             borderwidth=2
         )
         self.xpost_text_widget.insert("1.0", "")
-        self.xpost_text_widget.config(state="disabled")  
-        self.xpost_text_widget.pack(fill="both", expand=True, pady=5)
+        # State "normal" damit das Textfeld bearbeitbar ist
+        self.xpost_text_widget.config(state="normal")  
+        self.xpost_text_widget.pack(fill="x", pady=5)  # fill="x" statt "both" damit es nicht vertikal expandiert
+        
+        # Event-Handler für Klick außerhalb des Textfeldes
+        def on_focus_out(event):
+            # Fokus vom Textfeld nehmen, wenn woanders hingeklickt wird
+            self.parent.focus_set()
+            
+        # Binding zum Hauptfenster hinzufügen
+        root = self.parent.winfo_toplevel()
+        root.bind("<Button-1>", lambda event: self._check_focus_out(event))
         
         # Frame für Buttons mit verbesserter Positionierung
         self.btn_frame = tk.Frame(self.frame, bg="white")
@@ -86,16 +97,12 @@ class XPostFrame:
         current_data = self.shared_vars['current_data']
         
         if not current_data:
-            self.xpost_text_widget.config(state="normal")
             self.xpost_text_widget.delete("1.0", "end")
-            self.xpost_text_widget.config(state="disabled")
             return
         
         pairs = current_data.get("pairs", [])
         if not pairs:
-            self.xpost_text_widget.config(state="normal")
             self.xpost_text_widget.delete("1.0", "end")
-            self.xpost_text_widget.config(state="disabled")
             return
         
         pair_info = pairs[0]
@@ -112,8 +119,45 @@ class XPostFrame:
         except:
             market_cap_str = "N/A"
         
-        xpost_text = f"{symbol_str}\n🔗 CA: {token_addr}\n💰 MCAP Entry: ${market_cap_str}"
-        self.xpost_text_widget.config(state="normal")
+        xpost_text = f"\n💰 MCAP Entry: ${market_cap_str}\n{symbol_str}\n🔗 CA: {token_addr}"
+        
+        # Aktuellen Text speichern und Cursor-Position merken
+        cursor_pos = self.xpost_text_widget.index(tk.INSERT)
+        
+        # Überprüfen ob der Text bereits bearbeitet wurde und inhaltlich anders ist
+        current_text = self.xpost_text_widget.get("1.0", "end").strip()
+        if current_text and current_text != xpost_text:
+            # Text wurde bereits bearbeitet, nicht überschreiben
+            return
+            
+        # Ansonsten Text aktualisieren
         self.xpost_text_widget.delete("1.0", "end")
         self.xpost_text_widget.insert("1.0", xpost_text)
-        self.xpost_text_widget.config(state="disabled")
+        
+                    
+        # Setze Cursor an den Anfang des Textes, damit der Nutzer sofort schreiben kann
+        self.xpost_text_widget.mark_set(tk.INSERT, "1.0")
+    
+    def _check_focus_out(self, event):
+        """
+        Prüft, ob außerhalb des Textfelds geklickt wurde und nimmt ggf. den Fokus
+        """
+        # Hole das Widget, auf das geklickt wurde
+        clicked_widget = event.widget
+        
+        # Wenn es nicht das Textfeld ist und auch kein Kind des Textfelds
+        if clicked_widget != self.xpost_text_widget and not self._is_child_of_widget(clicked_widget, self.xpost_text_widget):
+            # Fokus vom Textfeld nehmen
+            self.parent.focus_set()
+    
+    def _is_child_of_widget(self, widget, parent):
+        """
+        Prüft rekursiv, ob ein Widget ein Kind eines anderen Widgets ist
+        """
+        try:
+            if widget.master == parent:
+                return True
+            else:
+                return self._is_child_of_widget(widget.master, parent)
+        except:
+            return False
