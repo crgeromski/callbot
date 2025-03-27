@@ -30,12 +30,12 @@ class XPostFrame:
         
         # X-Post Textfeld (multiline) mit verbesserter Größenanpassung
         text_container = tk.Frame(self.frame, bg="white")
-        text_container.pack(fill="both", expand=True, pady=5)
+        text_container.pack(fill="x", pady=5)
         
         # Text-Widget mit reduzierter Höhe (nur 5 Zeilen) und bearbeitbar
         self.xpost_text_widget = tk.Text(
             text_container, 
-            height=6,  # Reduzierte Höhe auf 5 Zeilen
+            height=6,  # Höhe auf 6 Zeilen
             wrap="word", 
             relief="sunken", 
             borderwidth=2
@@ -43,7 +43,7 @@ class XPostFrame:
         self.xpost_text_widget.insert("1.0", "")
         # State "normal" damit das Textfeld bearbeitbar ist
         self.xpost_text_widget.config(state="normal")  
-        self.xpost_text_widget.pack(fill="x", pady=5)  # fill="x" statt "both" damit es nicht vertikal expandiert
+        self.xpost_text_widget.pack(fill="x", pady=(5, 10))  # Mehr Abstand unten für die Buttons
         
         # Event-Handler für Klick außerhalb des Textfeldes
         def on_focus_out(event):
@@ -54,33 +54,33 @@ class XPostFrame:
         root = self.parent.winfo_toplevel()
         root.bind("<Button-1>", lambda event: self._check_focus_out(event))
         
-        # Frame für Buttons mit verbesserter Positionierung
+        # Frame für Buttons mit verbesserter Positionierung und Ausrichtung
         self.btn_frame = tk.Frame(self.frame, bg="white")
-        self.btn_frame.pack(fill="x", pady=10)
+        self.btn_frame.pack(fill="x", pady=10, after=text_container)
         
-        # Button "Kopieren"
-        self.btn_copy = tk.Button(
-            self.btn_frame, 
-            text="Kopieren",
-            width=10,
-            command=self.copy_to_clipboard
-        )
-        self.btn_copy.pack(side="left", padx=(0, 10))
+        # Konfiguriere den Button-Frame für gleichmäßige Aufteilung
+        self.btn_frame.columnconfigure(0, weight=1)
+        self.btn_frame.columnconfigure(1, weight=1)
         
-        # Button "Auf X posten"
+        # Button "Auf X posten" - jetzt links mit Gewicht
         self.btn_xpost = tk.Button(
             self.btn_frame, 
             text="Auf X posten",
-            width=10,
+            font=("Arial", 10, "bold"),
+            height=2,
             command=self.post_to_x
         )
-        self.btn_xpost.pack(side="left")
-    
-    def copy_to_clipboard(self):
-        """Kopiert den X-Post-Text in die Zwischenablage"""
-        root = self.parent.winfo_toplevel()
-        text = self.xpost_text_widget.get("1.0", "end").strip()
-        clipboard.copy_to_clipboard(root, text)
+        self.btn_xpost.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        
+        # Call speichern Button - jetzt rechts mit Gewicht
+        self.call_button = tk.Button(
+            self.btn_frame,
+            text="Call speichern",
+            font=("Arial", 10, "bold"),
+            height=2,
+            command=self.create_call
+        )
+        self.call_button.grid(row=0, column=1, sticky="ew", padx=(5, 0))
     
     def post_to_x(self):
         """Öffnet X.com mit dem aktuellen Post-Inhalt"""
@@ -91,6 +91,53 @@ class XPostFrame:
         url = browser.create_twitter_post_url(text)
         if url:
             browser.open_link(url)
+            
+            # Visuelles Feedback für den Button
+            original_bg = self.btn_xpost.cget("bg")
+            self.btn_xpost.config(bg="#64c264")  # Grüner Hintergrund
+            
+            # Zurücksetzen nach 1500 Millisekunden (1,5 Sekunden)
+            self.btn_xpost.after(1500, lambda: self.btn_xpost.config(bg=original_bg))
+    
+    def create_call(self):
+        """
+        Erstellt einen neuen Call und speichert ihn in der JSON-Datei.
+        """
+        try:
+            # Importiere storage hier, um zirkuläre Importe zu vermeiden
+            import data.storage as storage
+            from tkinter import messagebox
+            
+            # Hole die benötigten Daten aus den Variablen
+            symbol = self.shared_vars['token_symbol_var'].get()
+            mcap = self.shared_vars['mcap_var'].get()
+            liquidity = self.shared_vars['liq_var'].get()
+            link = self.shared_vars['entry_var'].get()
+            
+            if not all([symbol, mcap, liquidity, link]):
+                messagebox.showerror("Fehler", "Es fehlen notwendige Daten für den Call.")
+                return
+            
+            # Erstelle neuen Call
+            new_call = storage.create_new_call(symbol, mcap, liquidity, link)
+            
+            # Speichere den neuen Call
+            storage.save_new_call(new_call)
+            
+            # Aktualisiere die Treeview, wenn im main_window verfügbar
+            root = self.parent.winfo_toplevel()
+            if hasattr(root, 'update_calls_tree'):
+                root.update_calls_tree()
+            
+            # Visuelles Feedback für den Button
+            original_bg = self.call_button.cget("bg")
+            self.call_button.config(bg="#64c264")  # Grüner Hintergrund
+            
+            # Zurücksetzen nach 1500 Millisekunden (1,5 Sekunden)
+            self.call_button.after(1500, lambda: self.call_button.config(bg=original_bg))
+                
+        except Exception as e:
+            messagebox.showerror("Fehler", f"Fehler beim Erstellen des Calls: {e}")
     
     def update_xpost_container(self):
         """Befüllt das X-Post-Feld basierend auf current_data"""
@@ -134,7 +181,6 @@ class XPostFrame:
         self.xpost_text_widget.delete("1.0", "end")
         self.xpost_text_widget.insert("1.0", xpost_text)
         
-                    
         # Setze Cursor an den Anfang des Textes, damit der Nutzer sofort schreiben kann
         self.xpost_text_widget.mark_set(tk.INSERT, "1.0")
     
