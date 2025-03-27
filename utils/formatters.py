@@ -1,5 +1,3 @@
-# Formatierungsfunktionen
-
 def format_k(num):
     """Zahl in K/M-Format."""
     try:
@@ -53,3 +51,24 @@ def parse_km(value: str) -> float:
             return float(value)
     except:
         return 0.0
+
+def format_url(url: str) -> str:
+    """
+    Entfernt das Protokoll-Präfix (http://, https://) und www. von URLs für die Anzeige.
+    Bei Nicht-URLs oder 'N/A' wird der Originalwert zurückgegeben.
+    """
+    if not url or url == "N/A":
+        return "N/A"
+    
+    url = url.strip()
+    # Entferne http:// oder https://
+    if url.startswith("http://"):
+        url = url[7:]
+    elif url.startswith("https://"):
+        url = url[8:]
+    
+    # Entferne www.
+    if url.startswith("www."):
+        url = url[4:]
+        
+    return url

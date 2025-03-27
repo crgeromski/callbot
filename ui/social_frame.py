@@ -34,8 +34,10 @@ class SocialFrame:
         data_container.columnconfigure(1, weight=1)
         
         # Datenzeilen mit vorhandenem Styling
+        # Datenzeilen mit vorhandenem Styling
         styles.create_link_row(data_container, "DexLink", self.shared_vars['dexscreener_var'], 1)
-        styles.create_link_row(data_container, "Website", self.shared_vars['website_var'], 2)
+        styles.create_link_row(data_container, "Website", self.shared_vars['website_var'], 2, 
+                              token_name_var=self.shared_vars['token_name_var'], is_website=True)
         styles.create_link_row(data_container, "Twitter", self.shared_vars['twitter_var'], 3)
         styles.create_link_row(data_container, "Telegram", self.shared_vars['telegram_var'], 4)
         styles.create_link_row(data_container, "Discord", self.shared_vars['discord_var'], 5)
