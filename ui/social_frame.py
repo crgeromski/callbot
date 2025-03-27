@@ -161,44 +161,43 @@ class SocialFrame:
 
     def take_chart_screenshot(self):
         """Erstellt einen Screenshot des Dexscreener-Charts"""
-        from tkinter import messagebox
-        import threading
         from utils.screenshot import take_chart_screenshot
         
         # Hole den Dexscreener-Link
         link = self.shared_vars['dexscreener_var'].get()
         
         if not link or link == "N/A" or "dexscreener.com" not in link:
+            from tkinter import messagebox
             messagebox.showerror("Fehler", "Kein gültiger Dexscreener-Link vorhanden.")
             return
-        
-        # Info-Dialog
-        info_dialog = tk.Toplevel(self.parent)
-        info_dialog.title("Screenshot wird erstellt")
-        info_dialog.geometry("300x100")
-        info_dialog.resizable(False, False)
-        info_dialog.transient(self.parent)
-        info_dialog.grab_set()
-        
-        info_label = tk.Label(
-            info_dialog,
-            text="Screenshot wird erstellt...\nBitte warten.",
-            font=("Arial", 12)
-        )
-        info_label.pack(expand=True)
         
         # Deaktiviere den Screenshot-Button während der Erstellung
         self.screenshot_button.config(state="disabled")
         
-        # Funktion, die im Thread ausgeführt wird
-        def screenshot_thread():
-            screenshot_path = take_chart_screenshot(link)
-            
-            # UI-Updates müssen im Hauptthread erfolgen
-            self.parent.after(0, lambda: self._handle_screenshot_result(screenshot_path, info_dialog))
+        # Starte den Screenshot-Prozess
+        screenshot_path = take_chart_screenshot(link, self.parent)
         
-        # Starte den Screenshot-Prozess in einem separaten Thread
-        threading.Thread(target=screenshot_thread).start()
+        # Reaktiviere den Button
+        self.screenshot_button.config(state="normal")
+        
+        # Zeige Erfolgs- oder Fehlermeldung
+        if screenshot_path and os.path.exists(screenshot_path):
+            from tkinter import messagebox
+            import os
+            
+            # Zeigen wir den absoluten Pfad an
+            abs_path = os.path.abspath(screenshot_path)
+            
+            messagebox.showinfo(
+                "Screenshot erstellt", 
+                f"Der Screenshot wurde erfolgreich erstellt und gespeichert unter:\n{abs_path}"
+            )
+        else:
+            from tkinter import messagebox
+            messagebox.showerror(
+                "Fehler", 
+                "Es ist ein Fehler beim Erstellen des Screenshots aufgetreten."
+            )
 
     def _handle_screenshot_result(self, screenshot_path, info_dialog):
         """Verarbeitet das Ergebnis des Screenshots"""
