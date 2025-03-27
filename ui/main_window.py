@@ -226,6 +226,7 @@ class MainWindow:
         from ui.xpost_frame import XPostFrame
         self.xpost_frame = XPostFrame(self.bottom_left, self.shared_vars)
 
+
         # Empfehlungs-Frame erstellen
         from ui.recommendation_frame import RecommendationFrame
         recommendation_frame = RecommendationFrame(self.bottom_right, self.shared_vars, self)

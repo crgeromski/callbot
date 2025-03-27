@@ -7,6 +7,7 @@ class XPostFrame:
     def __init__(self, parent, shared_vars):
         self.parent = parent
         self.shared_vars = shared_vars
+        self.last_screenshot = None  # Zum Speichern des Screenshots
         self.create_frame()
         
     def create_frame(self):
@@ -81,6 +82,41 @@ class XPostFrame:
             command=self.create_call
         )
         self.call_button.grid(row=0, column=1, sticky="ew", padx=(5, 0))
+        
+        # Screenshot-Buttons Bereich - NEU hinzugefügt
+        self.screenshot_frame = tk.Frame(self.frame, bg="white")
+        self.screenshot_frame.pack(fill="x", pady=10)
+        
+        # Konfiguriere den Screenshot-Frame mit Gewicht für den Hauptbutton
+        self.screenshot_frame.columnconfigure(0, weight=1)
+        
+        # Screenshot erstellen Button
+        self.screenshot_button = tk.Button(
+            self.screenshot_frame,
+            text="Screenshot erstellen",
+            font=("Arial", 10, "bold"),
+            height=2,
+            command=self.take_chart_screenshot
+        )
+        self.screenshot_button.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        
+        # Button zum erneuten Kopieren des letzten Screenshots - quadratisch gestaltet
+        self.copy_last_screenshot_button = tk.Button(
+            self.screenshot_frame,
+            text="📋",
+            width=2,
+            height=2,
+            command=self.copy_last_screenshot_to_clipboard
+        )
+        self.copy_last_screenshot_button.grid(row=0, column=1, sticky="ns")
+        self.copy_last_screenshot_button.config(state="disabled", bg="systemButtonFace")  # Initial deaktiviert, Standardfarbe
+        
+        # Nach dem Erstellen und Platzieren des Buttons
+        # Wir warten auf die Aktualisierung der UI, um die tatsächliche Höhe zu bekommen
+        self.screenshot_frame.update_idletasks()
+        button_height = self.screenshot_button.winfo_height()
+        # Setze die Breite basierend auf der Höhe für einen quadratischen Button
+        self.copy_last_screenshot_button.config(width=button_height//10)  # Tkinter Button width ist in Texteinheiten, ca. 1/10 der Pixel
     
     def post_to_x(self):
         """Öffnet X.com mit dem aktuellen Post-Inhalt"""
@@ -138,6 +174,80 @@ class XPostFrame:
                 
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Calls: {e}")
+
+    def take_chart_screenshot(self):
+        """Erstellt einen Screenshot des Dexscreener-Charts"""
+        from utils.screenshot import take_chart_screenshot
+        import os
+        
+        # Hole den Dexscreener-Link
+        link = self.shared_vars['dexscreener_var'].get()
+        
+        if not link or link == "N/A" or "dexscreener.com" not in link:
+            from tkinter import messagebox
+            messagebox.showerror("Fehler", "Kein gültiger Dexscreener-Link vorhanden.")
+            return
+        
+        # Deaktiviere den Screenshot-Button während der Erstellung
+        self.screenshot_button.config(state="disabled")
+        
+        try:
+            # Starte den Screenshot-Prozess
+            screenshot = take_chart_screenshot(link, self.parent)
+            
+            # Wenn ein Screenshot erstellt wurde, kopiere ihn in die Zwischenablage
+            if screenshot:
+                # Importiere die benötigten Module
+                import io
+                from PIL import Image
+                
+                # Speichere das Bild in einer globalen Variable für späteren Zugriff
+                self.last_screenshot = screenshot
+                
+                # Aktiviere den Kopier-Button und färbe ihn hellgrün
+                self.copy_last_screenshot_button.config(state="normal", bg="#d8ffd8")
+                
+                # Kopiere in die Zwischenablage
+                import win32clipboard
+                from io import BytesIO
+                
+                output = BytesIO()
+                screenshot.convert('RGB').save(output, 'BMP')
+                data = output.getvalue()[14:]  # Die BMP-Header entfernen
+                output.close()
+                
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
+                win32clipboard.CloseClipboard()
+                
+                # Keine Erfolgsmeldung mehr
+        except Exception as e:
+            from tkinter import messagebox
+            messagebox.showerror("Fehler", f"Fehler beim Erstellen des Screenshots: {str(e)}")
+        finally:
+            # Reaktiviere den Button
+            self.screenshot_button.config(state="normal")
+
+    def copy_last_screenshot_to_clipboard(self):
+        """Kopiert das letzte erstellte Screenshot in die Zwischenablage"""
+        if hasattr(self, 'last_screenshot') and self.last_screenshot:
+            try:
+                import win32clipboard
+                from io import BytesIO
+                
+                output = BytesIO()
+                self.last_screenshot.convert('RGB').save(output, 'BMP')
+                data = output.getvalue()[14:]  # Die BMP-Header entfernen
+                output.close()
+                
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
+                win32clipboard.CloseClipboard()
+            except Exception as e:
+                from tkinter import messagebox
+                messagebox.showerror("Fehler", f"Fehler beim Kopieren des Screenshots: {str(e)}")
     
     def update_xpost_container(self):
         """Befüllt das X-Post-Feld basierend auf current_data"""

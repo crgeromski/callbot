@@ -133,11 +133,11 @@ class MainBot:
                 self.shared_vars['dexscreener_var'].set(f"https://dexscreener.com/search?q={address}")
 
         # Setze den Screenshot-Kopier-Button zurück
-        if hasattr(self.main_window, 'social_frame') and hasattr(self.main_window.social_frame, 'copy_last_screenshot_button'):
-            self.main_window.social_frame.copy_last_screenshot_button.config(state="disabled")
+        if hasattr(self.main_window, 'xpost_frame') and hasattr(self.main_window.xpost_frame, 'copy_last_screenshot_button'):
+            self.main_window.xpost_frame.copy_last_screenshot_button.config(state="disabled", bg="systemButtonFace")
             # Setze auch last_screenshot zurück
-            if hasattr(self.main_window.social_frame, 'last_screenshot'):
-                self.main_window.social_frame.last_screenshot = None
+            if hasattr(self.main_window.xpost_frame, 'last_screenshot'):
+                self.main_window.xpost_frame.last_screenshot = None
 
         # Website und soziale Medien
         info = pair_info.get("info", {})

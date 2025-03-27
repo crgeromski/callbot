@@ -42,32 +42,7 @@ class SocialFrame:
         styles.create_link_row(data_container, "Telegram", self.shared_vars['telegram_var'], 4)
         styles.create_link_row(data_container, "Discord", self.shared_vars['discord_var'], 5)
 
-        # Screenshot-Button Bereich
-        screenshot_frame = tk.Frame(self.frame, bg="white")
-        screenshot_frame.pack(fill="x", pady=5)
-
-        # Erstelle einen Frame für die Screenshots-Buttons nebeneinander
-        screenshot_buttons_frame = tk.Frame(screenshot_frame, bg="white")
-        screenshot_buttons_frame.pack(pady=5)
-
-        # Screenshot erstellen Button
-        self.screenshot_button = tk.Button(
-            screenshot_buttons_frame,
-            text="Screenshot erstellen",
-            font=("Arial", 10, "bold"),
-            command=self.take_chart_screenshot
-        )
-        self.screenshot_button.pack(side="left")
-
-        # Button zum erneuten Kopieren des letzten Screenshots
-        self.copy_last_screenshot_button = tk.Button(
-            screenshot_buttons_frame,
-            text="📋",
-            width=2,
-            command=self.copy_last_screenshot_to_clipboard
-        )
-        self.copy_last_screenshot_button.pack(side="left", padx=(5, 0))
-        self.copy_last_screenshot_button.config(state="disabled")  # Initial deaktiviert
+        # Wir entfernen den Screenshot Button von hier und verschieben ihn in den XPostFrame
 
     def take_chart_screenshot(self):
         """Erstellt einen Screenshot des Dexscreener-Charts"""
@@ -83,7 +58,8 @@ class SocialFrame:
             return
         
         # Deaktiviere den Screenshot-Button während der Erstellung
-        self.screenshot_button.config(state="disabled")
+        if hasattr(self.main_window, 'xpost_frame') and hasattr(self.main_window.xpost_frame, 'screenshot_button'):
+            self.main_window.xpost_frame.screenshot_button.config(state="disabled")
         
         try:
             # Starte den Screenshot-Prozess
@@ -98,8 +74,9 @@ class SocialFrame:
                 # Speichere das Bild in einer globalen Variable für späteren Zugriff
                 self.last_screenshot = screenshot
                 
-                # Aktiviere den Kopier-Button
-                self.copy_last_screenshot_button.config(state="normal")
+                # Aktiviere den Kopier-Button im XPostFrame
+                if hasattr(self.main_window, 'xpost_frame') and hasattr(self.main_window.xpost_frame, 'copy_last_screenshot_button'):
+                    self.main_window.xpost_frame.copy_last_screenshot_button.config(state="normal")
                 
                 # Kopiere in die Zwischenablage
                 import win32clipboard
@@ -120,8 +97,9 @@ class SocialFrame:
             from tkinter import messagebox
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Screenshots: {str(e)}")
         finally:
-            # Reaktiviere den Button
-            self.screenshot_button.config(state="normal")
+            # Reaktiviere den Button im XPostFrame
+            if hasattr(self.main_window, 'xpost_frame') and hasattr(self.main_window.xpost_frame, 'screenshot_button'):
+                self.main_window.xpost_frame.screenshot_button.config(state="normal")
 
     def copy_last_screenshot_to_clipboard(self):
         """Kopiert das letzte erstellte Screenshot in die Zwischenablage"""
@@ -150,7 +128,8 @@ class SocialFrame:
         import os
         
         # Reaktiviere den Screenshot-Button
-        self.screenshot_button.config(state="normal")
+        if hasattr(self.main_window, 'xpost_frame') and hasattr(self.main_window.xpost_frame, 'screenshot_button'):
+            self.main_window.xpost_frame.screenshot_button.config(state="normal")
         
         # Schließe den Info-Dialog
         info_dialog.destroy()
