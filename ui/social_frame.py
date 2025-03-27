@@ -88,11 +88,13 @@ class SocialFrame:
             # Aktualisiere die Treeview, wenn main_window verfügbar ist
             if hasattr(self, 'main_window') and self.main_window and hasattr(self.main_window, 'update_calls_tree'):
                 self.main_window.update_calls_tree()
-                
-            # Wechsle zum Calls-Tab, wenn main_window verfügbar ist
-            if hasattr(self, 'main_window') and self.main_window and hasattr(self.main_window, 'notebook'):
-                self.main_window.notebook.select(self.main_window.tabs['calls'])
-                
+            
+            # Visuelles Feedback für den Button
+            original_bg = self.call_button.cget("bg")
+            self.call_button.config(bg="#64c264")  # Grüner Hintergrund
+            
+            # Zurücksetzen nach 750 Millisekunden
+            self.call_button.after(1500, lambda: self.call_button.config(bg=original_bg))
                 
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Calls: {e}")

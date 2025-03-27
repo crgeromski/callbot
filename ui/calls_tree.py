@@ -146,7 +146,7 @@ class CallsTreeView:
                     self.main_window.notebook.select(self.main_window.tabs['main'])
     
     def delete_selected_call(self):
-        """Löscht die ausgewählten Calls aus der Liste"""
+        """Löscht nur die ausgewählten Calls aus der Liste"""
         selected_items = self.calls_tree.selection()
         if not selected_items:
             messagebox.showinfo("Hinweis", "Bitte wähle zuerst mindestens einen Call aus, den du löschen möchtest.")
@@ -154,16 +154,29 @@ class CallsTreeView:
             
         # Lade die vorhandenen Calls
         calls = storage.load_call_data()
-            
-        # Sammle Symbole der ausgewählten Zeilen 
-        selected_symbols = [self.calls_tree.item(item, "values")[1] for item in selected_items]
-            
-        # Filtere alle Calls heraus, deren Symbol in den ausgewählten Symbolen enthalten ist
-        updated_calls = [call for call in calls if call.get("Symbol") not in selected_symbols]
-            
+        
+        # Sammle zusätzliche Informationen über die zu löschenden Calls
+        selected_calls_details = [
+            {
+                "Symbol": self.calls_tree.item(item, "values")[1],
+                "Datum": self.calls_tree.item(item, "values")[0]
+            } 
+            for item in selected_items
+        ]
+        
+        # Filtere nur die spezifisch ausgewählten Calls heraus
+        updated_calls = [
+            call for call in calls 
+            if not any(
+                call.get("Symbol") == details["Symbol"] and 
+                call.get("Datum") == details["Datum"] and 
+                not call.get("abgeschlossen", False)
+            ) for details in selected_calls_details
+        ]
+        
         # Speichere die aktualisierte Liste in der JSON-Datei
         storage.save_call_data(updated_calls)
-            
+        
         # Aktualisiere den Treeview
         self.update_tree()
     

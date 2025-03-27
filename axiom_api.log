@@ -251,3 +251,243 @@
 2025-03-27 15:52:10,518 [INFO] - API-URL: https://api.solanatracker.io/tokens/88Gjd6MYgwLmie3vsfik9bZvuzYxYgm6cwPXuVsaDwTd
 2025-03-27 15:52:10,519 [INFO] - Sende Anfrage...
 2025-03-27 15:52:30,587 [WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/88Gjd6MYgwLmie3vsfik9bZvuzYxYgm6cwPXuVsaDwTd
+2025-03-27 15:52:43,466 [INFO] - === API-DEBUG GESTARTET ===
+2025-03-27 15:52:43,466 [INFO] - Teste API-Key...
+2025-03-27 15:52:43,466 [INFO] - Teste API-Key...
+2025-03-27 15:52:43,466 [INFO] - Sende API-Key Test-Anfrage für Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 15:52:43,590 [INFO] - API-Key Test-Antwort erhalten in 0.12s mit Status: 200
+2025-03-27 15:52:43,591 [INFO] - API-Key Test Ergebnis: Erfolg
+2025-03-27 15:52:43,591 [INFO] - API-Key gültig: True
+2025-03-27 15:52:43,591 [INFO] - Teste mit bekanntem Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 15:52:43,592 [INFO] - Starte API-Anfrage für Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 15:52:43,592 [INFO] - API-Key (Anfang): xaat...
+2025-03-27 15:52:43,592 [INFO] - API-URL: https://api.solanatracker.io/tokens/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 15:52:43,592 [INFO] - Sende Anfrage...
+2025-03-27 15:52:43,718 [INFO] - Antwort erhalten in 0.13s mit Status: 200
+2025-03-27 15:52:43,718 [INFO] - Daten erfolgreich abgerufen und geparst.
+2025-03-27 15:52:43,719 [INFO] - API-Anfrage abgeschlossen in 0.13s
+2025-03-27 15:52:43,719 [INFO] - Token-Daten erhalten in 0.13s: 19 Felder
+2025-03-27 15:52:43,720 [INFO] - Enthaltene Schlüssel: ['name', 'symbol', 'uri', 'sellerFeeBasisPoints', 'isMutable', 'mint', 'updateAuthority', 'primarySaleHappened', 'security', 'info', 'stats', 'lpBurn', 'address', 'decimals', 'logo', 'liquidity', 'price', 'marketCap', 'supply']
+2025-03-27 15:52:50,655 [WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/88Gjd6MYgwLmie3vsfik9bZvuzYxYgm6cwPXuVsaDwTd
+2025-03-27 15:53:10,721 [WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/88Gjd6MYgwLmie3vsfik9bZvuzYxYgm6cwPXuVsaDwTd
+2025-03-27 15:53:30,789 [ERROR] - Axiom API-Verbindungsfehler: Konnte keine Verbindung zum Server herstellen. Details: HTTPSConnectionPool(host='api.solanatracker.io', port=443): Max retries exceeded with url: /tokens/88Gjd6MYgwLmie3vsfik9bZvuzYxYgm6cwPXuVsaDwTd (Caused by ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)"))
+2025-03-27 15:53:30,790 [INFO] - API-Anfrage abgeschlossen in 80.27s
+2025-03-27 15:53:30,790 [INFO] - fetch_axiom_data abgeschlossen in 80.27s
+2025-03-27 15:53:30,790 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 15:53:30,795 [WARNING] - Keine Daten erhalten von fetch_axiom_data
+2025-03-27 15:53:30,795 [INFO] - Datenabfrage abgeschlossen, setze Loading-Flag zurück
+2025-03-27 15:55:14,897 [INFO] - Update Metrics aufgerufen für Token: Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump
+2025-03-27 15:55:14,900 [INFO] - Daten abrufen für Token: Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump
+2025-03-27 15:55:14,900 [INFO] - Thread zum Laden der Daten für Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump gestartet
+2025-03-27 15:55:14,909 [INFO] - Rufe fetch_axiom_data mit Timeout 20s auf
+2025-03-27 15:55:14,909 [INFO] - Starte API-Anfrage für Token: Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump
+2025-03-27 15:55:14,909 [INFO] - API-Key (Anfang): xaat...
+2025-03-27 15:55:14,909 [INFO] - API-URL: https://api.solanatracker.io/tokens/Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump
+2025-03-27 15:55:14,910 [INFO] - Sende Anfrage...
+2025-03-27 15:55:35,041 [WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump
+2025-03-27 15:55:55,102 [WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump
+2025-03-27 15:56:15,156 [WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump
+2025-03-27 15:56:16,150 [INFO] - Update Metrics aufgerufen für Token: BjCmA9ZYwJ1BwusMGaSxe4pgaa9gfXTtdyX27NYEpump
+2025-03-27 15:56:16,152 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 15:56:35,214 [ERROR] - Axiom API-Verbindungsfehler: Konnte keine Verbindung zum Server herstellen. Details: HTTPSConnectionPool(host='api.solanatracker.io', port=443): Max retries exceeded with url: /tokens/Ak1ZjuCCQbNEjDhe9xwELA9iDX6VPhftcVSzRbibpump (Caused by ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)"))
+2025-03-27 15:56:35,215 [INFO] - API-Anfrage abgeschlossen in 80.31s
+2025-03-27 15:56:35,215 [INFO] - fetch_axiom_data abgeschlossen in 80.31s
+2025-03-27 15:56:35,215 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 15:56:35,224 [WARNING] - Keine Daten erhalten von fetch_axiom_data
+2025-03-27 15:56:35,224 [INFO] - Datenabfrage abgeschlossen, setze Loading-Flag zurück
+2025-03-27 15:59:16,747 [INFO] - Update Metrics aufgerufen für Token: AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump
+2025-03-27 15:59:16,751 [INFO] - Daten abrufen für Token: AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump
+2025-03-27 15:59:16,752 [INFO] - Thread zum Laden der Daten für AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump gestartet
+2025-03-27 15:59:16,759 [INFO] - Rufe fetch_axiom_data mit Timeout 20s auf
+2025-03-27 15:59:16,759 [INFO] - Starte API-Anfrage für Token: AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump
+2025-03-27 15:59:16,759 [INFO] - API-Key (Anfang): xaat...
+2025-03-27 15:59:16,760 [INFO] - API-URL: https://api.solanatracker.io/tokens/AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump
+2025-03-27 15:59:16,760 [INFO] - Sende Anfrage...
+2025-03-27 15:59:36,818 [WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump
+2025-03-27 15:59:56,891 [WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump
+2025-03-27 16:00:16,951 [WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump
+2025-03-27 16:00:37,054 [ERROR] - Axiom API-Verbindungsfehler: Konnte keine Verbindung zum Server herstellen. Details: HTTPSConnectionPool(host='api.solanatracker.io', port=443): Max retries exceeded with url: /tokens/AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump (Caused by ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)"))
+2025-03-27 16:00:37,055 [INFO] - API-Anfrage abgeschlossen in 80.30s
+2025-03-27 16:00:37,055 [INFO] - fetch_axiom_data abgeschlossen in 80.30s
+2025-03-27 16:00:37,056 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:00:37,069 [WARNING] - Keine Daten erhalten von fetch_axiom_data
+2025-03-27 16:00:37,070 [INFO] - Datenabfrage abgeschlossen, setze Loading-Flag zurück
+2025-03-27 16:12:20,669 [INFO] - Erstelle RugCheck-Frame
+2025-03-27 16:12:20,678 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:12:20,681 [INFO] - Prüfe API-Key...
+2025-03-27 16:12:20,682 [INFO] - Starte API-Test
+2025-03-27 16:12:20,682 [INFO] - Teste API-Key...
+2025-03-27 16:12:20,682 [INFO] - Sende API-Key Test-Anfrage für Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 16:12:20,855 [INFO] - API-Key Test-Antwort erhalten in 0.17s mit Status: 200
+2025-03-27 16:12:20,855 [INFO] - API-Key Test Ergebnis: Erfolg
+2025-03-27 16:12:21,304 [INFO] - API-Key ist gültig
+2025-03-27 16:12:56,798 [INFO] - Update Metrics aufgerufen für Token: BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump
+2025-03-27 16:12:56,820 [INFO] - Daten abrufen für Token: BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump
+2025-03-27 16:12:56,820 [INFO] - Thread zum Laden der Daten für BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump gestartet
+2025-03-27 16:12:56,822 [INFO] - Rufe fetch_axiom_data mit Timeout 20s auf
+2025-03-27 16:12:56,823 [INFO] - Starte API-Anfrage für Token: BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump
+2025-03-27 16:12:56,823 [INFO] - API-Key (Anfang): xaat...
+2025-03-27 16:12:56,823 [INFO] - API-URL: https://api.solanatracker.io/tokens/BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump
+2025-03-27 16:12:56,823 [INFO] - Sende Anfrage...
+2025-03-27 16:13:16,889 [WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump
+2025-03-27 16:13:36,953 [WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump
+2025-03-27 16:13:55,388 [INFO] - Update Metrics aufgerufen für Token: FABELyo4mGW399dBZJhMeD988o2hEPu3B3LNWtuW4ueN
+2025-03-27 16:13:55,389 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:13:57,034 [WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump
+2025-03-27 16:14:17,094 [ERROR] - Axiom API-Verbindungsfehler: Konnte keine Verbindung zum Server herstellen. Details: HTTPSConnectionPool(host='api.solanatracker.io', port=443): Max retries exceeded with url: /tokens/BVjakiqygiuKmSu4y7SpMEk2ZWrnyBdtC7fA6EqUpump (Caused by ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)"))
+2025-03-27 16:14:17,095 [INFO] - API-Anfrage abgeschlossen in 80.27s
+2025-03-27 16:14:17,095 [INFO] - fetch_axiom_data abgeschlossen in 80.27s
+2025-03-27 16:14:17,095 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:14:17,104 [WARNING] - Keine Daten erhalten von fetch_axiom_data
+2025-03-27 16:14:17,105 [INFO] - Datenabfrage abgeschlossen, setze Loading-Flag zurück
+2025-03-27 16:14:31,217 [INFO] - Erstelle RugCheck-Frame
+2025-03-27 16:14:31,224 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:14:31,227 [INFO] - Prüfe API-Key...
+2025-03-27 16:14:31,228 [INFO] - Starte API-Test
+2025-03-27 16:14:31,228 [INFO] - Teste API-Key...
+2025-03-27 16:14:31,229 [INFO] - Sende API-Key Test-Anfrage für Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 16:14:31,355 [INFO] - API-Key Test-Antwort erhalten in 0.13s mit Status: 200
+2025-03-27 16:14:31,355 [INFO] - API-Key Test Ergebnis: Erfolg
+2025-03-27 16:14:32,445 [ERROR] - API-Key Test Fehler: main thread is not in main loop
+Traceback (most recent call last):
+  File "C:\Users\Gerome PC\Desktop\callbot_github\callbot\ui\rugcheck_frame.py", line 176, in check_api_key
+    self.api_status_var.set("API: Verbunden")
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Gerome PC\AppData\Local\Programs\Python\Python313\Lib\tkinter\__init__.py", line 427, in set
+    return self._tk.globalsetvar(self._name, value)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+RuntimeError: main thread is not in main loop
+2025-03-27 16:14:42,809 [INFO] - Update Metrics aufgerufen für Token: 26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:14:42,840 [WARNING] - API nicht verfügbar - Update abgebrochen
+2025-03-27 16:15:38,283 [INFO] - Erstelle RugCheck-Frame
+2025-03-27 16:15:38,291 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:15:38,294 [INFO] - Prüfe API-Key...
+2025-03-27 16:15:38,295 [INFO] - Starte API-Test
+2025-03-27 16:15:38,295 [INFO] - Teste API-Key...
+2025-03-27 16:15:38,296 [INFO] - Sende API-Key Test-Anfrage für Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 16:15:38,427 [INFO] - API-Key Test-Antwort erhalten in 0.13s mit Status: 200
+2025-03-27 16:15:38,427 [INFO] - API-Key Test Ergebnis: Erfolg
+2025-03-27 16:15:39,527 [ERROR] - API-Key Test Fehler: main thread is not in main loop
+Traceback (most recent call last):
+  File "C:\Users\Gerome PC\Desktop\callbot_github\callbot\ui\rugcheck_frame.py", line 176, in check_api_key
+    self.api_status_var.set("API: Verbunden")
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Gerome PC\AppData\Local\Programs\Python\Python313\Lib\tkinter\__init__.py", line 427, in set
+    return self._tk.globalsetvar(self._name, value)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+RuntimeError: main thread is not in main loop
+2025-03-27 16:16:01,527 [INFO] - Erstelle RugCheck-Frame
+2025-03-27 16:16:01,536 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:16:01,540 [INFO] - Prüfe API-Key...
+2025-03-27 16:16:01,540 [INFO] - Starte API-Test
+2025-03-27 16:16:01,541 [INFO] - Teste API-Key...
+2025-03-27 16:16:01,541 [INFO] - Sende API-Key Test-Anfrage für Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 16:16:01,678 [INFO] - API-Key Test-Antwort erhalten in 0.14s mit Status: 200
+2025-03-27 16:16:01,679 [INFO] - API-Key Test Ergebnis: Erfolg
+2025-03-27 16:16:02,555 [INFO] - API-Key ist gültig
+2025-03-27 16:16:31,871 [INFO] - Update Metrics aufgerufen für Token: 26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:16:31,873 [INFO] - Daten abrufen für Token: 26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:16:31,873 [INFO] - Thread zum Laden der Daten für 26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS gestartet
+2025-03-27 16:16:31,895 [INFO] - Rufe fetch_axiom_data mit Timeout 20s auf
+2025-03-27 16:16:31,895 [INFO] - Starte API-Anfrage für Token: 26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:16:31,896 [INFO] - API-Key (Anfang): xaat...
+2025-03-27 16:16:31,896 [INFO] - API-URL: https://api.solanatracker.io/tokens/26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:16:31,896 [INFO] - Sende Anfrage...
+2025-03-27 16:16:51,950 [WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:17:12,016 [WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:17:32,083 [WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:17:52,203 [ERROR] - Axiom API-Verbindungsfehler: Konnte keine Verbindung zum Server herstellen. Details: HTTPSConnectionPool(host='api.solanatracker.io', port=443): Max retries exceeded with url: /tokens/26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS (Caused by ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)"))
+2025-03-27 16:17:52,204 [INFO] - API-Anfrage abgeschlossen in 80.31s
+2025-03-27 16:17:52,204 [INFO] - fetch_axiom_data abgeschlossen in 80.31s
+2025-03-27 16:17:52,205 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:17:52,217 [WARNING] - Keine Daten erhalten von fetch_axiom_data
+2025-03-27 16:17:52,217 [INFO] - Datenabfrage abgeschlossen, setze Loading-Flag zurück
+2025-03-27 16:18:08,163 [INFO] - Erstelle RugCheck-Frame
+2025-03-27 16:18:08,170 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:18:08,172 [INFO] - Prüfe API-Key...
+2025-03-27 16:18:08,173 [INFO] - Starte API-Test
+2025-03-27 16:18:08,173 [INFO] - Teste API-Key...
+2025-03-27 16:18:08,174 [INFO] - Sende API-Key Test-Anfrage für Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 16:18:08,296 [INFO] - API-Key Test-Antwort erhalten in 0.12s mit Status: 200
+2025-03-27 16:18:08,297 [INFO] - API-Key Test Ergebnis: Erfolg
+2025-03-27 16:18:09,386 [ERROR] - API-Key Test Fehler: main thread is not in main loop
+Traceback (most recent call last):
+  File "C:\Users\Gerome PC\Desktop\callbot_github\callbot\ui\rugcheck_frame.py", line 176, in check_api_key
+    self.api_status_var.set("API: Verbunden")
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Gerome PC\AppData\Local\Programs\Python\Python313\Lib\tkinter\__init__.py", line 427, in set
+    return self._tk.globalsetvar(self._name, value)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+RuntimeError: main thread is not in main loop
+2025-03-27 16:18:13,492 [INFO] - Update Metrics aufgerufen für Token: 26dRTrJjKH9pKCNHzZyj8u3B8NqrNn6SoSfWRbPpdDRS
+2025-03-27 16:18:13,520 [WARNING] - API nicht verfügbar - Update abgebrochen
+2025-03-27 16:23:11,196 [INFO] - Update Metrics aufgerufen für Token: 9VxExA1iRPbuLLdSJ2rB3nyBxsyLReT4aqzZBMaBaY1p
+2025-03-27 16:23:11,213 [WARNING] - API nicht verfügbar - Update abgebrochen
+2025-03-27 16:27:04,484 [INFO] - Erstelle RugCheck-Frame
+2025-03-27 16:27:04,492 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:27:04,495 [INFO] - Prüfe API-Key...
+2025-03-27 16:27:04,495 [INFO] - Starte API-Test
+2025-03-27 16:27:04,495 [INFO] - Teste API-Key...
+2025-03-27 16:27:04,496 [INFO] - Sende API-Key Test-Anfrage für Token: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+2025-03-27 16:27:04,676 [INFO] - API-Key Test-Antwort erhalten in 0.18s mit Status: 200
+2025-03-27 16:27:04,676 [INFO] - API-Key Test Ergebnis: Erfolg
+2025-03-27 16:27:05,222 [INFO] - API-Key ist gültig
+2025-03-27 16:27:51,447 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:27:51,469 [INFO] - Daten abrufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:27:51,469 [INFO] - Thread zum Laden der Daten für GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump gestartet
+2025-03-27 16:27:51,477 [INFO] - Rufe fetch_axiom_data mit Timeout 20s auf
+2025-03-27 16:27:51,478 [INFO] - Starte API-Anfrage für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:27:51,478 [INFO] - API-Key (Anfang): xaat...
+2025-03-27 16:27:51,479 [INFO] - API-URL: https://api.solanatracker.io/tokens/GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:27:51,479 [INFO] - Sende Anfrage...
+2025-03-27 16:28:02,332 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:02,342 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:04,854 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:04,870 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:07,557 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:07,565 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:09,327 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:09,337 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:11,548 [WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:11,754 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:11,765 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:13,662 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:13,673 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:15,532 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:15,545 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:17,408 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:17,409 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:18,459 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:18,469 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:19,658 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:19,667 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:22,278 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:22,289 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:23,893 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:23,903 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:25,849 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:25,858 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:27,822 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:27,831 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:29,182 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:29,191 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:30,713 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:30,722 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:31,605 [WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:32,194 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:32,204 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:33,682 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:33,692 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:34,971 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:34,981 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:36,483 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:36,493 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:39,067 [INFO] - Update Metrics aufgerufen für Token: GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:28:39,068 [INFO] - Update abgebrochen - Bereits eine Aktualisierung im Gange
+2025-03-27 16:28:51,673 [WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)")': /tokens/GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump
+2025-03-27 16:29:11,733 [ERROR] - Axiom API-Verbindungsfehler: Konnte keine Verbindung zum Server herstellen. Details: HTTPSConnectionPool(host='api.solanatracker.io', port=443): Max retries exceeded with url: /tokens/GMk6j2defJhS7F194toqmJNFNhAkbDXhYJo5oR3Rpump (Caused by ReadTimeoutError("HTTPSConnectionPool(host='api.solanatracker.io', port=443): Read timed out. (read timeout=20)"))
+2025-03-27 16:29:11,734 [INFO] - API-Anfrage abgeschlossen in 80.25s
+2025-03-27 16:29:11,734 [INFO] - fetch_axiom_data abgeschlossen in 80.26s
+2025-03-27 16:29:11,734 [INFO] - Setze alle Metriken zurück auf: N/A
+2025-03-27 16:29:11,737 [WARNING] - Keine Daten erhalten von fetch_axiom_data
+2025-03-27 16:29:11,737 [INFO] - Datenabfrage abgeschlossen, setze Loading-Flag zurück
