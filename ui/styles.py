@@ -38,20 +38,19 @@ def setup_styles():
         foreground=[("selected", "black"), ("!selected", "black")]
     )
 
-    # Treeview-Styling mit benutzerdefinierten Auswahlfarben
+    # Treeview-Styling mit sehr hellem Auswahlhintergrund
     style.configure("Treeview", 
-                    background="white",
-                    fieldbackground="white",
-                    font=("Arial", 9))
+                   background="white",
+                   fieldbackground="white",
+                   font=("Arial", 9))
     
     style.configure("Treeview.Heading",
-                    font=("Arial", 9, "bold"))
+                   font=("Arial", 9, "bold"))
     
-    # Definiere benutzerdefinierte Auswahlfarben
+    # Deaktiviere die Standard-Auswahlfarben, damit unsere Tags wirksam werden
     style.map("Treeview", 
-        background=[
-            ('selected', '#e0e0e0')  # Standard-Grau für Auswahl
-        ])
+        background=[('selected', '')],  # Leere Farbe für Auswahl
+        foreground=[('selected', 'black')])  # Textfarbe bleibt schwarz
 
 def create_data_row(parent, label_text, var, row, show_copy_button=True):
     """

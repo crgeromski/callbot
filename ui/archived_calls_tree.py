@@ -43,6 +43,10 @@ class ArchivedCallsTreeView:
         self.archived_calls_tree.tag_configure("row_green", background="#d8ffd8")
         self.archived_calls_tree.tag_configure("row_red", background="#ffd8d8")
         
+        # Neue Tags für ausgewählte Zeilen
+        self.archived_calls_tree.tag_configure("selected_green", background="#64c264")  # Dunkleres Grün
+        self.archived_calls_tree.tag_configure("selected_red", background="#f48a8a")    # Dunkleres Rot
+        
         # Definiere die Spaltenbreiten und Ausrichtung
         self.archived_calls_tree.column("Datum", width=80, anchor="center")
         self.archived_calls_tree.column("Symbol", width=80, anchor="center")
@@ -57,6 +61,9 @@ class ArchivedCallsTreeView:
         self.archived_calls_tree.bind("<Double-1>", self.on_archived_double_click)
         # Klick-Event zum Aufheben der Auswahl
         self.archived_calls_tree.bind("<Button-1>", self.on_archived_click)
+        # Überwache die Auswahl und wende die Tags erneut an
+        self.archived_calls_tree.bind("<<TreeviewSelect>>", self.ensure_custom_selection)
+        
         self.archived_calls_tree.pack(fill="both", expand=True)
         
         # Kontextmenü hinzufügen
@@ -65,29 +72,63 @@ class ArchivedCallsTreeView:
         
         # Einträge zum Kontextmenü hinzufügen
         self.context_menu.add_command(label="Call löschen", command=self.delete_selected_archived_call)
+    
+    def ensure_custom_selection(self, event):
+        """Stellt sicher, dass ausgewählte Elemente die benutzerdefinierten Tags behalten"""
+        for item in self.archived_calls_tree.selection():
+            tags = list(self.archived_calls_tree.item(item, "tags"))
+            if "row_green" in tags and "selected_green" not in tags:
+                tags.append("selected_green")
+                self.archived_calls_tree.item(item, tags=tuple(tags))
+            elif "row_red" in tags and "selected_red" not in tags:
+                tags.append("selected_red")
+                self.archived_calls_tree.item(item, tags=tuple(tags))
+        self.archived_calls_tree.update()
         
     def on_archived_click(self, event):
-        """Behandelt Klicks auf die Treeview und hebt die Auswahl auf, wenn nötig"""
+        """Behandelt Klicks auf die Treeview und setzt dunklere Auswahlfarben"""
         # Identifiziere das Element unter dem Mauszeiger
         item = self.archived_calls_tree.identify_row(event.y)
         
-        # Wenn kein Element gefunden wurde (Klick ins Leere), 
-        # oder das geklickte Element bereits ausgewählt ist, hebe die Auswahl auf
-        if not item or item in self.archived_calls_tree.selection():
+        # Wenn ein Klick ins Leere erfolgt, die Auswahl aufheben
+        if not item:
             self.archived_calls_tree.selection_remove(self.archived_calls_tree.selection())
-        else:
-            # Prüfe die Tags der Zeile
-            row_tags = self.archived_calls_tree.item(item, "tags")
+            return
+        
+        # Zurücksetzen aller Tags auf ihre Basisfarbe
+        for i in self.archived_calls_tree.get_children():
+            current_tags = list(self.archived_calls_tree.item(i, "tags"))
             
-            # Setze den Hintergrund für das ausgewählte Element
-            if row_tags and "row_green" in row_tags:
-                self.archived_calls_tree.tag_configure("selected_green", background="#64c264")
-                self.archived_calls_tree.selection_set(item)
-                self.archived_calls_tree.item(item, tags=("row_green", "selected_green"))
-            elif row_tags and "row_red" in row_tags:
-                self.archived_calls_tree.tag_configure("selected_red", background="#f48a8a")
-                self.archived_calls_tree.selection_set(item)
-                self.archived_calls_tree.item(item, tags=("row_red", "selected_red"))
+            # Entferne alle Auswahl-Tags
+            if "selected_green" in current_tags:
+                current_tags.remove("selected_green")
+            if "selected_red" in current_tags:
+                current_tags.remove("selected_red")
+                
+            # Setze die Tags zurück
+            if "row_green" in current_tags or "row_red" in current_tags:
+                self.archived_calls_tree.item(i, tags=tuple(current_tags))
+        
+        # Wenn das angeklickte Element bereits ausgewählt war, hebe die Auswahl auf
+        if item in self.archived_calls_tree.selection():
+            self.archived_calls_tree.selection_remove(item)
+            return
+            
+        # Ansonsten: Neues Tag für die Auswahl anwenden
+        current_tags = list(self.archived_calls_tree.item(item, "tags"))
+        
+        # Setze das entsprechende Auswahl-Tag basierend auf der Zeilenfarbe
+        if "row_green" in current_tags:
+            current_tags.append("selected_green")
+        elif "row_red" in current_tags:
+            current_tags.append("selected_red")
+            
+        # Auswahl setzen
+        self.archived_calls_tree.selection_set(item)
+        self.archived_calls_tree.item(item, tags=tuple(current_tags))
+        
+        # Nach jeder Auswahländerung neu zeichnen, um sicherzustellen, dass die Tags sichtbar sind
+        self.archived_calls_tree.update()
         
     def show_context_menu(self, event):
         """Zeigt das Kontextmenü bei Rechtsklick an"""

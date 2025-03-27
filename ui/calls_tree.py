@@ -70,28 +70,70 @@ class CallsTreeView:
         self.context_menu.add_command(label="Call abschließen", command=self.close_selected_call)
         self.context_menu.add_command(label="Call löschen", command=self.delete_selected_call)
         
+        # Die internen Tag-Variablen initialisieren
+        self.current_selected_item = None
+        self.current_selected_tag = None
+    
     def on_treeview_click(self, event):
-        """Behandelt Klicks auf die Treeview und hebt die Auswahl auf, wenn nötig"""
+        """Behandelt Klicks auf die Treeview und ändert die Hintergrundfarbe basierend auf Profitabilität"""
         # Identifiziere das Element unter dem Mauszeiger
         item = self.calls_tree.identify_row(event.y)
         
-        # Wenn kein Element gefunden wurde (Klick ins Leere), 
-        # oder das geklickte Element bereits ausgewählt ist, hebe die Auswahl auf
-        if not item or item in self.calls_tree.selection():
+        # Wenn die vorherige Auswahl existiert, setze sie zurück
+        if self.current_selected_item:
+            current_tags = list(self.calls_tree.item(self.current_selected_item, "tags"))
+            if self.current_selected_tag in current_tags:
+                current_tags.remove(self.current_selected_tag)
+                self.calls_tree.item(self.current_selected_item, tags=current_tags)
+        
+        # Wenn kein Element gefunden wurde (Klick ins Leere), hebe die Auswahl auf
+        if not item:
             self.calls_tree.selection_remove(self.calls_tree.selection())
-        else:
-            # Prüfe die Tags der Zeile
-            row_tags = self.calls_tree.item(item, "tags")
+            self.current_selected_item = None
+            self.current_selected_tag = None
+            return
+        
+        # Wenn das geklickte Element bereits ausgewählt ist, hebe die Auswahl auf
+        if item in self.calls_tree.selection():
+            self.calls_tree.selection_remove(item)
+            self.current_selected_item = None
+            self.current_selected_tag = None
+            return
             
-            # Setze den Hintergrund für das ausgewählte Element
-            if row_tags and "row_green" in row_tags:
-                self.calls_tree.tag_configure("selected_green", background="#64c264")
-                self.calls_tree.selection_set(item)
-                self.calls_tree.item(item, tags=("row_green", "selected_green"))
-            elif row_tags and "row_red" in row_tags:
-                self.calls_tree.tag_configure("selected_red", background="#f48a8a")
-                self.calls_tree.selection_set(item)
-                self.calls_tree.item(item, tags=("row_red", "selected_red"))
+        # Auswahl setzen
+        self.calls_tree.selection_set(item)
+        
+        # Bestimme, ob der Call profitabel ist
+        values = self.calls_tree.item(item, "values")
+        try:
+            pl_dollar_str = values[6]  # PL_Dollar ist an Position 6
+            if pl_dollar_str:
+                pl_dollar = float(pl_dollar_str.rstrip("$"))
+                is_profitable = pl_dollar >= 0
+            else:
+                is_profitable = False
+        except (ValueError, IndexError):
+            is_profitable = False
+        
+        # Ändere die Hintergrundfarbe direkt ohne Tags
+        if is_profitable:
+            self.calls_tree.configure(style="profitable.Treeview")
+            
+            # Manuell das Hintergrundstil-Tag ändern
+            style = ttk.Style()
+            style.map('Treeview', 
+                  background=[('selected', '#64c264')])  # Dunkleres Grün
+        else:
+            self.calls_tree.configure(style="unprofitable.Treeview")
+            
+            # Manuell das Hintergrundstil-Tag ändern
+            style = ttk.Style()
+            style.map('Treeview', 
+                  background=[('selected', '#f48a8a')])  # Dunkleres Rot
+        
+        # Aktualisiere Referenzen
+        self.current_selected_item = item
+        self.current_selected_tag = "profitable" if is_profitable else "unprofitable"
     
     def show_context_menu(self, event):
         """Zeigt das Kontextmenü bei Rechtsklick an"""
@@ -100,12 +142,54 @@ class CallsTreeView:
         if item:
             # Setze die Auswahl auf das Item unter dem Cursor
             self.calls_tree.selection_set(item)
+            
+            # Bestimme, ob der Call profitabel ist
+            values = self.calls_tree.item(item, "values")
+            try:
+                pl_dollar_str = values[6]  # PL_Dollar ist an Position 6
+                if pl_dollar_str:
+                    pl_dollar = float(pl_dollar_str.rstrip("$"))
+                    is_profitable = pl_dollar >= 0
+                else:
+                    is_profitable = False
+            except (ValueError, IndexError):
+                is_profitable = False
+            
+            # Ändere die Hintergrundfarbe direkt ohne Tags
+            style = ttk.Style()
+            if is_profitable:
+                style.map('Treeview', 
+                      background=[('selected', '#64c264')])  # Dunkleres Grün
+            else:
+                style.map('Treeview', 
+                      background=[('selected', '#f48a8a')])  # Dunkleres Rot
+            
+            # Aktualisiere Referenzen
+            self.current_selected_item = item
+            self.current_selected_tag = "profitable" if is_profitable else "unprofitable"
+            
             # Zeige das Kontextmenü
             self.context_menu.post(event.x_root, event.y_root)
     
     def update_tree(self):
         """Aktualisiert den Treeview im 'Meine Calls'-Tab mit den gespeicherten Calls."""
         self.calls_tree.delete(*self.calls_tree.get_children())
+        
+        # Stil für aktive/inaktive Auswahl konfigurieren
+        style = ttk.Style()
+        style.configure("profitable.Treeview", 
+                    background="white",
+                    fieldbackground="white",
+                    font=("Arial", 9))
+        style.map('profitable.Treeview', 
+              background=[('selected', '#64c264')])  # Dunkleres Grün
+              
+        style.configure("unprofitable.Treeview", 
+                    background="white",
+                    fieldbackground="white",
+                    font=("Arial", 9))
+        style.map('unprofitable.Treeview', 
+              background=[('selected', '#f48a8a')])  # Dunkleres Rot
         
         for call in storage.load_call_data():
             # Überspringe abgeschlossene Calls
@@ -152,6 +236,14 @@ class CallsTreeView:
                 ),
                 tags=(row_tag,)
             )
+        
+        # Setze die gespeicherte Auswahl zurück
+        if self.current_selected_item:
+            try:
+                self.calls_tree.selection_set(self.current_selected_item)
+            except:
+                self.current_selected_item = None
+                self.current_selected_tag = None
     
     def on_treeview_double_click(self, event):
         """Reagiert auf Doppelklick in der Treeview"""
@@ -180,8 +272,6 @@ class CallsTreeView:
                     # Wechsle zum Main Bot Tab
                     self.main_window.notebook.select(self.main_window.tabs['main'])
     
-    # Nur die delete_selected_call Funktion, da nur diese geändert werden muss
-
     def delete_selected_call(self):
         """Löscht nur die ausgewählten Calls aus der Liste"""
         selected_items = self.calls_tree.selection()
@@ -217,6 +307,11 @@ class CallsTreeView:
         
         # Speichern und aktualisieren
         storage.save_call_data(new_calls)
+        
+        # Setze die Auswahl zurück
+        self.current_selected_item = None
+        self.current_selected_tag = None
+        
         self.update_tree()
     
     def close_selected_call(self):
@@ -262,6 +357,11 @@ class CallsTreeView:
             
         # Daten speichern und UI aktualisieren
         storage.save_call_data(calls)
+        
+        # Setze die Auswahl zurück
+        self.current_selected_item = None
+        self.current_selected_tag = None
+        
         self.update_tree()
         if hasattr(self.main_window, 'update_archived_calls_tree'):
             self.main_window.update_archived_calls_tree()
