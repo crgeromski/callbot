@@ -3,7 +3,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import webbrowser
 import data.storage as storage
-from utils.formatters import parse_km
 
 class CallsTreeView:
     def __init__(self, parent, main_window):
@@ -19,15 +18,12 @@ class CallsTreeView:
             columns=(
                 "Datum",
                 "Symbol",
-                "MCAP_at_Call",
-                "Liquidity_at_Call",
+                "MCAP_at_Call", 
                 "Aktuelles_MCAP",
-                "Live_Liquidity",
                 "X_Factor",
                 "PL_Percent",
                 "PL_Dollar",
-                "Invest",
-                "Link"
+                "Invest"
             ),
             show="headings"
         )
@@ -36,31 +32,25 @@ class CallsTreeView:
         self.calls_tree.heading("Datum", text="Datum")
         self.calls_tree.heading("Symbol", text="Symbol")
         self.calls_tree.heading("MCAP_at_Call", text="MCAP at Call")
-        self.calls_tree.heading("Liquidity_at_Call", text="Liquidity at Call")
         self.calls_tree.heading("Aktuelles_MCAP", text="Live MCAP")
-        self.calls_tree.heading("Live_Liquidity", text="Live Liquidity")
         self.calls_tree.heading("X_Factor", text="X-Factor")
         self.calls_tree.heading("PL_Percent", text="% P/L")
         self.calls_tree.heading("PL_Dollar", text="$ P/L")
         self.calls_tree.heading("Invest", text="Invest")
-        self.calls_tree.heading("Link", text="Link")
-        
-        # Definiere die Zeilen-Farbtags für positives/negatives P/L
-        self.calls_tree.tag_configure("row_green", background="#d8ffd8")
-        self.calls_tree.tag_configure("row_red", background="#ffd8d8")
         
         # Definiere die Spaltenbreiten und Ausrichtung
         self.calls_tree.column("Datum", width=80, anchor="center")
         self.calls_tree.column("Symbol", width=80, anchor="center")
         self.calls_tree.column("MCAP_at_Call", width=100, anchor="center")
-        self.calls_tree.column("Liquidity_at_Call", width=120, anchor="center")
         self.calls_tree.column("Aktuelles_MCAP", width=100, anchor="center")
-        self.calls_tree.column("Live_Liquidity", width=120, anchor="center")
         self.calls_tree.column("X_Factor", width=80, anchor="center")
         self.calls_tree.column("PL_Percent", width=80, anchor="center")
         self.calls_tree.column("PL_Dollar", width=80, anchor="center")
         self.calls_tree.column("Invest", width=80, anchor="center")
-        self.calls_tree.column("Link", width=150, anchor="center")
+
+        # Definiere die Zeilen-Farbtags für positives/negatives P/L
+        self.calls_tree.tag_configure("row_green", background="#d8ffd8")
+        self.calls_tree.tag_configure("row_red", background="#ffd8d8")
         
         # Packe den Treeview in den Tab
         self.calls_tree.pack(fill="both", expand=True)
@@ -119,14 +109,11 @@ class CallsTreeView:
                     call.get("Datum", ""),
                     call.get("Symbol", ""),
                     call.get("MCAP_at_Call", ""),
-                    call.get("Liquidity_at_Call", ""),
                     call.get("Aktuelles_MCAP", ""),
-                    call.get("Live_Liquidity", ""),
                     call.get("X_Factor", ""),
                     call.get("PL_Percent", ""),
                     call.get("PL_Dollar", ""),
-                    call.get("Invest", ""),
-                    call.get("Link", "")
+                    call.get("Invest", "")
                 ),
                 tags=(row_tag,)
             )
@@ -134,18 +121,10 @@ class CallsTreeView:
     def on_treeview_double_click(self, event):
         """Reagiert auf Doppelklick in der Treeview"""
         item = self.calls_tree.identify_row(event.y)
-        column = self.calls_tree.identify_column(event.x)
         if item:
             values = self.calls_tree.item(item, "values")
-            link = values[10]  # Link-Spalte (11. Spalte)
-            if column == "#11":
-                if link:
-                    webbrowser.open(link)
-            else:
-                # Neuladen des Calls im Main Bot:
-                self.main_window.shared_vars['entry_var'].set(link)
-                self.main_window.fetch_data()
-                self.main_window.notebook.select(self.main_window.tabs['main'])
+            # Da kein Link mehr vorhanden, machen wir nichts beim Doppelklick
+            pass
     
     def delete_selected_call(self):
         """Löscht die ausgewählten Calls aus der Liste"""
@@ -154,14 +133,14 @@ class CallsTreeView:
             messagebox.showinfo("Hinweis", "Bitte wähle zuerst mindestens einen Call aus, den du löschen möchtest.")
             return
             
-        # Sammle alle Links der ausgewählten Zeilen (Spalte 11, Index 10)
-        selected_links = [self.calls_tree.item(item, "values")[10] for item in selected_items]
-            
         # Lade die vorhandenen Calls
         calls = storage.load_call_data()
             
-        # Filtere alle Calls heraus, deren Link in den ausgewählten Links enthalten ist
-        updated_calls = [call for call in calls if call.get("Link") not in selected_links]
+        # Sammle Symbole der ausgewählten Zeilen 
+        selected_symbols = [self.calls_tree.item(item, "values")[1] for item in selected_items]
+            
+        # Filtere alle Calls heraus, deren Symbol in den ausgewählten Symbolen enthalten ist
+        updated_calls = [call for call in calls if call.get("Symbol") not in selected_symbols]
             
         # Speichere die aktualisierte Liste in der JSON-Datei
         storage.save_call_data(updated_calls)
@@ -176,18 +155,18 @@ class CallsTreeView:
             messagebox.showinfo("Hinweis", "Bitte wähle zuerst mindestens einen Call aus, den du abschließen möchtest.")
             return
             
-        # Sammle alle Links der ausgewählten Zeilen (Spalte 11, Index 10)
-        selected_links = [self.calls_tree.item(item, "values")[10] for item in selected_items]
-            
         # Lade die vorhandenen Calls
         calls = storage.load_call_data()
             
-        # Aktualisiere alle Calls, die in den ausgewählten Links enthalten sind:
+        # Sammle Symbole der ausgewählten Zeilen 
+        selected_symbols = [self.calls_tree.item(item, "values")[1] for item in selected_items]
+            
+        # Aktualisiere alle Calls, die in den ausgewählten Symbolen enthalten sind:
         # - Setze "abgeschlossen" auf True
         # - Die finalen Live-Daten bleiben so, wie sie aktuell sind (z.B. "Aktuelles_MCAP" etc.)
         total_profit = 0
         for call in calls:
-            if call.get("Link") in selected_links and not call.get("abgeschlossen", False):
+            if call.get("Symbol") in selected_symbols and not call.get("abgeschlossen", False):
                 try:
                     profit = float(call.get("PL_Dollar", "0").rstrip("$"))
                 except Exception:

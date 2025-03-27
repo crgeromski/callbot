@@ -30,12 +30,12 @@ class MainBot:
         
     def fetch_data(self):
         """Liest den Link aus entry_var, konvertiert ihn ggf. und ruft die API ab."""
-        link = self.shared_vars['entry_var'].get().strip()
-        if not link:
+        dex_link = self.shared_vars['entry_var'].get().strip()
+        if not dex_link:
             messagebox.showerror("Fehler", "Bitte einen Dexscreener Link eingeben.")
             return
 
-        data = api.fetch_dexscreener_data(link, API_TIMEOUT)
+        data = api.fetch_dexscreener_data(dex_link, API_TIMEOUT)
         if not data:
             return  # Fehler wurde bereits in der API-Funktion behandelt
 
@@ -140,7 +140,6 @@ class MainBot:
             if hasattr(self.main_window.social_frame, 'last_screenshot'):
                 self.main_window.social_frame.last_screenshot = None
 
-
         # Website und soziale Medien
         info = pair_info.get("info", {})
         websites = info.get("websites", [])
@@ -151,9 +150,6 @@ class MainBot:
         self.shared_vars['telegram_var'].set(next((s.get("url") for s in socials if s.get("type") == "telegram"), "N/A"))
         self.shared_vars['discord_var'].set(next((s.get("url") for s in socials if s.get("type") == "discord"), "N/A"))
 
-
-
-        
     def paste_and_fetch(self):
         """Fügt den Inhalt der Zwischenablage in das Eingabefeld ein und ruft die API ab"""
         try:
@@ -180,32 +176,26 @@ class MainBot:
             self.main_window.current_balance_label.config(text=f"Kontostand: 500.00$", bg="white")
             messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt.")
             
-            
     def auto_refresh_calls(self):
-        calls = storage.load_call_data()  # Diese Zeile war nach der entfernten Prüfung
+        calls = storage.load_call_data()
         updated_calls = []
         for call in calls:
             if call.get("abgeschlossen", False):
                 updated_calls.append(call)
                 continue
                 
-            # Aktualisierung für aktive Calls:
-            link = call.get("Link")
-            if link:
-                api_link = api.convert_to_api_link(link)
-                try:
-                    data = api.fetch_dexscreener_data(link, API_TIMEOUT)
-                    if data:
-                        pairs = data.get("pairs", [])
-                        if pairs:
-                            pair_info = pairs[0]
-                            market_cap = pair_info.get("marketCap", pair_info.get("mcap", pair_info.get("fdv", "N/A")))
-                            call["Aktuelles_MCAP"] = formatters.format_k(market_cap)
-                            liquidity = pair_info.get("liquidity", {}).get("usd", "N/A")
-                            call["Live_Liquidity"] = formatters.format_k(liquidity)
-                except Exception as e:
-                    print(f"Fehler beim Aktualisieren des Calls ({link}): {e}")
-                    
+            # Aktualisierung für aktive Calls
+            try:
+                # Rufe Daten basierend auf dem Symbol ab
+                symbol = call.get("Symbol")
+                data = storage.find_call_by_symbol(symbol)
+                
+                if data:
+                    market_cap = data.get("marketCap", data.get("mcap", data.get("fdv", "N/A")))
+                    call["Aktuelles_MCAP"] = formatters.format_k(market_cap)
+            except Exception as e:
+                print(f"Fehler beim Aktualisieren des Calls ({symbol}): {e}")
+                
             # Berechnung der Kennzahlen für aktive Calls
             call["Invest"] = "10"
             initial_mcap = formatters.parse_km(call.get("MCAP_at_Call", "0"))
@@ -292,5 +282,4 @@ class MainBot:
         entry_widget.config(state="normal")
         entry_widget.delete(0, tk.END)
         entry_widget.insert(0, text)
-        entry_widget.config(state="readonly", readonlybackground=color)        
-    
+        entry_widget.config(state="readonly", readonlybackground=color)

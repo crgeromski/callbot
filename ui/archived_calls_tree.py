@@ -19,14 +19,11 @@ class ArchivedCallsTreeView:
                 "Datum",
                 "Symbol",
                 "MCAP_at_Call",
-                "Liquidity_at_Call",
                 "Aktuelles_MCAP",
-                "Live_Liquidity",
                 "X_Factor",
                 "PL_Percent",
                 "PL_Dollar",
-                "Invest",
-                "Link"
+                "Invest"
             ),
             show="headings"
         )
@@ -35,14 +32,11 @@ class ArchivedCallsTreeView:
         self.archived_calls_tree.heading("Datum", text="Datum")
         self.archived_calls_tree.heading("Symbol", text="Symbol")
         self.archived_calls_tree.heading("MCAP_at_Call", text="MCAP at Call")
-        self.archived_calls_tree.heading("Liquidity_at_Call", text="Liquidity at Call")
         self.archived_calls_tree.heading("Aktuelles_MCAP", text="Live MCAP")
-        self.archived_calls_tree.heading("Live_Liquidity", text="Live Liquidity")
         self.archived_calls_tree.heading("X_Factor", text="X-Factor")
         self.archived_calls_tree.heading("PL_Percent", text="% P/L")
         self.archived_calls_tree.heading("PL_Dollar", text="$ P/L")
         self.archived_calls_tree.heading("Invest", text="Invest")
-        self.archived_calls_tree.heading("Link", text="Link")
         
         # Definiere Zeilen-Farbtags
         self.archived_calls_tree.tag_configure("row_green", background="#d8ffd8")
@@ -52,14 +46,11 @@ class ArchivedCallsTreeView:
         self.archived_calls_tree.column("Datum", width=80, anchor="center")
         self.archived_calls_tree.column("Symbol", width=80, anchor="center")
         self.archived_calls_tree.column("MCAP_at_Call", width=100, anchor="center")
-        self.archived_calls_tree.column("Liquidity_at_Call", width=120, anchor="center")
         self.archived_calls_tree.column("Aktuelles_MCAP", width=100, anchor="center")
-        self.archived_calls_tree.column("Live_Liquidity", width=120, anchor="center")
         self.archived_calls_tree.column("X_Factor", width=80, anchor="center")
         self.archived_calls_tree.column("PL_Percent", width=80, anchor="center")
         self.archived_calls_tree.column("PL_Dollar", width=80, anchor="center")
         self.archived_calls_tree.column("Invest", width=80, anchor="center")
-        self.archived_calls_tree.column("Link", width=150, anchor="center")
         
         # Lösch-Button
         self.delete_button = tk.Button(self.parent, text="Call löschen", command=self.delete_selected_archived_call)
@@ -103,34 +94,19 @@ class ArchivedCallsTreeView:
                     call.get("Datum", ""),
                     call.get("Symbol", ""),
                     call.get("MCAP_at_Call", ""),
-                    call.get("Liquidity_at_Call", ""),
                     call.get("Aktuelles_MCAP", ""),
-                    call.get("Live_Liquidity", ""),
                     call.get("X_Factor", ""),
                     call.get("PL_Percent", ""),
                     call.get("PL_Dollar", ""),
-                    call.get("Invest", ""),
-                    call.get("Link", "")
+                    call.get("Invest", "")
                 ),
                 tags=(row_tag,)
             )
             
     def on_archived_double_click(self, event):
         """Reagiert auf Doppelklick in der Treeview für archivierte Calls"""
-        item = self.archived_calls_tree.identify_row(event.y)
-        column = self.archived_calls_tree.identify_column(event.x)
-        if item:
-            values = self.archived_calls_tree.item(item, "values")
-            link = values[10]  # Link-Spalte (11. Spalte)
-            if column == "#11":
-                if link:
-                    webbrowser.open(link)
-            else:
-                # Neuladen des Calls im Main Bot:
-                self.main_window.shared_vars['entry_var'].set(link)
-                self.main_window.fetch_data()
-                self.main_window.notebook.select(self.main_window.tabs['main'])
-                
+        pass  # Keine Aktion mehr bei Doppelklick
+    
     def delete_selected_archived_call(self):
         """Löscht die ausgewählten Calls aus der Liste der abgeschlossenen Calls."""
         selected_items = self.archived_calls_tree.selection()
@@ -138,14 +114,14 @@ class ArchivedCallsTreeView:
             messagebox.showinfo("Hinweis", "Bitte wähle zuerst mindestens einen Call aus, den du löschen möchtest.")
             return
             
-        # Sammle alle Links der ausgewählten Zeilen (Spalte 11, Index 10)
-        selected_links = [self.archived_calls_tree.item(item, "values")[10] for item in selected_items]
+        # Sammle Symbole der ausgewählten Zeilen
+        selected_symbols = [self.archived_calls_tree.item(item, "values")[1] for item in selected_items]
             
         # Lade die vorhandenen Calls
         calls = storage.load_call_data()
             
-        # Filtere alle Calls heraus, deren Link in den ausgewählten Links enthalten ist und die abgeschlossen sind
-        updated_calls = [call for call in calls if not (call.get("abgeschlossen", False) and call.get("Link") in selected_links)]
+        # Filtere alle Calls heraus, deren Symbol in den ausgewählten Symbolen enthalten ist
+        updated_calls = [call for call in calls if not (call.get("abgeschlossen", False) and call.get("Symbol") in selected_symbols)]
             
         # Speichere die aktualisierte Liste in der JSON-Datei
         storage.save_call_data(updated_calls)

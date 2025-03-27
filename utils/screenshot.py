@@ -31,7 +31,7 @@ def take_chart_screenshot(url, parent_window=None, save_dir=None):
     if parent_window:
         dialog = Toplevel(parent_window)
         dialog.title("Screenshot erstellen")
-        dialog.geometry("250x120+1913+200")  # Schmaler und an den rechten Bildschirmrand
+        dialog.geometry("250x120+2250+500")  # Schmaler und an den rechten Bildschirmrand
         dialog.resizable(False, False)
         dialog.transient(parent_window)
         dialog.grab_set()

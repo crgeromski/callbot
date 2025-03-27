@@ -31,13 +31,11 @@ def save_new_call(call_data: Dict[str, Any]) -> None:
 def create_new_call(symbol: str, mcap: str, liquidity: str, link: str) -> Dict[str, Any]:
     """Erstellt einen neuen Call mit den notwendigen Daten."""
     return {
-        "Datum": datetime.now().strftime("%d.%m.%Y"),
+        "Datum": datetime.now().strftime("%d.%m."),
         "Symbol": symbol,
         "MCAP_at_Call": mcap,
-        "Liquidity_at_Call": liquidity,
         "Link": link,
         "Aktuelles_MCAP": mcap,  # initial gleich MCAP_at_Call
-        "Live_Liquidity": liquidity,  # initial gleich Liquidity_at_Call
         "X_Factor": "",      # Platzhalter, wird später im Live-Update berechnet
         "PL_Percent": "",    # Platzhalter
         "PL_Dollar": "",     # Platzhalter
