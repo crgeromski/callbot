@@ -4,10 +4,10 @@
         "Symbol": "$SKINNY",
         "MCAP_at_Call": "281K",
         "Link": "https://dexscreener.com/solana/j1bwvcmek1r7z7r21usghu8vfywpbcs9dejgwjeweze",
-        "Aktuelles_MCAP": "307K",
+        "Aktuelles_MCAP": "309K",
         "X_Factor": "1.1X",
-        "PL_Percent": "9%",
-        "PL_Dollar": "0.93$",
+        "PL_Percent": "10%",
+        "PL_Dollar": "1.00$",
         "Invest": "10"
     },
     {
@@ -15,10 +15,10 @@
         "Symbol": "$ragebait",
         "MCAP_at_Call": "101K",
         "Link": "https://dexscreener.com/solana/g8bj99s8dmp9cac3uhm5t9tycjh83waj3ppqcekjueif",
-        "Aktuelles_MCAP": "86K",
+        "Aktuelles_MCAP": "87K",
         "X_Factor": "0.9X",
-        "PL_Percent": "-15%",
-        "PL_Dollar": "-1.49$",
+        "PL_Percent": "-14%",
+        "PL_Dollar": "-1.39$",
         "Invest": "10"
     },
     {
@@ -26,10 +26,10 @@
         "Symbol": "$REVS",
         "MCAP_at_Call": "817K",
         "Link": "9VxExA1iRPbuLLdSJ2rB3nyBxsyLReT4aqzZBMaBaY1p",
-        "Aktuelles_MCAP": "492K",
+        "Aktuelles_MCAP": "519K",
         "X_Factor": "0.6X",
-        "PL_Percent": "-40%",
-        "PL_Dollar": "-3.98$",
+        "PL_Percent": "-36%",
+        "PL_Dollar": "-3.65$",
         "Invest": "10"
     },
     {
@@ -37,10 +37,10 @@
         "Symbol": "$AuraFarm",
         "MCAP_at_Call": "519K",
         "Link": "4rwPNRSFgcS7EGphFdX7VwXuhjZGxph7gYyb7Zp2pump",
-        "Aktuelles_MCAP": "497K",
+        "Aktuelles_MCAP": "494K",
         "X_Factor": "1.0X",
-        "PL_Percent": "-4%",
-        "PL_Dollar": "-0.42$",
+        "PL_Percent": "-5%",
+        "PL_Dollar": "-0.48$",
         "Invest": "10"
     },
     {
@@ -48,10 +48,10 @@
         "Symbol": "$BONECOIN",
         "MCAP_at_Call": "952K",
         "Link": "BjCmA9ZYwJ1BwusMGaSxe4pgaa9gfXTtdyX27NYEpump",
-        "Aktuelles_MCAP": "810K",
+        "Aktuelles_MCAP": "813K",
         "X_Factor": "0.9X",
         "PL_Percent": "-15%",
-        "PL_Dollar": "-1.49$",
+        "PL_Dollar": "-1.46$",
         "Invest": "10"
     },
     {
@@ -59,10 +59,10 @@
         "Symbol": "$elegante",
         "MCAP_at_Call": "321K",
         "Link": "AhbrHSXQk8bvWyJbwUnF78733Ym5wtssViJ98jyzpump",
-        "Aktuelles_MCAP": "445K",
-        "X_Factor": "1.4X",
-        "PL_Percent": "39%",
-        "PL_Dollar": "3.86$",
+        "Aktuelles_MCAP": "534K",
+        "X_Factor": "1.7X",
+        "PL_Percent": "66%",
+        "PL_Dollar": "6.64$",
         "Invest": "10"
     },
     {
@@ -70,21 +70,21 @@
         "Symbol": "$MoonFang",
         "MCAP_at_Call": "501K",
         "Link": "https://dexscreener.com/solana/sjbau72we7samuwn533ogrknayeetqucgf7m4scvttt",
-        "Aktuelles_MCAP": "463K",
+        "Aktuelles_MCAP": "445K",
         "X_Factor": "0.9X",
-        "PL_Percent": "-8%",
-        "PL_Dollar": "-0.76$",
+        "PL_Percent": "-11%",
+        "PL_Dollar": "-1.12$",
         "Invest": "10"
     },
     {
         "Datum": "27.03.",
-        "Symbol": "$GIGIL",
-        "MCAP_at_Call": "154K",
-        "Link": "https://dexscreener.com/solana/7s58brpnah3yxzpbgvw4z4m9zxmfemeuwpvk5uwetmm3",
+        "Symbol": "$TILT",
+        "MCAP_at_Call": "151K",
+        "Link": "AbSdby7XnCezg3EzMYwPf4KBYM7KnnCZgmU2PrfcUb1D",
         "Aktuelles_MCAP": "153K",
         "X_Factor": "1.0X",
-        "PL_Percent": "-1%",
-        "PL_Dollar": "-0.06$",
+        "PL_Percent": "1%",
+        "PL_Dollar": "0.13$",
         "Invest": "10"
     }
 ]

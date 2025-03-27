@@ -314,6 +314,7 @@ class XPostFrame:
         # Aktualisiere den aktuellen Link
         self.current_link = new_link
         
+        # Verlasse früh, wenn keine Daten vorhanden sind
         if not current_data:
             self.xpost_text_widget.delete("1.0", "end")
             return
@@ -323,37 +324,111 @@ class XPostFrame:
             self.xpost_text_widget.delete("1.0", "end")
             return
         
+        # Speichere den letzten Token, um Änderungen zu erkennen
+        if not hasattr(self, 'last_token'):
+            self.last_token = ""
+        
+        # Extrahiere Daten aus der API-Antwort
         pair_info = pairs[0]
         base_token = pair_info.get("baseToken", {})
+        
+        # Token-Symbol (mit $ Prefix)
         symbol = base_token.get("symbol", "")
         symbol_str = f"${symbol}" if symbol else "N/A"
-        token_addr = base_token.get("address", "N/A")
-        market_cap = pair_info.get("marketCap",
-                                  pair_info.get("mcap",
-                                              pair_info.get("fdv", "N/A")))
-        try:
-            mc_val = float(market_cap)
-            market_cap_str = f"{int(round(mc_val/1000))}K"
-        except:
-            market_cap_str = "N/A"
         
-        xpost_text = f"\n💰 MCAP Entry: ${market_cap_str}\n{symbol_str}\n🔗 CA: {token_addr}"
+        # Prüfe, ob sich der Token geändert hat
+        token_changed = symbol_str != self.last_token
+        self.last_token = symbol_str
         
-        # Aktuellen Text speichern und Cursor-Position merken
-        cursor_pos = self.xpost_text_widget.index(tk.INSERT)
-        
-        # Überprüfen ob der Text bereits bearbeitet wurde und inhaltlich anders ist
-        current_text = self.xpost_text_widget.get("1.0", "end").strip()
-        if current_text and current_text != xpost_text:
-            # Text wurde bereits bearbeitet, nicht überschreiben
+        # Wenn sich der Token nicht geändert hat, behalte den aktuellen Text bei
+        if not token_changed:
             return
-            
-        # Ansonsten Text aktualisieren
+        
+        # Token hat sich geändert - aktualisiere den Text
+        
+        # Market Cap formatieren
+        market_cap = pair_info.get("marketCap", pair_info.get("mcap", pair_info.get("fdv", "N/A")))
+        import utils.formatters as formatters
+        market_cap_str = formatters.format_k(market_cap)
+        
+        # Token-Adresse
+        token_addr = base_token.get("address", "N/A")
+        
+        # Erstellen des X-Post-Textes - exaktes Format mit korrekten Zeilenumbrüchen
+        xpost_text = f"\n{symbol_str}\n💰 MCAP: {market_cap_str}\n🔗 CA: {token_addr}"
+        
+        # Aktualisiere den Text
         self.xpost_text_widget.delete("1.0", "end")
         self.xpost_text_widget.insert("1.0", xpost_text)
-        
-        # Setze Cursor an den Anfang des Textes, damit der Nutzer sofort schreiben kann
+            
+        # Setze Cursor an den Anfang des Textes
         self.xpost_text_widget.mark_set(tk.INSERT, "1.0")
+    
+    def _is_default_template(self, text):
+        """Prüft, ob der Text dem Standard-Template entspricht"""
+        import re
+        
+        # Muster für verschiedene Varianten des Standard-Templates
+        patterns = [
+            # Aktuelles Format
+            r"\n\$[A-Za-z0-9]+\n💰 MCAP: [0-9.]+[KM]?\n🔗 CA: .*",
+            
+            # Ethereum-Format
+            r"\$[A-Za-z0-9]+\s*\n💰 MCAP: [0-9.]+[KM]?\s*\n🔗 CA: 0x[A-Fa-f0-9]+",
+            
+            # Solana/andere Chains Format
+            r"\$[A-Za-z0-9]+\s*\n💰 MCAP: [0-9.]+[KM]?\s*\n🔗 CA: [A-Za-z0-9]+",
+            
+            # Altes MCAP Entry Format
+            r"\n💰 MCAP Entry: \$[0-9.]+[KM]?\s*\n\$[A-Za-z0-9]+\s*\n🔗 CA: [A-Za-z0-9]+",
+            
+            # Vorheriges Format mit doppelten Zeilenumbrüchen
+            r"\$[A-Za-z0-9]+\s*\n\n💰 MCAP: [0-9.]+[KM]?\s*\n\n🔗 CA: [A-Za-z0-9]+"
+        ]
+        
+        # Prüfe, ob einer der Patterns übereinstimmt
+        for pattern in patterns:
+            if re.match(pattern, text, re.DOTALL):
+                return True
+                
+        return False
+    
+    def _is_default_template(self, text):
+        """Prüft, ob der Text dem Standard-Template entspricht"""
+        import re
+        
+        # Muster für verschiedene Varianten des Standard-Templates
+        patterns = [
+            r"\$[A-Za-z0-9]+\s*\n💰 MCAP: [0-9.]+[KM]?\s*\n🔗 CA: 0x[A-Fa-f0-9]+",  # Ethereum
+            r"\$[A-Za-z0-9]+\s*\n💰 MCAP: [0-9.]+[KM]?\s*\n🔗 CA: [A-Za-z0-9]+",    # Andere Chains
+            r"\n💰 MCAP Entry: \$[0-9.]+[KM]?\s*\n\$[A-Za-z0-9]+\s*\n🔗 CA: [A-Za-z0-9]+",  # Altes Format
+            r"\$[A-Za-z0-9]+\s*\n\n💰 MCAP: [0-9.]+[KM]?\s*\n\n🔗 CA: [A-Za-z0-9]+"  # Vorheriges Format
+        ]
+        
+        # Prüfe, ob einer der Patterns übereinstimmt
+        for pattern in patterns:
+            if re.match(pattern, text, re.DOTALL):
+                return True
+                
+        return False
+    
+    def _is_default_template(self, text):
+        """Prüft, ob der Text dem Standard-Template entspricht"""
+        import re
+        
+        # Muster für verschiedene Varianten des Standard-Templates
+        patterns = [
+            r"\$[A-Za-z0-9]+\s*\n\n💰 MCAP: [0-9.]+[KM]?\s*\n\n🔗 CA: 0x[A-Fa-f0-9]+",  # Ethereum
+            r"\$[A-Za-z0-9]+\s*\n\n💰 MCAP: [0-9.]+[KM]?\s*\n\n🔗 CA: [A-Za-z0-9]+",    # Andere Chains
+            r"\n💰 MCAP Entry: \$[0-9.]+[KM]?\s*\n\$[A-Za-z0-9]+\s*\n🔗 CA: [A-Za-z0-9]+"  # Altes Format
+        ]
+        
+        # Prüfe, ob einer der Patterns übereinstimmt
+        for pattern in patterns:
+            if re.match(pattern, text, re.DOTALL):
+                return True
+                
+        return False
     
     def _check_focus_out(self, event):
         """
