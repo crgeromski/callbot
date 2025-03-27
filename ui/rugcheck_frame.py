@@ -1,9 +1,22 @@
-# RugCheck Frame mit verbesserter Fehlerbehandlung
+# RugCheck Frame mit verbesserter Fehlerbehandlung und Debug-Information
 import tkinter as tk
 from tkinter import messagebox
 import data.axiom_api as axiom_api
 import config
 import threading
+import logging
+import time
+
+# Logging konfigurieren
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('rugcheck.log')
+    ]
+)
+logger = logging.getLogger("rugcheck")
 
 class RugCheckFrame:
     def __init__(self, parent, shared_vars, main_window=None):
@@ -18,6 +31,7 @@ class RugCheckFrame:
         
     def create_frame(self):
         """Erstellt den Frame für den RugCheck mit Axiom-Daten"""
+        logger.info("Erstelle RugCheck-Frame")
         self.frame = tk.Frame(
             self.parent, 
             bg="white", 
@@ -94,6 +108,15 @@ class RugCheckFrame:
         )
         self.update_status_label.pack(anchor="w", pady=(10,0))
         
+        # Debug-Button (nur für Entwicklung)
+        self.debug_button = tk.Button(
+            self.frame,
+            text="Debug API",
+            font=("Arial", 8),
+            command=self._debug_api_connection
+        )
+        self.debug_button.pack(anchor="e", pady=(5,0))
+        
         # API-Key in separatem Thread prüfen, um die UI nicht zu blockieren
         threading.Thread(target=self.check_api_key, daemon=True).start()
         
@@ -136,33 +159,40 @@ class RugCheckFrame:
         
     def check_api_key(self):
         """Prüft, ob der API-Key funktioniert"""
+        logger.info("Prüfe API-Key...")
         try:
             if not config.AXIOM_API_KEY:
                 self.api_status_var.set("API: Kein Key")
                 self.api_status_label.config(fg="red")
                 self.api_available = False
+                logger.warning("Kein API-Key gefunden")
                 return
             
             # API-Test mit größerem Timeout
+            logger.info("Starte API-Test")
             is_valid = axiom_api.test_api_key()
             
             if is_valid:
                 self.api_status_var.set("API: Verbunden")
                 self.api_status_label.config(fg="green")
                 self.api_available = True
+                logger.info("API-Key ist gültig")
             else:
                 self.api_status_var.set("API: Fehler")
                 self.api_status_label.config(fg="red")
                 self.api_available = False
+                logger.warning("API-Key ist ungültig oder API nicht erreichbar")
         except Exception as e:
-            print(f"API-Key Test Fehler: {e}")
+            logger.error(f"API-Key Test Fehler: {e}", exc_info=True)
             self.api_status_var.set("API: Nicht erreichbar")
             self.api_status_label.config(fg="red")
             self.api_available = False
     
     def update_metrics(self, token_address=None):
         """Aktualisiert die Metriken mit Daten von Axiom"""
-        # Setze den Status auf "Anfrage gesendet"
+        logger.info(f"Update Metrics aufgerufen für Token: {token_address}")
+        
+        # Status updaten
         self.update_status_var.set("Letzte Aktualisierung: gerade eben")
         
         # Wenn API nicht verfügbar ist, zeige Hinweis und kehre zurück
@@ -172,11 +202,13 @@ class RugCheckFrame:
                 if key in self.metrics_entries:
                     self.metrics_entries[key].config(readonlybackground="#101010", fg="#666666")
             self.update_status_var.set("API nicht verfügbar - keine Daten abrufbar")
+            logger.warning("API nicht verfügbar - Update abgebrochen")
             return
         
         # Verhindere mehrfaches Laden
         if self.is_loading:
             self.update_status_var.set("Aktualisierung läuft bereits...")
+            logger.info("Update abgebrochen - Bereits eine Aktualisierung im Gange")
             return
             
         self.is_loading = True
@@ -187,17 +219,20 @@ class RugCheckFrame:
             address = self.shared_vars['token_address_var'].get()
             if address and address != "N/A":
                 token_address = address
+                logger.info(f"Token-Adresse aus shared_vars: {token_address}")
             else:
                 # Versuche, aus Link zu extrahieren
                 link = self.shared_vars['entry_var'].get()
                 if link:
                     token_address = axiom_api.extract_address_from_url(link)
+                    logger.info(f"Token-Adresse aus Link extrahiert: {token_address}")
         
         # Wenn immer noch keine gültige Adresse, reset und return
         if not token_address or not axiom_api.is_solana_address_format(token_address):
             self.is_loading = False
             self.reset_metrics()
             self.update_status_var.set("Keine gültige Token-Adresse gefunden")
+            logger.warning(f"Keine gültige Token-Adresse gefunden: {token_address}")
             return
             
         # Setze Loading-Status
@@ -206,40 +241,57 @@ class RugCheckFrame:
             
         # Starte Thread für API-Abfrage, um UI nicht zu blockieren
         threading.Thread(target=lambda: self._fetch_data(token_address), daemon=True).start()
+        logger.info(f"Thread zum Laden der Daten für {token_address} gestartet")
     
     def _fetch_data(self, token_address):
         """Holte Daten von der API im Hintergrund"""
+        logger.info(f"Daten abrufen für Token: {token_address}")
         try:
+            # Status anzeigen
+            self.update_status_var.set(f"Lade Daten für {token_address[:6]}...")
+            
             # Holen der Token-Daten mit erhöhtem Timeout
             timeout = 20  # Erhöhter Timeout
+            logger.info(f"Rufe fetch_axiom_data mit Timeout {timeout}s auf")
+            start_time = time.time()
             token_data = axiom_api.fetch_axiom_data(token_address, timeout)
+            elapsed = time.time() - start_time
+            logger.info(f"fetch_axiom_data abgeschlossen in {elapsed:.2f}s")
             
             # Wenn keine Daten zurückgegeben wurden, reset und return
             if not token_data:
                 self.reset_metrics("N/A")
                 self.update_status_var.set("Keine Daten von der API erhalten")
+                logger.warning("Keine Daten erhalten von fetch_axiom_data")
                 return
             
             # Hole weitere Daten
+            logger.info("Rufe Top-Holders Daten ab")
             holders_data = axiom_api.fetch_top_holders(token_address, timeout)
+            logger.info("Rufe Top-Traders Daten ab")
             traders_data = axiom_api.fetch_top_traders(token_address, timeout)
             
             # Extrahiere die Metriken
+            logger.info("Extrahiere RugCheck Metriken")
             metrics = axiom_api.extract_rugcheck_metrics(token_data, holders_data, traders_data)
             
             # Aktualisiere die UI
+            logger.info("Aktualisiere UI mit Metriken")
             self.update_ui_with_metrics(metrics)
             self.update_status_var.set("Daten erfolgreich aktualisiert")
             
         except Exception as e:
-            print(f"Fehler beim Laden der Axiom-Daten: {e}")
+            logger.error(f"Fehler beim Laden der Axiom-Daten: {e}", exc_info=True)
             self.reset_metrics("Fehler")
             self.update_status_var.set(f"Fehler: {str(e)[:50]}...")
         finally:
+            logger.info("Datenabfrage abgeschlossen, setze Loading-Flag zurück")
             self.is_loading = False
     
     def update_ui_with_metrics(self, metrics):
         """Aktualisiert die UI mit den extrahierten Metriken"""
+        logger.info("Aktualisiere UI mit Metriken")
+        
         # Top 10 Holders
         self._update_percentage_metric("top_10_holders", metrics["top_10_holders_percent"])
         
@@ -311,7 +363,39 @@ class RugCheckFrame:
     
     def reset_metrics(self, default_value="N/A"):
         """Setzt alle Metriken auf den Standardwert zurück"""
+        logger.info(f"Setze alle Metriken zurück auf: {default_value}")
         for key in self.metrics_vars:
             self.metrics_vars[key].set(default_value)
             if key in self.metrics_entries:
                 self.metrics_entries[key].config(readonlybackground="#101010", fg="#FFFFFF")
+                
+    def _debug_api_connection(self):
+        """Debug-Funktion für API-Verbindung - nur für Entwicklung"""
+        threading.Thread(target=self._run_api_debug, daemon=True).start()
+        messagebox.showinfo("Debug", "Debug-Daten werden in die Konsole und debug.log geschrieben")
+    
+    def _run_api_debug(self):
+        """Führt die Debug-Routinen für die API aus"""
+        logger.info("=== API-DEBUG GESTARTET ===")
+        
+        # Teste API-Key
+        logger.info("Teste API-Key...")
+        key_valid = axiom_api.test_api_key()
+        logger.info(f"API-Key gültig: {key_valid}")
+        
+        # Teste mit einem bekannten Token
+        test_token = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
+        logger.info(f"Teste mit bekanntem Token: {test_token}")
+        
+        start_time = time.time()
+        token_data = axiom_api.fetch_axiom_data(test_token, timeout=15)
+        elapsed = time.time() - start_time
+        
+        if token_data:
+            logger.info(f"Token-Daten erhalten in {elapsed:.2f}s: {len(token_data)} Felder")
+            logger.info(f"Enthaltene Schlüssel: {list(token_data.keys()) if isinstance(token_data, dict) else 'Keine Schlüssel'}")
+        else:
+            logger.error(f"Keine Token-Daten erhalten nach {elapsed:.2f}s")
+        
+        # Aktualisiere Status im UI
+        self.update_status_var.set("Debug-Ausführung abgeschlossen")

@@ -1,35 +1,46 @@
 [
     {
         "Datum": "27.03.",
-        "Symbol": "$Totoro",
-        "MCAP_at_Call": "219K",
-        "Link": "https://dexscreener.com/solana/dqnnn9rnzvborqjagf2kbrqhaybf5x4kjjp9jtg59baw",
-        "Aktuelles_MCAP": "215K",
+        "Symbol": "$SKINNY",
+        "MCAP_at_Call": "281K",
+        "Link": "https://dexscreener.com/solana/j1bwvcmek1r7z7r21usghu8vfywpbcs9dejgwjeweze",
+        "Aktuelles_MCAP": "252K",
+        "X_Factor": "0.9X",
+        "PL_Percent": "-10%",
+        "PL_Dollar": "-1.03$",
+        "Invest": "10"
+    },
+    {
+        "Datum": "27.03.",
+        "Symbol": "$ragebait",
+        "MCAP_at_Call": "101K",
+        "Link": "https://dexscreener.com/solana/g8bj99s8dmp9cac3uhm5t9tycjh83waj3ppqcekjueif",
+        "Aktuelles_MCAP": "99K",
         "X_Factor": "1.0X",
         "PL_Percent": "-2%",
-        "PL_Dollar": "-0.18$",
+        "PL_Dollar": "-0.20$",
         "Invest": "10"
     },
     {
         "Datum": "27.03.",
-        "Symbol": "$jellyjelly",
-        "MCAP_at_Call": "19.1M",
-        "Link": "https://dexscreener.com/solana/3bc2e2rxcfvf9op22lvbansvwos2t98q6ercroayqydq",
-        "Aktuelles_MCAP": "19.1M",
+        "Symbol": "$REVS",
+        "MCAP_at_Call": "817K",
+        "Link": "9VxExA1iRPbuLLdSJ2rB3nyBxsyLReT4aqzZBMaBaY1p",
+        "Aktuelles_MCAP": "812K",
+        "X_Factor": "1.0X",
+        "PL_Percent": "-1%",
+        "PL_Dollar": "-0.06$",
+        "Invest": "10"
+    },
+    {
+        "Datum": "27.03.",
+        "Symbol": "$AuraFarm",
+        "MCAP_at_Call": "519K",
+        "Link": "4rwPNRSFgcS7EGphFdX7VwXuhjZGxph7gYyb7Zp2pump",
+        "Aktuelles_MCAP": "520K",
         "X_Factor": "1.0X",
         "PL_Percent": "0%",
-        "PL_Dollar": "0.00$",
-        "Invest": "10"
-    },
-    {
-        "Datum": "27.03.",
-        "Symbol": "$Saika",
-        "MCAP_at_Call": "19K",
-        "Link": "https://dexscreener.com/solana/8r2ronr8o4emfycjvt39d2rxggw3fdppiggsqqfdp6xs",
-        "Aktuelles_MCAP": "15K",
-        "X_Factor": "0.8X",
-        "PL_Percent": "-21%",
-        "PL_Dollar": "-2.11$",
+        "PL_Dollar": "0.02$",
         "Invest": "10"
     }
 ]
