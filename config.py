@@ -25,4 +25,4 @@ if not AXIOM_API_KEY:
             with open(API_KEY_FILE, "r") as f:
                 AXIOM_API_KEY = f.read().strip()
     except Exception as e:
-        print(f"Fehler beim Laden des API-Keys: {e}")
+        print(f"Fehler beim Laden des API-Keys: {e}") 
