@@ -1,4 +1,4 @@
-# X-Post Frame
+# Angepasste Version für ui/xpost_frame.py
 import tkinter as tk
 import utils.clipboard as clipboard
 import utils.browser as browser
@@ -10,62 +10,57 @@ class XPostFrame:
         self.create_frame()
         
     def create_frame(self):
-        """Erstellt den Frame für X-Posts"""
+        """Erstellt den Frame für X-Posts mit verbessertem Layout"""
         self.frame = tk.Frame(
             self.parent, 
             bg="white", 
             padx=20, 
-            pady=20,
-            bd=1,
-            relief="solid",
-            highlightbackground="#cccccc",
-            highlightthickness=1
+            pady=20
         )
-        self.frame.grid(row=1, column=1, sticky="nsew")  # Ändern von (0,1) zu (1,1)
-        
-        self.inner = tk.Frame(self.frame, bg="white")
-        self.inner.pack(fill="both", expand=True)
+        self.frame.pack(fill="both", expand=True)
         
         # X-Post Label
-        self.xpost_label = tk.Label(
-            self.inner, 
+        tk.Label(
+            self.frame, 
             text="X-Post", 
             font=("Arial", 11, "bold"), 
             bg="white", 
             anchor="w"
-        )
-        self.xpost_label.pack(anchor="w", pady=(0, 8))
+        ).pack(anchor="w", pady=(0, 10))
         
-        # Rest des Codes bleibt unverändert
+        # X-Post Textfeld (multiline) mit verbesserter Größenanpassung
+        text_container = tk.Frame(self.frame, bg="white")
+        text_container.pack(fill="both", expand=True, pady=5)
         
-        # X-Post Textfeld (multiline)
         self.xpost_text_widget = tk.Text(
-            self.inner, 
-            height=3, 
+            text_container, 
+            height=10,  # Höhere Starthöhe für bessere Sichtbarkeit
             wrap="word", 
             relief="sunken", 
             borderwidth=2
         )
         self.xpost_text_widget.insert("1.0", "")
         self.xpost_text_widget.config(state="disabled")  
-        self.xpost_text_widget.pack(anchor="w", padx=0, pady=2, fill="x", expand=True)
+        self.xpost_text_widget.pack(fill="both", expand=True, pady=5)
         
-        # Frame für Buttons
-        self.btn_subframe = tk.Frame(self.inner, bg="white")
-        self.btn_subframe.pack(anchor="w", pady=(5,0))
+        # Frame für Buttons mit verbesserter Positionierung
+        self.btn_frame = tk.Frame(self.frame, bg="white")
+        self.btn_frame.pack(fill="x", pady=10)
         
         # Button "Kopieren"
         self.btn_copy = tk.Button(
-            self.btn_subframe, 
+            self.btn_frame, 
             text="Kopieren",
+            width=10,
             command=self.copy_to_clipboard
         )
-        self.btn_copy.pack(side="left", padx=(0,10))
+        self.btn_copy.pack(side="left", padx=(0, 10))
         
         # Button "Auf X posten"
         self.btn_xpost = tk.Button(
-            self.btn_subframe, 
-            text="Auf X posten", 
+            self.btn_frame, 
+            text="Auf X posten",
+            width=10,
             command=self.post_to_x
         )
         self.btn_xpost.pack(side="left")

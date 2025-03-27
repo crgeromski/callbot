@@ -193,23 +193,42 @@ class MainWindow:
         self.middle_right = tk.Frame(container_middle, bg="white", bd=1, relief="solid", width=300)
         self.middle_right.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
         
-        # Container 3: Unterer Bereich (50% / 50%)
+        # Container 3: Unterer Bereich mit expliziten Größen
         container_bottom = tk.Frame(self.tab1, bg="white")
-        container_bottom.pack(fill="x", padx=10, pady=5)
-        
-        # Container 3 in zwei Teile aufteilen
-        container_bottom.columnconfigure(0, weight=1)  # 50% Breite
-        container_bottom.columnconfigure(1, weight=1)  # 50% Breite
-        
-        # Linker Teil (X-Post)
+        container_bottom.pack(fill="both", expand=True, padx=10, pady=5)
+
+        # Wichtig: Verhindere, dass der Container auf Kindgröße schrumpft
+        container_bottom.pack_propagate(False)
+
+        # Erstelle einen Frame für die feste prozentuale Aufteilung
+        fixed_layout = tk.Frame(container_bottom, bg="white")
+        fixed_layout.pack(fill="both", expand=True)
+
+        # Berechne die relative Breite für 630px Mindestfensterbreite
+        # Berücksichtige die Paddings (10px links und rechts)
+        window_internal_width = 610  # 630px - 20px Padding
+        left_width = int(window_internal_width * 0.7)  # 70% der Breite
+        right_width = window_internal_width - left_width  # Rest für den rechten Container
+
+        # Linker Container (70%)
+        self.bottom_left = tk.Frame(fixed_layout, bg="white", bd=1, relief="solid", width=left_width)
+        self.bottom_left.pack(side="left", fill="both", expand=True, padx=(0, 5))
+
+        # Rechter Container (30%)
+        self.bottom_right = tk.Frame(fixed_layout, bg="white", bd=1, relief="solid", width=right_width)
+        self.bottom_right.pack(side="right", fill="both", expand=True, padx=(5, 0))
+
+        # Verhindere, dass die Container ihre Größe ändern
+        self.bottom_left.pack_propagate(False)
+        self.bottom_right.pack_propagate(False)
+
+        # X-Post Frame erstellen
         from ui.xpost_frame import XPostFrame
-        self.bottom_left = tk.Frame(container_bottom, bg="white", bd=1, relief="solid")
-        self.bottom_left.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
-        xpost_frame = XPostFrame(self.bottom_left, self.shared_vars)
-        
-        # Rechter Teil (Empfehlung - zukünftig)
-        self.bottom_right = tk.Frame(container_bottom, bg="white", bd=1, relief="solid")
-        self.bottom_right.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        self.xpost_frame = XPostFrame(self.bottom_left, self.shared_vars)
+
+        # Empfehlungs-Frame erstellen
+        from ui.recommendation_frame import RecommendationFrame
+        recommendation_frame = RecommendationFrame(self.bottom_right, self.shared_vars, self)
         
         # Speichere die Container im Dictionary für späteren Zugriff
         self.main_containers = {
@@ -219,34 +238,12 @@ class MainWindow:
             'bottom_left': self.bottom_left,
             'bottom_right': self.bottom_right
         }
-        
-        # Platzhalter für die zukünftigen Funktionen
-        self.create_placeholders()
 
     def create_placeholders(self):
         """Erstellt Platzhalter für zukünftige Funktionen"""
-        # X-Post Frame
-        xpost_frame = tk.Frame(self.bottom_left, bg="white", padx=20, pady=20)
-        xpost_frame.grid(row=0, column=0, sticky="nsew")  # Verwenden Sie grid statt pack
-        
-        tk.Label(
-            xpost_frame, 
-            text="X-Post", 
-            font=("Arial", 11, "bold"), 
-            bg="white", 
-            anchor="w"
-        ).pack(anchor="w")
-
-        # Optional: Empfehlung Platzhalter
-        rec_frame = tk.Frame(self.bottom_right, bg="white", padx=20, pady=20)
-        rec_frame.grid(row=0, column=0, sticky="nsew")  # Auch hier grid
-        
-        tk.Label(
-            rec_frame, 
-            text="Empfehlung (kommt bald)", 
-            font=("Arial", 11, "bold"), 
-            bg="white"
-        ).pack(anchor="w")
+        # Hier keine Platzhalter mehr einrichten für die unteren Container,
+        # da diese bereits in create_main_containers behandelt werden
+        pass
 
     def create_profit_container(self):
         """Erstellt den Container für Gewinnberechnung"""

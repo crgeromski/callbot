@@ -149,23 +149,9 @@ class MainBot:
         self.shared_vars['telegram_var'].set(next((s.get("url") for s in socials if s.get("type") == "telegram"), "N/A"))
         self.shared_vars['discord_var'].set(next((s.get("url") for s in socials if s.get("type") == "discord"), "N/A"))
         
-        # Aktualisiere die RugCheck-Daten, falls verfügbar
-        if hasattr(self.main_window, 'rugcheck_frame'):
-            try:
-                token_address = base_token.get("address", "")
-                if token_address and token_address != "N/A":
-                    import threading
-                    # Starte die Aktualisierung in einem separaten Thread, um die Hauptanwendung nicht zu blockieren
-                    threading.Thread(
-                        target=self.main_window.rugcheck_frame.update_metrics,
-                        args=(token_address,),
-                        daemon=True
-                    ).start()
-            except Exception as e:
-                print(f"Fehler bei der RugCheck-Aktualisierung: {e}")
-                # Bei Fehler zeigen wir einen Status an, falls möglich
-                if hasattr(self.main_window.rugcheck_frame, 'update_status_var'):
-                    self.main_window.rugcheck_frame.update_status_var.set(f"Fehler bei der Aktualisierung: {str(e)[:30]}...")
+        # Aktualisiere den X-Post-Container, wenn verfügbar
+        if hasattr(self.main_window, 'xpost_frame') and hasattr(self.main_window.xpost_frame, 'update_xpost_container'):
+            self.main_window.xpost_frame.update_xpost_container()
 
     def paste_and_fetch(self):
         """Fügt den Inhalt der Zwischenablage in das Eingabefeld ein und ruft die API ab"""

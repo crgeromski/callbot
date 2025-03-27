@@ -130,18 +130,19 @@ class SocialFrame:
         styles.create_link_row(data_container, "Telegram", self.shared_vars['telegram_var'], 4)
         styles.create_link_row(data_container, "Discord", self.shared_vars['discord_var'], 5)
 
-        # Call erstellen Button
+        # Call speichern Button
         button_frame = tk.Frame(self.frame, bg="white")
         button_frame.pack(fill="x", pady=10)
 
         self.call_button = tk.Button(
             button_frame,
-            text="Call erstellen",
+            text="Call speichern",
             font=("Arial", 10, "bold"),
+            width=20,  # Feste Breite für Konsistenz
             height=2,
             command=self.create_call
         )
-        self.call_button.pack(pady=5)
+        self.call_button.pack(pady=5)  # Dieser Befehl fehlt - dadurch wird der Button nicht angezeigt
 
         # Zentrierung des Buttons im Container
         button_frame.update_idletasks()
