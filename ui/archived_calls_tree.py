@@ -52,13 +52,26 @@ class ArchivedCallsTreeView:
         self.archived_calls_tree.column("PL_Dollar", width=80, anchor="center")
         self.archived_calls_tree.column("Invest", width=80, anchor="center")
         
-        # Lösch-Button
-        self.delete_button = tk.Button(self.parent, text="Call löschen", command=self.delete_selected_archived_call)
-        self.delete_button.pack(pady=10)
-        
         # Doppelklick-Event
         self.archived_calls_tree.bind("<Double-1>", self.on_archived_double_click)
         self.archived_calls_tree.pack(fill="both", expand=True)
+        
+        # Kontextmenü hinzufügen
+        self.context_menu = tk.Menu(self.archived_calls_tree, tearoff=0)
+        self.archived_calls_tree.bind("<Button-3>", self.show_context_menu)
+        
+        # Einträge zum Kontextmenü hinzufügen
+        self.context_menu.add_command(label="Call löschen", command=self.delete_selected_archived_call)
+        
+    def show_context_menu(self, event):
+        """Zeigt das Kontextmenü bei Rechtsklick an"""
+        # Wähle das Item unter dem Cursor
+        item = self.archived_calls_tree.identify_row(event.y)
+        if item:
+            # Setze die Auswahl auf das Item unter dem Cursor
+            self.archived_calls_tree.selection_set(item)
+            # Zeige das Kontextmenü
+            self.context_menu.post(event.x_root, event.y_root)
         
     def update_tree(self):
         """Aktualisiert den Treeview für archivierte Calls"""
@@ -131,24 +144,40 @@ class ArchivedCallsTreeView:
                     # Wechsle zum Main Bot Tab
                     self.main_window.notebook.select(self.main_window.tabs['main'])
     
+
     def delete_selected_archived_call(self):
-        """Löscht die ausgewählten Calls aus der Liste der abgeschlossenen Calls."""
+        """Löscht nur die ausgewählten archivierten Calls"""
         selected_items = self.archived_calls_tree.selection()
         if not selected_items:
             messagebox.showinfo("Hinweis", "Bitte wähle zuerst mindestens einen Call aus, den du löschen möchtest.")
             return
-            
-        # Sammle Symbole der ausgewählten Zeilen
-        selected_symbols = [self.archived_calls_tree.item(item, "values")[1] for item in selected_items]
-            
-        # Lade die vorhandenen Calls
+        
+        # Lade vorhandene Calls
         calls = storage.load_call_data()
+        new_calls = []
+        
+        # Details für jeden ausgewählten Call sammeln
+        to_delete = []
+        for item in selected_items:
+            values = self.archived_calls_tree.item(item, "values")
+            # Speichere Datum, Symbol UND MCAP als eindeutige Identifikation
+            to_delete.append((values[0], values[1], values[2]))  # (Datum, Symbol, MCAP_at_Call)
             
-        # Filtere alle Calls heraus, deren Symbol in den ausgewählten Symbolen enthalten ist
-        updated_calls = [call for call in calls if not (call.get("abgeschlossen", False) and call.get("Symbol") in selected_symbols)]
+        # Nur Calls behalten, die nicht gelöscht werden sollen
+        for call in calls:
+            # Überspringe nicht-abgeschlossene Calls
+            if not call.get("abgeschlossen", False):
+                new_calls.append(call)
+                continue
+                
+            # Prüfe, ob dieser Call gelöscht werden soll
+            current_call_id = (call.get("Datum", ""), call.get("Symbol", ""), call.get("MCAP_at_Call", ""))
+            if current_call_id in to_delete:
+                continue  # Diesen Call nicht behalten
             
-        # Speichere die aktualisierte Liste in der JSON-Datei
-        storage.save_call_data(updated_calls)
-            
-        # Aktualisiere den Treeview
+            # Ansonsten Call behalten
+            new_calls.append(call)
+        
+        # Speichern und aktualisieren
+        storage.save_call_data(new_calls)
         self.update_tree()

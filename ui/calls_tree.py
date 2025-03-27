@@ -58,15 +58,23 @@ class CallsTreeView:
         # Binde das Doppelklick-Event an die Treeview
         self.calls_tree.bind("<Double-1>", self.on_treeview_double_click)
         
-        # Hinzufügen von Schaltflächen für Verwaltungsaktionen
-        self.btn_frame = tk.Frame(self.parent)
-        self.btn_frame.pack(pady=10)
+        # Kontextmenü hinzufügen
+        self.context_menu = tk.Menu(self.calls_tree, tearoff=0)
+        self.calls_tree.bind("<Button-3>", self.show_context_menu)
         
-        self.delete_button = tk.Button(self.btn_frame, text="Call löschen", command=self.delete_selected_call)
-        self.delete_button.pack(side='left', padx=5)
-        
-        self.close_button = tk.Button(self.btn_frame, text="Call abschließen", command=self.close_selected_call)
-        self.close_button.pack(side='left', padx=5)
+        # Einträge zum Kontextmenü hinzufügen
+        self.context_menu.add_command(label="Call abschließen", command=self.close_selected_call)
+        self.context_menu.add_command(label="Call löschen", command=self.delete_selected_call)
+    
+    def show_context_menu(self, event):
+        """Zeigt das Kontextmenü bei Rechtsklick an"""
+        # Wähle das Item unter dem Cursor
+        item = self.calls_tree.identify_row(event.y)
+        if item:
+            # Setze die Auswahl auf das Item unter dem Cursor
+            self.calls_tree.selection_set(item)
+            # Zeige das Kontextmenü
+            self.context_menu.post(event.x_root, event.y_root)
     
     def update_tree(self):
         """Aktualisiert den Treeview im 'Meine Calls'-Tab mit den gespeicherten Calls."""
@@ -145,39 +153,43 @@ class CallsTreeView:
                     # Wechsle zum Main Bot Tab
                     self.main_window.notebook.select(self.main_window.tabs['main'])
     
+    # Nur die delete_selected_call Funktion, da nur diese geändert werden muss
+
     def delete_selected_call(self):
         """Löscht nur die ausgewählten Calls aus der Liste"""
         selected_items = self.calls_tree.selection()
         if not selected_items:
             messagebox.showinfo("Hinweis", "Bitte wähle zuerst mindestens einen Call aus, den du löschen möchtest.")
             return
-            
-        # Lade die vorhandenen Calls
+        
+        # Lade vorhandene Calls
         calls = storage.load_call_data()
+        new_calls = []
         
-        # Sammle zusätzliche Informationen über die zu löschenden Calls
-        selected_calls_details = [
-            {
-                "Symbol": self.calls_tree.item(item, "values")[1],
-                "Datum": self.calls_tree.item(item, "values")[0]
-            } 
-            for item in selected_items
-        ]
+        # Details für jeden ausgewählten Call sammeln
+        to_delete = []
+        for item in selected_items:
+            values = self.calls_tree.item(item, "values")
+            # Speichere Datum, Symbol UND MCAP als eindeutige Identifikation
+            to_delete.append((values[0], values[1], values[2]))  # (Datum, Symbol, MCAP_at_Call)
+            
+        # Nur Calls behalten, die nicht gelöscht werden sollen
+        for call in calls:
+            # Überspringe abgeschlossene Calls
+            if call.get("abgeschlossen", False):
+                new_calls.append(call)
+                continue
+                
+            # Prüfe, ob dieser Call gelöscht werden soll
+            current_call_id = (call.get("Datum", ""), call.get("Symbol", ""), call.get("MCAP_at_Call", ""))
+            if current_call_id in to_delete:
+                continue  # Diesen Call nicht behalten
+            
+            # Ansonsten Call behalten
+            new_calls.append(call)
         
-        # Filtere nur die spezifisch ausgewählten Calls heraus
-        updated_calls = [
-            call for call in calls 
-            if not any(
-                call.get("Symbol") == details["Symbol"] and 
-                call.get("Datum") == details["Datum"] and 
-                not call.get("abgeschlossen", False)
-            ) for details in selected_calls_details
-        ]
-        
-        # Speichere die aktualisierte Liste in der JSON-Datei
-        storage.save_call_data(updated_calls)
-        
-        # Aktualisiere den Treeview
+        # Speichern und aktualisieren
+        storage.save_call_data(new_calls)
         self.update_tree()
     
     def close_selected_call(self):
@@ -187,39 +199,47 @@ class CallsTreeView:
             messagebox.showinfo("Hinweis", "Bitte wähle zuerst mindestens einen Call aus, den du abschließen möchtest.")
             return
             
-        # Lade die vorhandenen Calls
+        # Lade vorhandene Calls
         calls = storage.load_call_data()
-            
-        # Sammle Symbole der ausgewählten Zeilen 
-        selected_symbols = [self.calls_tree.item(item, "values")[1] for item in selected_items]
-            
-        # Aktualisiere alle Calls, die in den ausgewählten Symbolen enthalten sind:
-        # - Setze "abgeschlossen" auf True
-        # - Die finalen Live-Daten bleiben so, wie sie aktuell sind (z.B. "Aktuelles_MCAP" etc.)
+        
+        # Details für jeden ausgewählten Call sammeln
+        to_close = []
+        for item in selected_items:
+            values = self.calls_tree.item(item, "values")
+            # Speichere Datum, Symbol UND MCAP als eindeutige Identifikation
+            to_close.append((values[0], values[1], values[2]))  # (Datum, Symbol, MCAP_at_Call)
+        
+        # Profit-Summe für Budget-Aktualisierung
         total_profit = 0
+        
+        # Alle Calls durchgehen und abschließen
         for call in calls:
-            if call.get("Symbol") in selected_symbols and not call.get("abgeschlossen", False):
+            # Überspringe bereits abgeschlossene Calls
+            if call.get("abgeschlossen", False):
+                continue
+                
+            # Prüfe, ob dieser Call abgeschlossen werden soll
+            current_call_id = (call.get("Datum", ""), call.get("Symbol", ""), call.get("MCAP_at_Call", ""))
+            if current_call_id in to_close:
                 try:
                     profit = float(call.get("PL_Dollar", "0").rstrip("$"))
                 except Exception:
                     profit = 0.0
                 total_profit += profit
                 call["abgeschlossen"] = True
-            
-        # Aktualisiere das Budget
+        
+        # Budget aktualisieren
         current_budget = storage.load_budget()
         new_budget = current_budget + total_profit
         storage.save_budget(new_budget)
             
-        # Speichere die aktualisierte Liste in der JSON-Datei
+        # Daten speichern und UI aktualisieren
         storage.save_call_data(calls)
-            
-        # Aktualisiere das UI
         self.update_tree()
         if hasattr(self.main_window, 'update_archived_calls_tree'):
             self.main_window.update_archived_calls_tree()
             
-        # Aktualisiere Budget-Anzeige
+        # Budget-Anzeige aktualisieren
         self.main_window.current_balance_label.config(text=f"Kontostand: {new_budget:.2f}$")
         if new_budget > 500:
             self.main_window.current_balance_label.config(bg="#d8ffd8")
