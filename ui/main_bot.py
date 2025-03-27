@@ -4,7 +4,8 @@ from tkinter import messagebox
 import data.api as api
 import data.storage as storage
 import utils.formatters as formatters
-from config import API_TIMEOUT, UPDATE_INTERVAL, BACKUP_INTERVAL
+from config import API_TIMEOUT, UPDATE_INTERVAL
+
 
 class MainBot:
     def __init__(self, main_window):
@@ -12,8 +13,6 @@ class MainBot:
         self.shared_vars = main_window.shared_vars
         self.live_update_active = True  # Immer aktiv
         
-        # Backup-Zähler
-        self.backup_counter = 0
         
         # Update-Methode beim Hauptfenster registrieren
         self.main_window.fetch_data = self.fetch_data
@@ -224,27 +223,17 @@ class MainBot:
         # Plane den nächsten Update-Aufruf
         self.live_update_after_id = self.main_window.root.after(UPDATE_INTERVAL, self.auto_refresh_calls)
         
-        # Backup-Zähler inkrementieren
-        self.backup_counter += 1
-        
-        # Backup alle X Durchläufe
-        if self.backup_counter >= BACKUP_INTERVAL:
-            storage.backup_calls()
-            try:
-                label_text = self.main_window.current_balance_label.cget("text")
-                if ":" in label_text:
-                    balance_text = label_text.split(":", 1)[1].strip().rstrip("$")
-                    storage.save_budget(float(balance_text))
-                else:
-                    # Falls das Label nicht wie erwartet formatiert ist, laden wir den aktuellen Wert aus der Datei
-                    current_budget = storage.load_budget()
-                    storage.save_budget(current_budget)
-            except Exception as e:
-                print(f"Fehler beim Speichern des Budgets: {e}")
-                # Wir versuchen, auf den gespeicherten Wert zurückzugreifen
-                current_budget = storage.load_budget()
-                storage.save_budget(current_budget)
-            self.backup_counter = 0
+        # Speichere das aktuelle Budget
+        try:
+            label_text = self.main_window.current_balance_label.cget("text")
+            if ":" in label_text:
+                balance_text = label_text.split(":", 1)[1].strip().rstrip("$")
+                storage.save_budget(float(balance_text))
+        except Exception as e:
+            print(f"Fehler beim Speichern des Budgets: {e}")
+            # Wir versuchen, auf den gespeicherten Wert zurückzugreifen
+            current_budget = storage.load_budget()
+            storage.save_budget(current_budget)
 
     def update_ui_stats(self):
         """Aktualisiert die statistischen Daten im UI"""

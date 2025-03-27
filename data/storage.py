@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 # Importiere Konfiguration
-from config import CALLS_FILE, BACKUP_FILE, BUDGET_FILE, DEFAULT_BUDGET
+from config import CALLS_FILE, BUDGET_FILE, DEFAULT_BUDGET
 
 def load_call_data() -> List[Dict[str, Any]]:
     """Lädt die gespeicherten Call-Daten aus der JSON-Datei."""
@@ -42,14 +42,6 @@ def create_new_call(symbol: str, mcap: str, liquidity: str, link: str) -> Dict[s
         "Invest": "10"       # Fester Investitionswert: 10$
     }
 
-def backup_calls() -> None:
-    """Erstellt ein Backup der Calls-Datei."""
-    try:
-        calls = load_call_data()
-        with open(BACKUP_FILE, "w") as f:
-            json.dump(calls, f, indent=4)
-    except Exception as e:
-        print(f"Backup fehlgeschlagen: {e}")
 
 def load_budget() -> float:
     """Lädt den gespeicherten Kontostand."""

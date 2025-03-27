@@ -294,25 +294,31 @@ class MainWindow:
         pass
 
     def reset_budget(self):
-        """Kontostand zurücksetzen"""
-        # Rufe die reset_budget Methode des MainBot auf
-        if hasattr(self, 'main_bot'):
-            import data.storage as storage  # Lokaler Import
-            self.main_bot.reset_budget()
-            
-        """Setzt den Kontostand auf 500$ zurück, nach Bestätigung durch den Benutzer."""
+        """Setzt den Kontostand auf 500$ zurück und löscht alle Calls."""
         # Zeige ein Bestätigungsdialog
         confirm = messagebox.askyesno(
-            "Kontostand zurücksetzen",
-            "Möchtest du den Kontostand wirklich auf 500$ zurücksetzen?\nDiese Aktion kann nicht rückgängig gemacht werden.",
+            "Kontostand und Calls zurücksetzen",
+            "Möchtest du den Kontostand wirklich auf 500$ zurücksetzen und ALLE Calls löschen?\nDiese Aktion kann nicht rückgängig gemacht werden.",
             icon="warning"
         )
         
         if confirm:
+            # Kontostand zurücksetzen
             storage.save_budget(500.0)
+            
+            # Alle Calls löschen (leere Liste speichern)
+            storage.save_call_data([])
+            
             # Aktualisiere das Label
-            self.main_window.current_balance_label.config(text=f"Kontostand: 500.00$", bg="white")
-            messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt.")
+            self.current_balance_label.config(text=f"Kontostand: 500.00$", bg="white")
+            
+            # Aktualisiere die Treeviews
+            if hasattr(self, 'calls_tree'):
+                self.calls_tree.update_tree()
+            if hasattr(self, 'archived_calls_tree'):
+                self.archived_calls_tree.update_tree()
+                
+            messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt und alle Calls wurden gelöscht.")
 
     def toggle_live_update(self):
         """Live-Update ein-/ausschalten"""
