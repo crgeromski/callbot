@@ -4,7 +4,7 @@ import os
 # Dateipfade
 CALLS_FILE = "calls.json"
 BUDGET_FILE = "budget_backup.txt"
-API_KEY_FILE = "api_key.txt"  # Datei für den Axiom API-Key
+API_KEY_FILE = "C:/Users/Gerome PC/Desktop/api_key.txt"
 
 # Standardwerte
 DEFAULT_BUDGET = 500.0
