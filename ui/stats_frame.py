@@ -21,14 +21,15 @@ class StatsFrame:
         )
         self.frame.pack(fill="both", expand=True)
         
-        # Titel hinzufügen
+        # Titel hinzufügen - Anwendung der neuen Typografie
         title_label = tk.Label(
             self.frame, 
             text="Statistiken", 
-            font=("Arial", 11, "bold"), 
             bg="white", 
             anchor="w"
         )
+        # Neue Typografie-Anwendung
+        styles.apply_typography(title_label, 'section_header')
         title_label.pack(anchor="w", pady=(0,10))
         
         # Erster Untercontainer für Statistikdaten
@@ -38,7 +39,7 @@ class StatsFrame:
         
         # Datenzeilen in den ersten Container
         styles.create_data_row(stats_data_container, "Market Cap", self.shared_vars['mcap_var'], 1, show_copy_button=False)
-        styles.create_data_row(stats_data_container, "Liquidity (USD)", self.shared_vars['liq_var'], 2, show_copy_button=False)
+        styles.create_data_row(stats_data_container, "Liquidity", self.shared_vars['liq_var'], 2, show_copy_button=False)
         styles.create_data_row(stats_data_container, "24h Volumen", self.shared_vars['vol24_var'], 3, show_copy_button=False)
         
         # Zweiter Untercontainer für Timeframes
@@ -52,12 +53,13 @@ class StatsFrame:
             self.timeframes_frame.columnconfigure(i, weight=1)
 
         # Timeframes-Titel
-        tk.Label(
+        timeframes_title = tk.Label(
             timeframes_container,
             font=("Arial", 10, "bold"),
             bg="white",
             anchor="w"
-        ).pack(anchor="w", padx=10, pady=(2,5))
+        )
+        timeframes_title.pack(anchor="w", padx=10, pady=(2,5))
         
         for i, label_text in enumerate(["5M", "1H", "6H", "24H"]):
             # Label für jeden Timeframe

@@ -121,6 +121,8 @@ class MainWindow:
         
         # Erstellen des Buttons mit Standardhöhe
         self.reset_budget_btn = tk.Button(right_section, text="Kontostand zurücksetzen", command=self.reset_budget)
+        # Neue Typografie-Anwendung für Button
+        styles.apply_typography(self.reset_budget_btn, 'button_label')
         self.reset_budget_btn.pack(side="right")
         
         # Nach dem Erstellen des Reset-Buttons:
@@ -132,7 +134,6 @@ class MainWindow:
         controls_container.configure(height=button_height)
         left_section.configure(height=button_height)
         right_section.configure(height=button_height)
-        
 
     def create_notebook(self):
         """Erstellt das Notebook mit Tabs und die drei Hauptcontainer im Main-Tab"""
@@ -178,7 +179,6 @@ class MainWindow:
         # Token-Daten auf volle Breite
         self.top_left = tk.Frame(container_top, bg="white", bd=1, relief="solid")
         self.top_left.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
-        
         
         # Container 2: Mittlerer Bereich (50% / 50%)
         container_middle = tk.Frame(self.tab1, bg="white")
@@ -229,7 +229,6 @@ class MainWindow:
         from ui.xpost_frame import XPostFrame
         self.xpost_frame = XPostFrame(self.bottom_left, self.shared_vars)
 
-
         # Empfehlungs-Frame erstellen
         from ui.recommendation_frame import RecommendationFrame
         recommendation_frame = RecommendationFrame(self.bottom_right, self.shared_vars, self)
@@ -242,12 +241,6 @@ class MainWindow:
             'bottom_left': self.bottom_left,
             'bottom_right': self.bottom_right
         }
-
-    def create_placeholders(self):
-        """Erstellt Platzhalter für zukünftige Funktionen"""
-        # Hier keine Platzhalter mehr einrichten für die unteren Container,
-        # da diese bereits in create_main_containers behandelt werden
-        pass
 
     def create_profit_container(self):
         """Erstellt den Container für Gewinnberechnung"""

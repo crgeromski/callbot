@@ -2,6 +2,38 @@
 import tkinter as tk
 from tkinter import ttk
 
+# Typography Configuration
+TYPOGRAPHY = {
+    'tab_label': {
+        'font': ('Arial', 12, 'bold'),
+        'color': 'black'
+    },
+    'section_header': {
+        'font': ('Arial', 14, 'bold'),
+        'color': 'black'
+    },
+    'data_row_label': {
+        'font': ('Arial', 10, 'bold'),
+        'color': 'black'
+    },
+    'button_label': {
+        'font': ('Arial', 10, 'bold'),
+        'transform': 'uppercase'
+    }
+}
+
+# Methode zur Anwendung der Typografie
+def apply_typography(widget, style_key):
+    config = TYPOGRAPHY.get(style_key, {})
+    if config:
+        if 'font' in config:
+            widget.configure(font=config['font'])
+        if 'color' in config:
+            widget.configure(fg=config['color'])
+        if style_key == 'button_label':
+            # Großschreibung für Buttons
+            widget.configure(text=widget.cget('text').upper())
+
 def setup_styles():
     """Richtet die ttk Styles ein."""
     style = ttk.Style()
@@ -23,14 +55,14 @@ def setup_styles():
         })
     ])
 
-    # Notebook-Styling
+    # Notebook-Styling - Tab-Labels
     style.configure("TNotebook",
                     background="white",
                     borderwidth=0,
                     tabmargins=[10, 5, 10, 0])
 
     style.configure("TNotebook.Tab",
-                    font=("Arial", 12, "bold"))
+                    font=TYPOGRAPHY['tab_label']['font'])
 
     style.map("TNotebook.Tab",
         padding=[("selected", [15, 10]), ("!selected", [10, 6])],
@@ -52,54 +84,86 @@ def setup_styles():
         background=[('selected', '')],  # Leere Farbe für Auswahl
         foreground=[('selected', 'black')])  # Textfarbe bleibt schwarz
 
+
 def create_data_row(parent, label_text, var, row, show_copy_button=True):
     """
     Legt eine Label+Entry+Button-Zeile in einem Grid-Parent an.
-    parent: Frame, der grid verwendet.
-    label_text: Beschriftung
-    var: StringVar zum Anzeigen
-    row: Zeilennummer in der grid
-    show_copy_button: Ob der Kopieren-Button angezeigt werden soll
     """
     import utils.clipboard as clipboard
     
-    lbl = tk.Label(parent, text=label_text, font=("Arial", 10, "bold"), anchor="w")
+    lbl = tk.Label(
+        parent, 
+        text=label_text, 
+        font=TYPOGRAPHY['data_row_label']['font'],  # Verwendung des Dictionaries
+        anchor="w",
+        bg="white"
+    )
     lbl.grid(row=row, column=0, padx=5, pady=2, sticky="w")
     
     # Prüfe, ob es sich um Token-Daten oder Statistiken handelt (basierend auf dem Label-Text)
     if any(keyword in label_text.lower() for keyword in ["blockchain", "token", "symbol", "adresse", "market cap", "liquidity", "volumen"]):
         # Token-Daten und Statistiken fett darstellen
-        entry = tk.Entry(parent, textvariable=var, state="readonly", font=("Arial", 10, "bold"))
+        entry = tk.Entry(
+            parent, 
+            textvariable=var, 
+            state="readonly", 
+            font=("Arial", 10, "bold"),
+            bg="white",
+            borderwidth=0,
+            highlightthickness=0
+        )
     else:
         # Alle anderen Felder normal darstellen
-        entry = tk.Entry(parent, textvariable=var, state="readonly")
+        entry = tk.Entry(
+            parent, 
+            textvariable=var, 
+            state="readonly",
+            bg="white",
+            borderwidth=0,
+            highlightthickness=0
+        )
     
     entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
     
     if show_copy_button:
-        btn = tk.Button(parent, text="📋", width=2, command=lambda: clipboard.copy_to_clipboard(parent.winfo_toplevel(), var.get()))
+        btn = tk.Button(
+            parent, 
+            text="📋", 
+            width=2, 
+            command=lambda: clipboard.copy_to_clipboard(parent.winfo_toplevel(), var.get()),
+            bg="white",
+            borderwidth=0,
+            highlightthickness=0
+        )
         btn.grid(row=row, column=2, padx=5, pady=2)
-
 
 def create_link_row(parent, label_text, var, row, token_name_var=None, is_website=False):
     """
     Wie create_data_row, aber Button "🔗" öffnet den Link im Browser.
-    Entry wird farblich markiert: 
-    - grün, wenn Link vorhanden und (bei Website) der Token-Name im Domain-Teil des Links enthalten ist
-    - gelb, wenn Link vorhanden, aber (bei Website) der Token-Name nicht im Domain-Teil des Links enthalten ist
-    - rot wenn "N/A" oder leerer Link
-    Das http:// oder https:// wird in der Anzeige ausgeblendet.
     """
     import utils.browser as browser
     import utils.formatters as formatters
     
-    lbl = tk.Label(parent, text=label_text, font=("Arial", 10, "bold"), anchor="w")
+    lbl = tk.Label(
+        parent, 
+        text=label_text, 
+        font=TYPOGRAPHY['data_row_label']['font'],
+        anchor="w",
+        bg="white"
+    )
     lbl.grid(row=row, column=0, padx=5, pady=2, sticky="w")
 
     # Erstelle ein neues StringVar für die formatierte Anzeige
     display_var = tk.StringVar(parent)
     
-    entry = tk.Entry(parent, textvariable=display_var, state="readonly")
+    entry = tk.Entry(
+        parent, 
+        textvariable=display_var, 
+        state="readonly",
+        bg="white",
+        borderwidth=0,
+        highlightthickness=0
+    )
     entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
 
     # Farbanpassung und Formatierung basierend auf dem Wert
@@ -144,7 +208,7 @@ def create_link_row(parent, label_text, var, row, token_name_var=None, is_websit
                     'whatsapp.com', 'wechat.com', 'line.me'
                 ]
                 
-                # Überprüfe, ob es sich um eine bekannte Plattform handelt
+                # Prüfe, ob es sich um eine bekannte Plattform handelt
                 is_known_platform = any(platform in domain_part.lower() for platform in known_platforms)
                 website_lower = domain_part.lower()
                 
@@ -194,6 +258,13 @@ def create_link_row(parent, label_text, var, row, token_name_var=None, is_websit
     # Initial formatieren und färben
     update_entry()
 
-    btn = tk.Button(parent, text="🔗", width=2, command=lambda: browser.open_link(var.get()))
+    btn = tk.Button(
+        parent, 
+        text="🔗", 
+        width=2, 
+        command=lambda: browser.open_link(var.get()),
+        bg="white",
+        borderwidth=0,
+        highlightthickness=0
+    )
     btn.grid(row=row, column=2, padx=5, pady=2)
-    

@@ -1,5 +1,6 @@
 # Angepasste Version für ui/xpost_frame.py
 import tkinter as tk
+import ui.styles as styles
 import utils.clipboard as clipboard
 import utils.browser as browser
 
@@ -25,14 +26,16 @@ class XPostFrame:
         )
         self.frame.pack(fill="both", expand=True)
         
-        # X-Post Label
-        tk.Label(
+        # X-Post Label mit neuer Typografie
+        title_label = tk.Label(
             self.frame, 
             text="X-Post", 
-            font=("Arial", 11, "bold"), 
             bg="white", 
             anchor="w"
-        ).pack(anchor="w", pady=(0, 10))
+        )
+        # Neue Typografie-Anwendung
+        styles.apply_typography(title_label, 'section_header')
+        title_label.pack(anchor="w", pady=(0, 10))
         
         # X-Post Textfeld (multiline) mit verbesserter Größenanpassung
         text_container = tk.Frame(self.frame, bg="white")
@@ -60,14 +63,14 @@ class XPostFrame:
         root = self.parent.winfo_toplevel()
         root.bind("<Button-1>", lambda event: self._check_focus_out(event))
         
-        # Screenshot-Buttons Bereich - NEUES LAYOUT: Screenshot-Button jetzt vor den anderen Buttons
+        # Screenshot-Buttons Bereich
         self.screenshot_frame = tk.Frame(self.frame, bg="white")
         self.screenshot_frame.pack(fill="x", pady=10)
         
         # Konfiguriere den Screenshot-Frame mit Gewicht für den Hauptbutton
         self.screenshot_frame.columnconfigure(0, weight=1)
         
-        # Screenshot erstellen Button - jetzt über die gesamte Breite
+        # Screenshot erstellen Button
         self.screenshot_button = tk.Button(
             self.screenshot_frame,
             text="Screenshot erstellen",
@@ -75,9 +78,11 @@ class XPostFrame:
             height=2,
             command=self.take_chart_screenshot
         )
+        # Neue Typografie-Anwendung für Button
+        styles.apply_typography(self.screenshot_button, 'button_label')
         self.screenshot_button.grid(row=0, column=0, sticky="ew", columnspan=2)
         
-        # Frame für Buttons mit verbesserter Positionierung und Ausrichtung - JETZT NACH DEM SCREENSHOT-FRAME
+        # Frame für Buttons
         self.btn_frame = tk.Frame(self.frame, bg="white")
         self.btn_frame.pack(fill="x", pady=10)
         
@@ -85,7 +90,7 @@ class XPostFrame:
         self.btn_frame.columnconfigure(0, weight=1)
         self.btn_frame.columnconfigure(1, weight=1)
         
-        # Button "Auf X posten" - jetzt links mit Gewicht
+        # Button "Auf X posten"
         self.btn_xpost = tk.Button(
             self.btn_frame, 
             text="Auf X posten",
@@ -93,9 +98,11 @@ class XPostFrame:
             height=2,
             command=self.post_to_x
         )
+        # Neue Typografie-Anwendung für Button
+        styles.apply_typography(self.btn_xpost, 'button_label')
         self.btn_xpost.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         
-        # Call speichern Button - jetzt rechts mit Gewicht
+        # Call speichern Button
         self.call_button = tk.Button(
             self.btn_frame,
             text="Call speichern",
@@ -103,11 +110,14 @@ class XPostFrame:
             height=2,
             command=self.create_call
         )
+        # Neue Typografie-Anwendung für Button
+        styles.apply_typography(self.call_button, 'button_label')
         self.call_button.grid(row=0, column=1, sticky="ew", padx=(5, 0))
         
         # Starte die Überwachung auf Linkänderungen
         self.check_link_change()
-    
+
+    # Restliche Methoden bleiben unverändert - nur Buttons können mit styles.apply_typography() angepasst werden
     def post_to_x(self):
         """Öffnet X.com mit dem aktuellen Post-Inhalt"""
         text = self.xpost_text_widget.get("1.0", "end").strip()
@@ -126,6 +136,9 @@ class XPostFrame:
             
             # Beginne die Überwachung auf Linkänderungen
             self.check_link_change()
+
+    # Die Restmethoden der Klasse bleiben unverändert, 
+    # aber Sie können weiterhin styles.apply_typography() für Buttons verwenden
     
     def create_call(self):
         """

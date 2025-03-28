@@ -23,13 +23,15 @@ class TokenFrame:
         self.frame.pack(fill="both", expand=True)
         
         # Titel für Token-Daten
-        tk.Label(
+        title_label = tk.Label(
             self.frame, 
             text="Token-Daten", 
-            font=("Arial", 11, "bold"), 
             bg="white", 
             anchor="w"
-        ).pack(anchor="w", pady=(0,10))
+        )
+        # Neue Typografie-Anwendung
+        styles.apply_typography(title_label, 'section_header')
+        title_label.pack(anchor="w", pady=(0,10))
         
         # Container für die Datenzeilen
         data_container = tk.Frame(self.frame, bg="white")
@@ -37,14 +39,13 @@ class TokenFrame:
         data_container.columnconfigure(1, weight=1)
         
         # Datenzeilen mit vorhandenem Styling
-        styles.create_data_row(data_container, "Blockchain", self.shared_vars['token_blockchain_var'], 1)
-        styles.create_data_row(data_container, "Token-Name", self.shared_vars['token_name_var'], 2)
-        styles.create_data_row(data_container, "Symbol", self.shared_vars['token_symbol_var'], 3)
-        styles.create_data_row(data_container, "Token-Adresse", self.shared_vars['token_address_var'], 4)
+        styles.create_data_row(data_container, "Token-Name", self.shared_vars['token_name_var'], 1)
+        styles.create_data_row(data_container, "Symbol", self.shared_vars['token_symbol_var'], 2)
+        styles.create_data_row(data_container, "Token-Adresse", self.shared_vars['token_address_var'], 3)
         
-        # Erstelle einen Button für DexScreener Link - NEUER CODE
+        # Erstelle einen Button für DexScreener Link
         dexlink_frame = tk.Frame(data_container, bg="white")
-        dexlink_frame.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+        dexlink_frame.grid(row=4, column=0, columnspan=3, sticky="ew", pady=(10, 0))
         
         # Buttons-Container für gleiche Breite
         buttons_container = tk.Frame(dexlink_frame, bg="white")
@@ -60,6 +61,8 @@ class TokenFrame:
             height=2,
             command=lambda: self.open_dexscreener()
         )
+        # Neue Typografie-Anwendung für Button
+        styles.apply_typography(self.dexscreener_button, 'button_label')
         self.dexscreener_button.grid(row=0, column=0, sticky="ew", padx=(0, 2))
         
         # Beobachten Button
@@ -70,6 +73,8 @@ class TokenFrame:
             height=2,
             command=lambda: self.add_to_watchlist()
         )
+        # Neue Typografie-Anwendung für Button
+        styles.apply_typography(self.watchlist_button, 'button_label')
         self.watchlist_button.grid(row=0, column=1, sticky="ew", padx=(2, 0))
         
         # Speichere die Originalfarben
@@ -78,7 +83,8 @@ class TokenFrame:
         
         # Starte die Farbaktualisierung
         self.check_watchlist_status()
-    
+
+    # Restliche Methoden bleiben unverändert
     def open_dexscreener(self):
         """Öffnet den DexScreener Link im Browser"""
         link = self.shared_vars['dexscreener_var'].get()
@@ -123,8 +129,6 @@ class TokenFrame:
                 
             # Aktualisiere die Button-Farbe
             self.watchlist_button.config(bg="#64c264")  # Grün für "auf Watchlist"
-                
-            # Keine Erfolgsmeldung mehr
                 
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Hinzufügen zur Beobachtungsliste: {e}")
