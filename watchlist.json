@@ -4,10 +4,10 @@
         "Symbol": "$repo",
         "MCAP_at_Call": "131K",
         "Link": "https://dexscreener.com/solana/4rce7rp56g8qwchgxgghpy3gpv7qw1lnquk9y8kanvjy",
-        "Aktuelles_MCAP": "249K",
-        "X_Factor": "1.9X",
-        "PL_Percent": "90%",
-        "PL_Dollar": "9.01$",
+        "Aktuelles_MCAP": "127K",
+        "X_Factor": "1.0X",
+        "PL_Percent": "-3%",
+        "PL_Dollar": "-0.31$",
         "Invest": "10"
     },
     {
@@ -15,10 +15,10 @@
         "Symbol": "$KOKOK",
         "MCAP_at_Call": "493K",
         "Link": "https://dexscreener.com/solana/fhmjz9z3izdqcw9e8qrulzvjwwb2hbhcfb7jqnekv9bz",
-        "Aktuelles_MCAP": "495K",
-        "X_Factor": "1.0X",
-        "PL_Percent": "0%",
-        "PL_Dollar": "0.04$",
+        "Aktuelles_MCAP": "518K",
+        "X_Factor": "1.1X",
+        "PL_Percent": "5%",
+        "PL_Dollar": "0.51$",
         "Invest": "10"
     },
     {
@@ -26,10 +26,10 @@
         "Symbol": "$SLEUTHI",
         "MCAP_at_Call": "206K",
         "Link": "https://dexscreener.com/solana/f45jgmpmlzdhz8osyqpqavron6ydyqfmdd1ixirb2ymb",
-        "Aktuelles_MCAP": "132K",
+        "Aktuelles_MCAP": "125K",
         "X_Factor": "0.6X",
-        "PL_Percent": "-36%",
-        "PL_Dollar": "-3.59$",
+        "PL_Percent": "-39%",
+        "PL_Dollar": "-3.93$",
         "Invest": "10"
     },
     {
@@ -37,10 +37,10 @@
         "Symbol": "$VOXEL",
         "MCAP_at_Call": "131K",
         "Link": "https://dexscreener.com/solana/fkmd5fio4zehqajya5zhcwwb4bwsqb4tyhjuqb2pfsjr",
-        "Aktuelles_MCAP": "152K",
-        "X_Factor": "1.2X",
-        "PL_Percent": "16%",
-        "PL_Dollar": "1.60$",
+        "Aktuelles_MCAP": "92K",
+        "X_Factor": "0.7X",
+        "PL_Percent": "-30%",
+        "PL_Dollar": "-2.98$",
         "Invest": "10"
     },
     {
@@ -48,10 +48,10 @@
         "Symbol": "$100M",
         "MCAP_at_Call": "177K",
         "Link": "https://dexscreener.com/solana/baeqmtrrmvfmly1yyjha1de1f8ysld9twyun3naydqw6",
-        "Aktuelles_MCAP": "107K",
-        "X_Factor": "0.6X",
-        "PL_Percent": "-40%",
-        "PL_Dollar": "-3.95$",
+        "Aktuelles_MCAP": "318K",
+        "X_Factor": "1.8X",
+        "PL_Percent": "80%",
+        "PL_Dollar": "7.97$",
         "Invest": "10"
     }
 ]

@@ -54,18 +54,9 @@ class XPostFrame:
         self.xpost_text_widget.config(state="normal")  
         self.xpost_text_widget.pack(fill="x", pady=(5, 10))  # Mehr Abstand unten für die Buttons
         
-        # Event-Handler für Klick außerhalb des Textfeldes
-        def on_focus_out(event):
-            # Fokus vom Textfeld nehmen, wenn woanders hingeklickt wird
-            self.parent.focus_set()
-            
-        # Binding zum Hauptfenster hinzufügen
-        root = self.parent.winfo_toplevel()
-        root.bind("<Button-1>", lambda event: self._check_focus_out(event))
-        
         # Screenshot-Buttons Bereich
         self.screenshot_frame = tk.Frame(self.frame, bg="white")
-        self.screenshot_frame.pack(fill="x", pady=10)
+        self.screenshot_frame.pack(fill="x", pady=(0, 5))  # Einheitlicher Abstand
         
         # Konfiguriere den Screenshot-Frame mit Gewicht für den Hauptbutton
         self.screenshot_frame.columnconfigure(0, weight=1)
@@ -84,7 +75,7 @@ class XPostFrame:
         
         # Frame für Buttons
         self.btn_frame = tk.Frame(self.frame, bg="white")
-        self.btn_frame.pack(fill="x", pady=10)
+        self.btn_frame.pack(fill="x", pady=5)  # Einheitlicher Abstand
         
         # Konfiguriere den Button-Frame für gleichmäßige Aufteilung
         self.btn_frame.columnconfigure(0, weight=1)
@@ -100,7 +91,7 @@ class XPostFrame:
         )
         # Neue Typografie-Anwendung für Button
         styles.apply_typography(self.btn_xpost, 'button_label')
-        self.btn_xpost.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self.btn_xpost.grid(row=0, column=0, sticky="ew", padx=(0, 2))
         
         # Call speichern Button
         self.call_button = tk.Button(
@@ -112,12 +103,38 @@ class XPostFrame:
         )
         # Neue Typografie-Anwendung für Button
         styles.apply_typography(self.call_button, 'button_label')
-        self.call_button.grid(row=0, column=1, sticky="ew", padx=(5, 0))
+        self.call_button.grid(row=0, column=1, sticky="ew", padx=(2, 0))
+        
+        # Call aufrufen Button
+        self.call_recall_button = tk.Button(
+            self.btn_frame,
+            text="Call aufrufen",
+            font=("Arial", 10, "bold"),
+            height=2,
+            command=self.recall_call
+        )
+        # Neue Typografie-Anwendung für Button
+        styles.apply_typography(self.call_recall_button, 'button_label')
+        self.call_recall_button.grid(row=1, column=0, columnspan=2, sticky="ew")
         
         # Starte die Überwachung auf Linkänderungen
         self.check_link_change()
 
-    # Restliche Methoden bleiben unverändert - nur Buttons können mit styles.apply_typography() angepasst werden
+    def recall_call(self):
+        """
+        Öffnet eine X-Suche für den aktuellen Token mit @memehuntercalls
+        """
+        # Hole die Token-Adresse aus den shared_vars
+        token_address = self.shared_vars['token_address_var'].get()
+        
+        # Importiere die Browser-Funktion
+        import utils.browser as browser
+        
+        # Erstelle die Such-URL und öffne sie
+        url = browser.create_memehunter_call_search_url(token_address)
+        if url:
+            browser.open_link(url)
+
     def post_to_x(self):
         """Öffnet X.com mit dem aktuellen Post-Inhalt"""
         text = self.xpost_text_widget.get("1.0", "end").strip()
@@ -137,9 +154,6 @@ class XPostFrame:
             # Beginne die Überwachung auf Linkänderungen
             self.check_link_change()
 
-    # Die Restmethoden der Klasse bleiben unverändert, 
-    # aber Sie können weiterhin styles.apply_typography() für Buttons verwenden
-    
     def create_call(self):
         """
         Erstellt einen neuen Call und speichert ihn in der JSON-Datei.
@@ -243,7 +257,7 @@ class XPostFrame:
             self.screenshot_button.config(state="normal")
 
     def check_link_change(self):
-        """Überprüft, ob sich der Link geändert hat und setzt ggf. die Button-Farben zurück oder aktiviert sie wenn der Call bereits gespeichert ist"""
+        """Überprüft, ob sich der Link geändert hat und setzt ggf. die Button-Farben zurück"""
         # Breche alle vorherigen Überprüfungen ab
         if self.link_check_id:
             self.parent.after_cancel(self.link_check_id)
@@ -284,7 +298,8 @@ class XPostFrame:
         
         # Plane nächste Überprüfung (alle 500ms)
         self.link_check_id = self.parent.after(500, self.check_link_change)
-    
+
+
     def update_xpost_container(self):
         """Befüllt das X-Post-Feld basierend auf current_data"""
         current_data = self.shared_vars['current_data']
@@ -376,73 +391,7 @@ class XPostFrame:
             
         # Setze Cursor an den Anfang des Textes
         self.xpost_text_widget.mark_set(tk.INSERT, "1.0")
-    
-    def _is_default_template(self, text):
-        """Prüft, ob der Text dem Standard-Template entspricht"""
-        import re
-        
-        # Muster für verschiedene Varianten des Standard-Templates
-        patterns = [
-            # Aktuelles Format
-            r"\n\$[A-Za-z0-9]+\n💰 MCAP: [0-9.]+[KM]?\n🔗 CA: .*",
-            
-            # Ethereum-Format
-            r"\$[A-Za-z0-9]+\s*\n💰 MCAP: [0-9.]+[KM]?\s*\n🔗 CA: 0x[A-Fa-f0-9]+",
-            
-            # Solana/andere Chains Format
-            r"\$[A-Za-z0-9]+\s*\n💰 MCAP: [0-9.]+[KM]?\s*\n🔗 CA: [A-Za-z0-9]+",
-            
-            # Altes MCAP Entry Format
-            r"\n💰 MCAP Entry: \$[0-9.]+[KM]?\s*\n\$[A-Za-z0-9]+\s*\n🔗 CA: [A-Za-z0-9]+",
-            
-            # Vorheriges Format mit doppelten Zeilenumbrüchen
-            r"\$[A-Za-z0-9]+\s*\n\n💰 MCAP: [0-9.]+[KM]?\s*\n\n🔗 CA: [A-Za-z0-9]+"
-        ]
-        
-        # Prüfe, ob einer der Patterns übereinstimmt
-        for pattern in patterns:
-            if re.match(pattern, text, re.DOTALL):
-                return True
-                
-        return False
-    
-    def _is_default_template(self, text):
-        """Prüft, ob der Text dem Standard-Template entspricht"""
-        import re
-        
-        # Muster für verschiedene Varianten des Standard-Templates
-        patterns = [
-            r"\$[A-Za-z0-9]+\s*\n💰 MCAP: [0-9.]+[KM]?\s*\n🔗 CA: 0x[A-Fa-f0-9]+",  # Ethereum
-            r"\$[A-Za-z0-9]+\s*\n💰 MCAP: [0-9.]+[KM]?\s*\n🔗 CA: [A-Za-z0-9]+",    # Andere Chains
-            r"\n💰 MCAP Entry: \$[0-9.]+[KM]?\s*\n\$[A-Za-z0-9]+\s*\n🔗 CA: [A-Za-z0-9]+",  # Altes Format
-            r"\$[A-Za-z0-9]+\s*\n\n💰 MCAP: [0-9.]+[KM]?\s*\n\n🔗 CA: [A-Za-z0-9]+"  # Vorheriges Format
-        ]
-        
-        # Prüfe, ob einer der Patterns übereinstimmt
-        for pattern in patterns:
-            if re.match(pattern, text, re.DOTALL):
-                return True
-                
-        return False
-    
-    def _is_default_template(self, text):
-        """Prüft, ob der Text dem Standard-Template entspricht"""
-        import re
-        
-        # Muster für verschiedene Varianten des Standard-Templates
-        patterns = [
-            r"\$[A-Za-z0-9]+\s*\n\n💰 MCAP: [0-9.]+[KM]?\s*\n\n🔗 CA: 0x[A-Fa-f0-9]+",  # Ethereum
-            r"\$[A-Za-z0-9]+\s*\n\n💰 MCAP: [0-9.]+[KM]?\s*\n\n🔗 CA: [A-Za-z0-9]+",    # Andere Chains
-            r"\n💰 MCAP Entry: \$[0-9.]+[KM]?\s*\n\$[A-Za-z0-9]+\s*\n🔗 CA: [A-Za-z0-9]+"  # Altes Format
-        ]
-        
-        # Prüfe, ob einer der Patterns übereinstimmt
-        for pattern in patterns:
-            if re.match(pattern, text, re.DOTALL):
-                return True
-                
-        return False
-    
+
     def _check_focus_out(self, event):
         """
         Prüft, ob außerhalb des Textfelds geklickt wurde und nimmt ggf. den Fokus
