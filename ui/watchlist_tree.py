@@ -356,6 +356,9 @@ class WatchlistTreeView:
             
             # Speichere die ID für die spätere Wiederherstellung der Auswahl
             id_map[(datum, symbol)] = item_id
+
+        # Fügen Sie diese Zeile hinzu, um standardmäßig nach $ P/L zu sortieren
+        self.sort_treeview("PL_Dollar", True)
         
         # Wende die aktuelle Sortierung an, falls vorhanden
         if self.sort_status["column"]:

@@ -195,6 +195,9 @@ class ArchivedCallsTreeView:
                 ),
                 tags=(row_tag,)
             )
+        
+        # Standardmäßig nach $ P/L sortieren, absteigend
+        self.sort_treeview("PL_Dollar", True)
             
     def on_archived_double_click(self, event):
         """Reagiert auf Doppelklick in der Treeview für archivierte Calls"""
