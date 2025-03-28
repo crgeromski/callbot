@@ -199,73 +199,128 @@ class MainBot:
             messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt.")
             
     def auto_refresh_calls(self):
+        """
+        Aktualisiert alle Calls und Watchlist-Einträge mit aktuellen Daten.
+        Funktioniert jetzt mit verbesserter Watchlist-Unterstützung.
+        """
         # Aktualisiere Calls
+        self.update_active_calls()
+        
+        # Aktualisiere Watchlist
+        self.update_watchlist_items()
+        
+        # Aktualisiere UI
+        self.update_ui_stats()
+        
+        # Plane den nächsten Update-Aufruf
+        self.live_update_after_id = self.main_window.root.after(UPDATE_INTERVAL, self.auto_refresh_calls)
+
+    def update_active_calls(self):
+        """Aktualisiert die aktiven Calls mit aktuellen Daten"""
         calls = storage.load_call_data()
         updated_calls = []
+        
         for call in calls:
+            # Abgeschlossene Calls direkt übernehmen
             if call.get("abgeschlossen", False):
                 updated_calls.append(call)
                 continue
                 
             # Aktualisierung für aktive Calls
             try:
-                # Rufe Daten basierend auf dem Symbol ab
+                # Rufe Daten basierend auf dem Symbol oder Link ab
                 symbol = call.get("Symbol")
-                data = storage.find_call_by_symbol(symbol)
+                link = call.get("Link")
                 
-                if data:
-                    market_cap = data.get("marketCap", data.get("mcap", data.get("fdv", "N/A")))
+                # API-Daten abrufen
+                data = api.fetch_dexscreener_data(link, API_TIMEOUT)
+                
+                if data and "pairs" in data and data["pairs"]:
+                    pair_info = data["pairs"][0]
+                    
+                    # Market Cap aktualisieren
+                    market_cap = pair_info.get("marketCap", pair_info.get("mcap", pair_info.get("fdv", "N/A")))
                     call["Aktuelles_MCAP"] = formatters.format_k(market_cap)
+                    
+                    # Berechnung der Kennzahlen für aktive Calls
+                    initial_mcap = formatters.parse_km(call.get("MCAP_at_Call", "0"))
+                    current_mcap = formatters.parse_km(call.get("Aktuelles_MCAP", "0"))
+                    
+                    if initial_mcap > 0 and current_mcap > 0:
+                        x_factor = current_mcap / initial_mcap
+                        pl_percent = (x_factor - 1) * 100
+                        
+                        # Invest-Wert aus dem Call verwenden oder auf 10$ setzen
+                        invest = 10.0
+                        try:
+                            invest_str = call.get("Invest", "10")
+                            invest = float(invest_str)
+                        except:
+                            invest = 10.0
+                            
+                        pl_dollar = invest * x_factor - invest
+                        
+                        call["X_Factor"] = f"{x_factor:.1f}X"
+                        call["PL_Percent"] = f"{pl_percent:.0f}%"
+                        call["PL_Dollar"] = f"{pl_dollar:.2f}$"
+                        call["Invest"] = f"{invest}"
+                    else:
+                        # Fallback bei ungültigen Werten
+                        call["X_Factor"] = "0.0X"
+                        call["PL_Percent"] = "0%"
+                        call["PL_Dollar"] = "0.00$"
+                        call["Invest"] = "10"
             except Exception as e:
                 print(f"Fehler beim Aktualisieren des Calls ({symbol}): {e}")
                 
-            # Berechnung der Kennzahlen für aktive Calls
-            call["Invest"] = "10"
-            initial_mcap = formatters.parse_km(call.get("MCAP_at_Call", "0"))
-            current_mcap = formatters.parse_km(call.get("Aktuelles_MCAP", "0"))
-            if initial_mcap > 0:
-                x_factor = current_mcap / initial_mcap
-                pl_percent = (x_factor - 1) * 100
-                pl_dollar = 10.0 * x_factor - 10.0  # basierend auf Invest=10$
-            else:
-                x_factor = 0
-                pl_percent = 0
-                pl_dollar = 0
-            call["X_Factor"] = f"{x_factor:.1f}X"
-            call["PL_Percent"] = f"{pl_percent:.0f}%"
-            call["PL_Dollar"] = f"{pl_dollar:.2f}$"
             updated_calls.append(call)
             
         # Speichern der aktualisierten Calls
         storage.save_call_data(updated_calls)
-        
-        # Aktualisiere Watchlist
+
+    def update_watchlist_items(self):
+        """Aktualisiert die Watchlist-Einträge mit aktuellen Daten"""
         watchlist = storage.load_watchlist_data()
         updated_watchlist = []
+        
         for item in watchlist:
             try:
-                # Rufe Daten basierend auf dem Symbol ab
+                # Rufe Daten basierend auf dem Link ab
                 symbol = item.get("Symbol")
-                data = storage.find_call_by_symbol(symbol)
+                link = item.get("Link")
                 
-                if data:
-                    market_cap = data.get("marketCap", data.get("mcap", data.get("fdv", "N/A")))
+                # API-Daten abrufen
+                data = api.fetch_dexscreener_data(link, API_TIMEOUT)
+                
+                if data and "pairs" in data and data["pairs"]:
+                    pair_info = data["pairs"][0]
+                    
+                    # Market Cap aktualisieren
+                    market_cap = pair_info.get("marketCap", pair_info.get("mcap", pair_info.get("fdv", "N/A")))
                     item["Aktuelles_MCAP"] = formatters.format_k(market_cap)
                     
                     # Berechne X-Factor, PL_Percent und PL_Dollar
                     initial_mcap = formatters.parse_km(item.get("MCAP_at_Call", "0"))
                     current_mcap = formatters.parse_km(item.get("Aktuelles_MCAP", "0"))
-                    if initial_mcap > 0:
+                    
+                    if initial_mcap > 0 and current_mcap > 0:
                         x_factor = current_mcap / initial_mcap
                         pl_percent = (x_factor - 1) * 100
-                        pl_dollar = 10.0 * x_factor - 10.0  # basierend auf fiktivem Invest-Wert (10$)
+                        
+                        # Fiktiver Invest-Wert für die Anzeige (10$)
+                        invest = 10.0
+                        pl_dollar = invest * x_factor - invest
+                        
+                        item["X_Factor"] = f"{x_factor:.1f}X"
+                        item["PL_Percent"] = f"{pl_percent:.0f}%"
+                        item["PL_Dollar"] = f"{pl_dollar:.2f}$"
+                        item["Invest"] = "10"  # Fester Wert für die Anzeige
                     else:
-                        x_factor = 0
-                        pl_percent = 0
-                        pl_dollar = 0
-                    item["X_Factor"] = f"{x_factor:.1f}X"
-                    item["PL_Percent"] = f"{pl_percent:.0f}%"
-                    item["PL_Dollar"] = f"{pl_dollar:.2f}$"
+                        # Fallback bei ungültigen Werten
+                        item["X_Factor"] = "0.0X"
+                        item["PL_Percent"] = "0%"
+                        item["PL_Dollar"] = "0.00$"
+                        item["Invest"] = "10"
             except Exception as e:
                 print(f"Fehler beim Aktualisieren des Watchlist-Items ({symbol}): {e}")
                 
@@ -274,11 +329,9 @@ class MainBot:
         # Speichern der aktualisierten Watchlist
         storage.save_watchlist_data(updated_watchlist)
         
-        # Aktualisiere UI
-        self.update_ui_stats()
-        
-        # Plane den nächsten Update-Aufruf
-        self.live_update_after_id = self.main_window.root.after(UPDATE_INTERVAL, self.auto_refresh_calls)
+        # Aktualisiere die Watchlist-Treeview
+        if hasattr(self.main_window, 'update_watchlist_tree'):
+            self.main_window.update_watchlist_tree()
 
     def update_ui_stats(self):
         """Aktualisiert die statistischen Daten im UI"""
