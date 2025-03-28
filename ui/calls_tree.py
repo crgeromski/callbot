@@ -366,9 +366,8 @@ class CallsTreeView:
             # Speichere die ID für die spätere Wiederherstellung der Auswahl
             id_map[(datum, symbol)] = item_id
         
-        # Wende die aktuelle Sortierung an, falls vorhanden
-        if self.sort_status["column"]:
-            self.sort_treeview(self.sort_status["column"], self.sort_status["reverse"])
+        # Standardmäßig nach $ P/L sortieren, absteigend
+        self.sort_treeview("PL_Dollar", True)
         
         # Stelle die Auswahl wieder her, falls zuvor eine Auswahl vorhanden war
         if selected_item_values:

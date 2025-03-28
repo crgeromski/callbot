@@ -12,7 +12,8 @@ class MainBot:
         self.main_window = main_window
         self.shared_vars = main_window.shared_vars
         self.live_update_active = True  # Immer aktiv
-        
+        self.current_tab = None  # Aktiver Tab
+        self.main_bot_update_id = None  # ID für den Main-Bot-Refresh
         
         # Update-Methode beim Hauptfenster registrieren
         self.main_window.fetch_data = self.fetch_data
@@ -22,6 +23,20 @@ class MainBot:
         
         # Platzhalter für after_id
         self.live_update_after_id = None
+        
+        # Tab-Wechsel überwachen
+        self.main_window.notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
+
+    def on_tab_changed(self, event):
+        """Handler für Tab-Wechsel, um den aktuellen Tab zu tracken"""
+        self.current_tab = self.main_window.notebook.select()
+        
+        # Wenn der Main-Bot-Tab ausgewählt ist und noch kein Update läuft, starte es
+        if self.current_tab == self.main_window.tabs['main'] and not self.main_bot_update_id:
+            self.start_main_bot_update()
+        elif self.current_tab != self.main_window.tabs['main'] and self.main_bot_update_id:
+            # Wenn ein anderer Tab aktiv ist und ein Update läuft, stoppe es
+            self.stop_main_bot_update()
 
     def toggle_live_update(self):
         """Diese Methode bleibt für Kompatibilität, tut aber nichts mehr."""
@@ -45,6 +60,9 @@ class MainBot:
 
         self.shared_vars['current_data'] = data
         self.update_ui_with_data(data)
+        
+        # Starte das automatische Update für den Main Bot Tab
+        self.start_main_bot_update()
         
     def update_ui_with_data(self, data):
         """Aktualisiert die UI mit den Daten aus der API"""
@@ -197,7 +215,43 @@ class MainBot:
             # Aktualisiere das Label
             self.main_window.current_balance_label.config(text=f"Kontostand: 500.00$", bg="white")
             messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt.")
+    
+    def start_main_bot_update(self):
+        """Startet die automatische Aktualisierung des Main Bot Tabs alle 10 Sekunden"""
+        # Stoppe vorherige Updates, falls vorhanden
+        self.stop_main_bot_update()
+        
+        # Hole den aktuellen Dexscreener-Link
+        dex_link = self.shared_vars['entry_var'].get().strip()
+        if not dex_link:
+            return  # Kein Link, kein Update
             
+        # Starte den Update-Timer (10000 ms = 10 Sekunden)
+        self.main_bot_update_id = self.main_window.root.after(10000, self.update_main_bot_data)
+    
+    def stop_main_bot_update(self):
+        """Stoppt die automatische Aktualisierung des Main Bot Tabs"""
+        if self.main_bot_update_id:
+            self.main_window.root.after_cancel(self.main_bot_update_id)
+            self.main_bot_update_id = None
+    
+    def update_main_bot_data(self):
+        """Aktualisiert die Daten im Main Bot Tab"""
+        # Nur aktualisieren, wenn der Main Bot Tab aktiv ist
+        if self.current_tab == self.main_window.tabs['main']:
+            # Hole den aktuellen Dexscreener-Link
+            dex_link = self.shared_vars['entry_var'].get().strip()
+            if dex_link:
+                # Rufe die API ab, ohne Fehlermeldungen anzuzeigen
+                data = api.fetch_dexscreener_data(dex_link, API_TIMEOUT)
+                if data and "pairs" in data and data["pairs"]:
+                    # Aktualisiere die UI mit den neuen Daten
+                    self.shared_vars['current_data'] = data
+                    self.update_ui_with_data(data)
+        
+        # Plane das nächste Update
+        self.main_bot_update_id = self.main_window.root.after(10000, self.update_main_bot_data)
+
     def auto_refresh_calls(self):
         """
         Aktualisiert alle Calls und Watchlist-Einträge mit aktuellen Daten.
