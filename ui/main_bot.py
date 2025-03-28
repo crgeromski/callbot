@@ -24,17 +24,47 @@ class MainBot:
         # Platzhalter für after_id
         self.live_update_after_id = None
         
+        # Warte kurz, bis das Fenster vollständig initialisiert ist
+        self.main_window.root.after(100, self.setup_tab_tracking)
+
+    def setup_tab_tracking(self):
+        """Richtet Tab-Tracking ein, nachdem das Fenster initialisiert ist"""
         # Tab-Wechsel überwachen
         self.main_window.notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
+        
+        # Initialen Tab setzen
+        self.current_tab = self.main_window.notebook.select()
+        current_tab_index = self.main_window.notebook.index(self.current_tab)
+        main_tab_index = self.main_window.notebook.index(self.main_window.tabs['main'])
+        
+        # Wenn der Main-Bot-Tab am Anfang aktiv ist, starte gleich das Update
+        if current_tab_index == main_tab_index:
+            self.start_main_bot_update()
 
     def on_tab_changed(self, event):
         """Handler für Tab-Wechsel, um den aktuellen Tab zu tracken"""
         self.current_tab = self.main_window.notebook.select()
         
-        # Wenn der Main-Bot-Tab ausgewählt ist und noch kein Update läuft, starte es
-        if self.current_tab == self.main_window.tabs['main'] and not self.main_bot_update_id:
+        # Vergleichen des aktuellen Tab-Index statt des Tab-Objekts
+        current_tab_index = self.main_window.notebook.index(self.current_tab)
+        main_tab_index = self.main_window.notebook.index(self.main_window.tabs['main'])
+        
+        # Wenn der Main-Bot-Tab ausgewählt ist (Index 0), starte das Update
+        if current_tab_index == main_tab_index:
+            # Hole den aktuellen Link und aktualisiere sofort
+            dex_link = self.shared_vars['entry_var'].get().strip()
+            if dex_link:
+                try:
+                    data = api.fetch_dexscreener_data(dex_link, API_TIMEOUT)
+                    if data and "pairs" in data and data["pairs"]:
+                        self.shared_vars['current_data'] = data
+                        self.update_ui_with_data(data)
+                except Exception:
+                    pass
+                    
+            # Starte den Update-Timer
             self.start_main_bot_update()
-        elif self.current_tab != self.main_window.tabs['main'] and self.main_bot_update_id:
+        elif current_tab_index != main_tab_index and self.main_bot_update_id:
             # Wenn ein anderer Tab aktiv ist und ein Update läuft, stoppe es
             self.stop_main_bot_update()
 
@@ -61,8 +91,19 @@ class MainBot:
         self.shared_vars['current_data'] = data
         self.update_ui_with_data(data)
         
+        # Aktualisiere den aktuellen Tab
+        self.current_tab = self.main_window.notebook.select()
+        
         # Starte das automatische Update für den Main Bot Tab
-        self.start_main_bot_update()
+        # Aber nur, wenn wir im Main-Tab sind
+        try:
+            current_tab_index = self.main_window.notebook.index(self.current_tab)
+            main_tab_index = self.main_window.notebook.index(self.main_window.tabs['main'])
+            
+            if current_tab_index == main_tab_index:
+                self.start_main_bot_update()
+        except Exception:
+            pass
         
     def update_ui_with_data(self, data):
         """Aktualisiert die UI mit den Daten aus der API"""
@@ -217,7 +258,7 @@ class MainBot:
             messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt.")
     
     def start_main_bot_update(self):
-        """Startet die automatische Aktualisierung des Main Bot Tabs alle 10 Sekunden"""
+        """Startet die automatische Aktualisierung des Main Bot Tabs alle 30 Sekunden"""
         # Stoppe vorherige Updates, falls vorhanden
         self.stop_main_bot_update()
         
@@ -225,9 +266,18 @@ class MainBot:
         dex_link = self.shared_vars['entry_var'].get().strip()
         if not dex_link:
             return  # Kein Link, kein Update
-            
-        # Starte den Update-Timer (10000 ms = 10 Sekunden)
-        self.main_bot_update_id = self.main_window.root.after(10000, self.update_main_bot_data)
+        
+        # Führe ein sofortiges Update durch
+        try:
+            data = api.fetch_dexscreener_data(dex_link, API_TIMEOUT)
+            if data and "pairs" in data and data["pairs"]:
+                self.shared_vars['current_data'] = data
+                self.update_ui_with_data(data)
+        except Exception:
+            pass
+        
+        # Starte den Update-Timer (30000 ms = 30 Sekunden)
+        self.main_bot_update_id = self.main_window.root.after(30000, self.update_main_bot_data)
     
     def stop_main_bot_update(self):
         """Stoppt die automatische Aktualisierung des Main Bot Tabs"""
@@ -237,20 +287,32 @@ class MainBot:
     
     def update_main_bot_data(self):
         """Aktualisiert die Daten im Main Bot Tab"""
-        # Nur aktualisieren, wenn der Main Bot Tab aktiv ist
-        if self.current_tab == self.main_window.tabs['main']:
-            # Hole den aktuellen Dexscreener-Link
-            dex_link = self.shared_vars['entry_var'].get().strip()
-            if dex_link:
-                # Rufe die API ab, ohne Fehlermeldungen anzuzeigen
-                data = api.fetch_dexscreener_data(dex_link, API_TIMEOUT)
-                if data and "pairs" in data and data["pairs"]:
-                    # Aktualisiere die UI mit den neuen Daten
-                    self.shared_vars['current_data'] = data
-                    self.update_ui_with_data(data)
-        
-        # Plane das nächste Update
-        self.main_bot_update_id = self.main_window.root.after(10000, self.update_main_bot_data)
+        # Vergleichen des aktuellen Tab-Index statt des Tab-Objekts
+        try:
+            current_tab_index = self.main_window.notebook.index(self.current_tab)
+            main_tab_index = self.main_window.notebook.index(self.main_window.tabs['main'])
+            
+            # Nur aktualisieren, wenn der Main Bot Tab aktiv ist
+            if current_tab_index == main_tab_index:
+                # Hole den aktuellen Dexscreener-Link
+                dex_link = self.shared_vars['entry_var'].get().strip()
+                if dex_link:
+                    try:
+                        # Rufe die API ab, ohne Fehlermeldungen anzuzeigen
+                        data = api.fetch_dexscreener_data(dex_link, API_TIMEOUT)
+                        if data and "pairs" in data and data["pairs"]:
+                            # Aktualisiere die UI mit den neuen Daten
+                            self.shared_vars['current_data'] = data
+                            self.update_ui_with_data(data)
+                    except Exception:
+                        pass
+            
+            # Plane das nächste Update
+            self.main_bot_update_id = self.main_window.root.after(30000, self.update_main_bot_data)
+            
+        except Exception:
+            # Starten Sie dennoch einen neuen Timer, um die Update-Schleife nicht zu unterbrechen
+            self.main_bot_update_id = self.main_window.root.after(30000, self.update_main_bot_data)
 
     def auto_refresh_calls(self):
         """
@@ -324,8 +386,8 @@ class MainBot:
                         call["PL_Percent"] = "0%"
                         call["PL_Dollar"] = "0.00$"
                         call["Invest"] = "10"
-            except Exception as e:
-                print(f"Fehler beim Aktualisieren des Calls ({symbol}): {e}")
+            except Exception:
+                pass
                 
             updated_calls.append(call)
             
@@ -375,8 +437,8 @@ class MainBot:
                         item["PL_Percent"] = "0%"
                         item["PL_Dollar"] = "0.00$"
                         item["Invest"] = "10"
-            except Exception as e:
-                print(f"Fehler beim Aktualisieren des Watchlist-Items ({symbol}): {e}")
+            except Exception:
+                pass
                 
             updated_watchlist.append(item)
             
