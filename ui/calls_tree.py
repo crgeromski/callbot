@@ -12,9 +12,21 @@ class CallsTreeView:
         
     def create_treeview(self):
         """Erstellt den TreeView für aktive Calls"""
+        # Container für die Treeview mit Scrollbars
+        self.frame = tk.Frame(self.parent)
+        self.frame.pack(fill="both", expand=True)
+        
+        # Horizontaler Scrollbar
+        xscrollbar = ttk.Scrollbar(self.frame, orient="horizontal")
+        xscrollbar.pack(side="bottom", fill="x")
+        
+        # Vertikaler Scrollbar
+        yscrollbar = ttk.Scrollbar(self.frame, orient="vertical")
+        yscrollbar.pack(side="right", fill="y")
+        
         # Erstelle eine Treeview mit den gewünschten Spalten
         self.calls_tree = ttk.Treeview(
-            self.parent,
+            self.frame,
             columns=(
                 "Datum",
                 "Symbol",
@@ -26,8 +38,14 @@ class CallsTreeView:
                 "Invest"
             ),
             show="headings",
-            style="Treeview"  # Stelle sicher, dass der Standard-Style verwendet wird
+            style="Treeview",
+            xscrollcommand=xscrollbar.set,
+            yscrollcommand=yscrollbar.set
         )
+        
+        # Konfiguriere die Scrollbars
+        xscrollbar.config(command=self.calls_tree.xview)
+        yscrollbar.config(command=self.calls_tree.yview)
         
         # Definiere die Spaltenüberschriften
         self.calls_tree.heading("Datum", text="Datum")
@@ -44,14 +62,16 @@ class CallsTreeView:
         self.calls_tree.tag_configure("row_red", background="#ffd8d8")
         
         # Definiere die Spaltenbreiten und Ausrichtung
-        self.calls_tree.column("Datum", width=80, anchor="center")
-        self.calls_tree.column("Symbol", width=80, anchor="center")
-        self.calls_tree.column("MCAP_at_Call", width=100, anchor="center")
-        self.calls_tree.column("Aktuelles_MCAP", width=100, anchor="center")
-        self.calls_tree.column("X_Factor", width=80, anchor="center")
-        self.calls_tree.column("PL_Percent", width=80, anchor="center")
-        self.calls_tree.column("PL_Dollar", width=80, anchor="center")
-        self.calls_tree.column("Invest", width=80, anchor="center")
+        # Minimale Breite für alle Spalten, damit sie immer sichtbar sind
+        min_column_width = 70
+        self.calls_tree.column("Datum", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.calls_tree.column("Symbol", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.calls_tree.column("MCAP_at_Call", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.calls_tree.column("Aktuelles_MCAP", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.calls_tree.column("X_Factor", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.calls_tree.column("PL_Percent", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.calls_tree.column("PL_Dollar", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.calls_tree.column("Invest", width=min_column_width, minwidth=min_column_width, anchor="center")
 
         # Packe den Treeview in den Tab
         self.calls_tree.pack(fill="both", expand=True)

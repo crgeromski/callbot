@@ -12,9 +12,21 @@ class ArchivedCallsTreeView:
         
     def create_treeview(self):
         """Erstellt den TreeView für archivierte Calls"""
-        # Erstelle den Treeview für archivierte Calls
+        # Container für die Treeview mit Scrollbars
+        self.frame = tk.Frame(self.parent)
+        self.frame.pack(fill="both", expand=True)
+        
+        # Horizontaler Scrollbar
+        xscrollbar = ttk.Scrollbar(self.frame, orient="horizontal")
+        xscrollbar.pack(side="bottom", fill="x")
+        
+        # Vertikaler Scrollbar
+        yscrollbar = ttk.Scrollbar(self.frame, orient="vertical")
+        yscrollbar.pack(side="right", fill="y")
+        
+        # Erstelle den Treeview für archivierte Calls mit Scrollbars
         self.archived_calls_tree = ttk.Treeview(
-            self.parent,
+            self.frame,
             columns=(
                 "Datum",
                 "Symbol",
@@ -26,8 +38,14 @@ class ArchivedCallsTreeView:
                 "Invest"
             ),
             show="headings",
-            style="Treeview"  # Stelle sicher, dass der Standard-Style verwendet wird
+            style="Treeview",
+            xscrollcommand=xscrollbar.set,
+            yscrollcommand=yscrollbar.set
         )
+        
+        # Konfiguriere die Scrollbars
+        xscrollbar.config(command=self.archived_calls_tree.xview)
+        yscrollbar.config(command=self.archived_calls_tree.yview)
         
         # Definiere die Spaltenüberschriften
         self.archived_calls_tree.heading("Datum", text="Datum")
@@ -47,15 +65,16 @@ class ArchivedCallsTreeView:
         self.archived_calls_tree.tag_configure("selected_green", background="#64c264")  # Dunkleres Grün
         self.archived_calls_tree.tag_configure("selected_red", background="#f48a8a")    # Dunkleres Rot
         
-        # Definiere die Spaltenbreiten und Ausrichtung
-        self.archived_calls_tree.column("Datum", width=80, anchor="center")
-        self.archived_calls_tree.column("Symbol", width=80, anchor="center")
-        self.archived_calls_tree.column("MCAP_at_Call", width=100, anchor="center")
-        self.archived_calls_tree.column("Aktuelles_MCAP", width=100, anchor="center")
-        self.archived_calls_tree.column("X_Factor", width=80, anchor="center")
-        self.archived_calls_tree.column("PL_Percent", width=80, anchor="center")
-        self.archived_calls_tree.column("PL_Dollar", width=80, anchor="center")
-        self.archived_calls_tree.column("Invest", width=80, anchor="center")
+        # Definiere die Spaltenbreiten und Ausrichtung mit Mindestbreite
+        min_column_width = 70
+        self.archived_calls_tree.column("Datum", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.archived_calls_tree.column("Symbol", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.archived_calls_tree.column("MCAP_at_Call", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.archived_calls_tree.column("Aktuelles_MCAP", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.archived_calls_tree.column("X_Factor", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.archived_calls_tree.column("PL_Percent", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.archived_calls_tree.column("PL_Dollar", width=min_column_width, minwidth=min_column_width, anchor="center")
+        self.archived_calls_tree.column("Invest", width=min_column_width, minwidth=min_column_width, anchor="center")
         
         # Doppelklick-Event
         self.archived_calls_tree.bind("<Double-1>", self.on_archived_double_click)

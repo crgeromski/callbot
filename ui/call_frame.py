@@ -2,6 +2,8 @@
 import tkinter as tk
 from tkinter import messagebox
 import data.storage as storage
+import utils.formatters as formatters
+from datetime import datetime
 
 class CallFrame:
     def __init__(self, parent, shared_vars, main_window):
@@ -50,6 +52,7 @@ class CallFrame:
     def post_call_to_sheets(self):
         """
         Erstellt einen neuen Call und speichert ihn in der JSON-Datei.
+        Aktualisiert sofort die Treeview und berechnet schon Initialwerte.
         """
         try:
             # Hole die benötigten Daten aus den Variablen
@@ -62,8 +65,8 @@ class CallFrame:
                 messagebox.showerror("Fehler", "Es fehlen notwendige Daten für den Call.")
                 return
             
-            # Erstelle neuen Call
-            new_call = storage.create_new_call(symbol, mcap, liquidity, link)
+            # Erstelle neuen Call mit Initialwerten
+            new_call = self.create_call_with_initial_values(symbol, mcap, liquidity, link)
             
             # Speichere den neuen Call
             storage.save_new_call(new_call)
@@ -71,6 +74,38 @@ class CallFrame:
             # Aktualisiere die Treeview
             if hasattr(self.main_window, 'update_calls_tree'):
                 self.main_window.update_calls_tree()
+                
+            # Optional: Budget aktualisieren
+            if hasattr(self.main_window, 'update_ui_stats'):
+                self.main_window.update_ui_stats()
                                 
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Erstellen des Calls: {e}")
+    
+    def create_call_with_initial_values(self, symbol, mcap, liquidity, link):
+        """
+        Erstellt einen neuen Call mit sofort berechneten Initialwerten,
+        ohne auf das Live-Update zu warten.
+        """
+        # Standardwerte für einen neuen Call
+        call_data = {
+            "Datum": datetime.now().strftime("%d.%m."),
+            "Symbol": symbol,
+            "MCAP_at_Call": mcap,
+            "Link": link,
+            "Aktuelles_MCAP": mcap,  # initial gleich MCAP_at_Call
+            "Invest": "10"       # Fester Investitionswert: 10$
+        }
+        
+        # Berechne sofort die X-Factor, PL_Percent und PL_Dollar Werte
+        initial_mcap = formatters.parse_km(mcap)
+        # Da es sich um einen neuen Call handelt, sind aktuelles MCAP und initiales MCAP gleich
+        x_factor = 1.0
+        pl_percent = 0.0
+        pl_dollar = 0.0
+        
+        call_data["X_Factor"] = f"{x_factor:.1f}X"
+        call_data["PL_Percent"] = f"{pl_percent:.0f}%"
+        call_data["PL_Dollar"] = f"{pl_dollar:.2f}$"
+        
+        return call_data
