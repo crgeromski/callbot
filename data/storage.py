@@ -36,10 +36,10 @@ def create_new_call(symbol: str, mcap: str, liquidity: str, link: str) -> Dict[s
         "MCAP_at_Call": mcap,
         "Link": link,
         "Aktuelles_MCAP": mcap,  # initial gleich MCAP_at_Call
-        "X_Factor": "",      # Platzhalter, wird später im Live-Update berechnet
-        "PL_Percent": "",    # Platzhalter
-        "PL_Dollar": "",     # Platzhalter
-        "Invest": "10"       # Fester Investitionswert: 10$
+        "X_Factor": "1.0X",      # Initialer X-Factor: 1.0
+        "PL_Percent": "0%",      # Initialer Wert
+        "PL_Dollar": "0.00$",    # Initialer Wert
+        "Invest": "10"           # Fester Investitionswert: 10$
     }
 
 def load_watchlist_data() -> List[Dict[str, Any]]:
@@ -95,28 +95,121 @@ def save_budget(budget: float) -> None:
     except Exception as e:
         print(f"Budget-Backup fehlgeschlagen: {e}")
 
-def calculate_total_profit() -> tuple:
+def calculate_total_profit() -> float:
     """
-    Berechnet den Gesamtgewinn/Verlust aller aktiven (nicht abgeschlossenen) Calls.
+    Berechnet den Gesamtgewinn/Verlust aller aktiven Calls.
     
     Returns:
-        Tuple mit (total_profit, profit_percentage)
+        Float mit dem Gesamtgewinn/Verlust in Dollar
     """
     total_profit = 0.0
     calls = load_call_data()
+    
+    # Summe aller PL_Dollar-Werte (nur von aktiven Calls)
     for call in calls:
-        # Falls der Call abgeschlossen ist, überspringe diesen Call
+        # Ignoriere abgeschlossene Calls
         if call.get("abgeschlossen", False):
             continue
-
+            
         try:
             # Entfernt das Dollarzeichen und wandelt in float um
             profit = float(call.get("PL_Dollar", "0").rstrip("$"))
+            total_profit += profit
         except Exception:
-            profit = 0.0
-        total_profit += profit
-    profit_percentage = (total_profit / DEFAULT_BUDGET) * 100
-    return total_profit, profit_percentage
+            continue
+            
+    return total_profit
+
+def calculate_today_profit() -> float:
+    """
+    Berechnet den Gewinn/Verlust aller Calls vom heutigen Tag.
+    
+    Returns:
+        Float mit dem heutigen Gewinn/Verlust in Dollar
+    """
+    today_profit = 0.0
+    calls = load_call_data()
+    
+    # Aktuelles Datum im Format "DD.MM."
+    today = datetime.now().strftime("%d.%m.")
+    
+    # Nur Calls vom heutigen Tag berücksichtigen (nur aktive)
+    for call in calls:
+        # Ignoriere abgeschlossene Calls
+        if call.get("abgeschlossen", False):
+            continue
+            
+        if call.get("Datum") != today:
+            continue
+            
+        try:
+            # Entfernt das Dollarzeichen und wandelt in float um
+            profit = float(call.get("PL_Dollar", "0").rstrip("$"))
+            today_profit += profit
+        except Exception:
+            continue
+            
+    return today_profit
+
+def count_active_calls() -> int:
+    """Zählt die aktiven (nicht abgeschlossenen) Calls."""
+    calls = load_call_data()
+    return sum(1 for call in calls if not call.get("abgeschlossen", False))
+
+def calculate_current_balance() -> float:
+    """
+    Berechnet den aktuellen Kontostand als:
+    DEFAULT_BUDGET (500$) + Gesamt-Profit aller aktiven und abgeschlossenen Calls
+    
+    Returns:
+        Float mit dem aktuellen Kontostand in Dollar
+    """
+    # Lade das Start-Budget
+    base_budget = DEFAULT_BUDGET
+    
+    # Berechne den Gesamt-P/L aller Calls (aktiv und abgeschlossen)
+    total_profit = 0.0
+    calls = load_call_data()
+    
+    for call in calls:
+        try:
+            profit = float(call.get("PL_Dollar", "0").rstrip("$"))
+            total_profit += profit
+        except Exception:
+            continue
+    
+    # Aktueller Kontostand
+    current_balance = base_budget + total_profit
+    
+    # Speichere den aktuellen Kontostand
+    save_budget(current_balance)
+    
+    return current_balance
+
+def calculate_total_investment() -> float:
+    """
+    Berechnet den aktuell investierten Betrag (10$ pro aktiven Call).
+    
+    Returns:
+        Float mit dem investierten Betrag in Dollar
+    """
+    active_calls_count = count_active_calls()
+    return active_calls_count * 10.0  # 10$ pro aktivem Call
+
+def calculate_average_profit_per_call() -> float:
+    """
+    Berechnet den durchschnittlichen Gewinn/Verlust pro Call.
+    
+    Returns:
+        Float mit dem durchschnittlichen Gewinn/Verlust pro Call
+    """
+    total_profit = calculate_total_profit()
+    active_calls_count = count_active_calls()
+    
+    if active_calls_count > 0:
+        return total_profit / active_calls_count
+    else:
+        return 0.0
 
 def find_call_by_symbol(symbol: str, data=None):
     """

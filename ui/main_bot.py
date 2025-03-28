@@ -450,34 +450,37 @@ class MainBot:
             self.main_window.update_watchlist_tree()
 
     def update_ui_stats(self):
-        """Aktualisiert die statistischen Daten im UI"""
+        """Aktualisiert die statistischen Daten im UI basierend auf der neuen Logik"""
         # Aktualisiere die Treeviews
         if hasattr(self.main_window, 'calls_tree'):
             self.main_window.calls_tree.update_tree()
         if hasattr(self.main_window, 'archived_calls_tree'):
             self.main_window.archived_calls_tree.update_tree()
-            
-        # Berechne dynamische Werte und aktualisiere Widgets
-        calls = storage.load_call_data()
-        active_calls = [call for call in calls if not call.get("abgeschlossen", False)]
-        num_calls = len(active_calls)
-        total_invest = num_calls * 10.0  # 10$ pro Call
-        total_profit, profit_percentage = storage.calculate_total_profit()
-        avg_profit = total_profit / num_calls if num_calls > 0 else 0.0
-        current_balance = storage.load_budget()
+                
+        # Berechne alle Werte mit den überarbeiteten Funktionen
+        active_calls = storage.count_active_calls()
+        total_invest = storage.calculate_total_investment()
+        total_profit = storage.calculate_total_profit()
+        today_profit = storage.calculate_today_profit()
+        avg_profit = storage.calculate_average_profit_per_call()
         
-        # Update Profit-Labels
-        self.update_profit_entry(self.main_window.total_invest_label, f"Investiert: {total_invest:.2f}$")
-        self.update_profit_entry(self.main_window.num_calls_label, f"Calls: {num_calls}")
-        self.update_profit_entry(self.main_window.total_profit_label, f"Gesamt Gewinn/Verlust: {total_profit:.2f}$", 
-                            color="#d8ffd8" if total_profit > 0 else "#ffd8d8" if total_profit < 0 else "white")
-                            
-        self.update_profit_entry(self.main_window.profit_percent_label, f"Gewinn/Verlust (%): {profit_percentage:.2f}%",
-                            color="#d8ffd8" if profit_percentage > 0 else "#ffd8d8" if profit_percentage < 0 else "white")
-                            
+        # Berechne und speichere den aktuellen Kontostand
+        current_balance = storage.calculate_current_balance()
+        
+        # Update UI Elemente mit den neuen Werten (neue Reihenfolge)
+        # Reihe 1
         self.update_profit_entry(self.main_window.avg_profit_label, f"Durchschnitt pro Call: {avg_profit:.2f}$",
                             color="#d8ffd8" if avg_profit > 0 else "#ffd8d8" if avg_profit < 0 else "white")
                             
+        self.update_profit_entry(self.main_window.today_profit_label, f"P/L today: {today_profit:.2f}$",
+                            color="#d8ffd8" if today_profit > 0 else "#ffd8d8" if today_profit < 0 else "white")
+                            
+        self.update_profit_entry(self.main_window.total_profit_label, f"Gesamt Gewinn/Verlust: {total_profit:.2f}$", 
+                            color="#d8ffd8" if total_profit > 0 else "#ffd8d8" if total_profit < 0 else "white")
+        
+        # Reihe 2
+        self.update_profit_entry(self.main_window.total_invest_label, f"Investiert: {total_invest:.2f}$")
+        self.update_profit_entry(self.main_window.num_calls_label, f"Aktive Calls: {active_calls}")
         self.update_profit_entry(self.main_window.current_balance_label, f"Kontostand: {current_balance:.2f}$",
                             color="#d8ffd8" if current_balance > 500 else "#ffd8d8" if current_balance < 500 else "white")
 

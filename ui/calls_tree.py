@@ -483,9 +483,6 @@ class CallsTreeView:
             # Speichere Datum, Symbol UND MCAP als eindeutige Identifikation
             to_close.append((values[0], values[1], values[2]))  # (Datum, Symbol, MCAP_at_Call)
         
-        # Profit-Summe für Budget-Aktualisierung
-        total_profit = 0
-        
         # Alle Calls durchgehen und abschließen
         for call in calls:
             # Überspringe bereits abgeschlossene Calls
@@ -495,18 +492,8 @@ class CallsTreeView:
             # Prüfe, ob dieser Call abgeschlossen werden soll
             current_call_id = (call.get("Datum", ""), call.get("Symbol", ""), call.get("MCAP_at_Call", ""))
             if current_call_id in to_close:
-                try:
-                    profit = float(call.get("PL_Dollar", "0").rstrip("$"))
-                except Exception:
-                    profit = 0.0
-                total_profit += profit
                 call["abgeschlossen"] = True
         
-        # Budget aktualisieren
-        current_budget = storage.load_budget()
-        new_budget = current_budget + total_profit
-        storage.save_budget(new_budget)
-            
         # Daten speichern und UI aktualisieren
         storage.save_call_data(calls)
         
@@ -514,15 +501,13 @@ class CallsTreeView:
         self.current_selected_item = None
         self.current_selected_tag = None
         
+        # Update UI
         self.update_tree()
         if hasattr(self.main_window, 'update_archived_calls_tree'):
             self.main_window.update_archived_calls_tree()
             
-        # Budget-Anzeige aktualisieren
-        self.main_window.current_balance_label.config(text=f"Kontostand: {new_budget:.2f}$")
-        if new_budget > 500:
-            self.main_window.current_balance_label.config(bg="#d8ffd8")
-        elif new_budget < 500:
-            self.main_window.current_balance_label.config(bg="#ffd8d8")
-        else:
-            self.main_window.current_balance_label.config(bg="white")
+        # Aktualisiere die Gewinnrechner-Anzeige
+        # Dies ruft auch storage.calculate_current_balance() auf, 
+        # welches den Kontostand neu berechnet und speichert
+        if hasattr(self.main_window, 'update_ui_stats'):
+            self.main_window.update_ui_stats()

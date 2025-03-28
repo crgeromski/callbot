@@ -243,7 +243,7 @@ class MainWindow:
         }
 
     def create_profit_container(self):
-        """Erstellt den Container für Gewinnberechnung"""
+        """Erstellt den Container für Gewinnberechnung mit neuer Reihenfolge und Inhalt"""
         self.profit_container = tk.Frame(self.root, bg="#e0e0e0", bd=1, relief="groove")
         self.profit_container.pack(fill="x", padx=10, pady=(0,10))  # Nur horizontales Füllen, nicht vertikal expandieren
 
@@ -253,21 +253,26 @@ class MainWindow:
         for j in range(3):
             self.profit_container.grid_columnconfigure(j, weight=1)
 
-        # Kompaktere Einträge mit einheitlichem Stil
-        self.total_invest_label = self.create_profit_entry("Investiert: 0.00$")
-        self.total_invest_label.grid(row=0, column=0, padx=2, pady=2, sticky="nsew")
+        # NEUE REIHENFOLGE:
+        # Reihe 1: Durchschnitt pro Call / P/L today / Gesamt Gewinn/Verlust
+        # Reihe 2: Investiert / Aktive Calls / Kontostand
 
-        self.num_calls_label = self.create_profit_entry("Calls: 0")
-        self.num_calls_label.grid(row=0, column=1, padx=2, pady=2, sticky="nsew")
+        # Reihe 1
+        self.avg_profit_label = self.create_profit_entry("Durchschnitt pro Call: 0.00$")
+        self.avg_profit_label.grid(row=0, column=0, padx=2, pady=2, sticky="nsew")
+
+        self.today_profit_label = self.create_profit_entry("P/L today: 0.00$")
+        self.today_profit_label.grid(row=0, column=1, padx=2, pady=2, sticky="nsew")
 
         self.total_profit_label = self.create_profit_entry("Gesamt Gewinn/Verlust: 0.00$")
         self.total_profit_label.grid(row=0, column=2, padx=2, pady=2, sticky="nsew")
 
-        self.profit_percent_label = self.create_profit_entry("Gewinn/Verlust (%): 0.00%")
-        self.profit_percent_label.grid(row=1, column=0, padx=2, pady=2, sticky="nsew")
+        # Reihe 2
+        self.total_invest_label = self.create_profit_entry("Investiert: 0.00$")
+        self.total_invest_label.grid(row=1, column=0, padx=2, pady=2, sticky="nsew")
 
-        self.avg_profit_label = self.create_profit_entry("Durchschnitt pro Call: 0.00$")
-        self.avg_profit_label.grid(row=1, column=1, padx=2, pady=2, sticky="nsew")
+        self.num_calls_label = self.create_profit_entry("Aktive Calls: 0")
+        self.num_calls_label.grid(row=1, column=1, padx=2, pady=2, sticky="nsew")
 
         self.current_balance_label = self.create_profit_entry("Kontostand: 500.00$")
         self.current_balance_label.grid(row=1, column=2, padx=2, pady=2, sticky="nsew")
