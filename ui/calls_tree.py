@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import webbrowser
 import data.storage as storage
+import utils.formatters as formatters
 
 class CallsTreeView:
     def __init__(self, parent, main_window):
@@ -48,14 +49,14 @@ class CallsTreeView:
         yscrollbar.config(command=self.calls_tree.yview)
         
         # Definiere die Spaltenüberschriften
-        self.calls_tree.heading("Datum", text="Datum")
-        self.calls_tree.heading("Symbol", text="Symbol")
-        self.calls_tree.heading("MCAP_at_Call", text="MCAP at Call")
-        self.calls_tree.heading("Aktuelles_MCAP", text="Live MCAP")
-        self.calls_tree.heading("X_Factor", text="X-Factor")
-        self.calls_tree.heading("PL_Percent", text="% P/L")
-        self.calls_tree.heading("PL_Dollar", text="$ P/L")
-        self.calls_tree.heading("Invest", text="Invest")
+        self.calls_tree.heading("Datum", text="Datum", command=lambda: self.sort_treeview("Datum", False))
+        self.calls_tree.heading("Symbol", text="Symbol", command=lambda: self.sort_treeview("Symbol", False))
+        self.calls_tree.heading("MCAP_at_Call", text="MCAP at Call", command=lambda: self.sort_treeview("MCAP_at_Call", False))
+        self.calls_tree.heading("Aktuelles_MCAP", text="Live MCAP", command=lambda: self.sort_treeview("Aktuelles_MCAP", False))
+        self.calls_tree.heading("X_Factor", text="X-Factor", command=lambda: self.sort_treeview("X_Factor", False))
+        self.calls_tree.heading("PL_Percent", text="% P/L", command=lambda: self.sort_treeview("PL_Percent", False))
+        self.calls_tree.heading("PL_Dollar", text="$ P/L", command=lambda: self.sort_treeview("PL_Dollar", False))
+        self.calls_tree.heading("Invest", text="Invest", command=lambda: self.sort_treeview("Invest", False))
         
         # Definiere Zeilen-Farbtags
         self.calls_tree.tag_configure("row_green", background="#d8ffd8")
@@ -93,6 +94,96 @@ class CallsTreeView:
         # Die internen Tag-Variablen initialisieren
         self.current_selected_item = None
         self.current_selected_tag = None
+        
+        # Sortierungsstatus initialisieren
+        self.sort_status = {"column": None, "reverse": False}
+    
+    def sort_treeview(self, column, reverse):
+        """Sortiert die Treeview nach der angegebenen Spalte"""
+        # Speichere die aktuelle Auswahl, bevor wir sortieren
+        selected_items = self.calls_tree.selection()
+        
+        # Liste aller Zeilen-IDs und ihre Werte in der Sortierspalte
+        data = []
+        for child in self.calls_tree.get_children(''):
+            values = self.calls_tree.item(child, 'values')
+            col_index = self.calls_tree["columns"].index(column)
+            data.append((child, values[col_index]))
+        
+        # Custom Sortierfunktion basierend auf dem Datentyp
+        def sort_by_value(item):
+            value = item[1]
+            if column in ["X_Factor", "PL_Percent", "PL_Dollar"]:
+                # Entferne 'X', '%', '$' und konvertiere zu float
+                try:
+                    if column == "X_Factor":
+                        return float(value.rstrip("X"))
+                    elif column == "PL_Percent":
+                        return float(value.rstrip("%"))
+                    elif column == "PL_Dollar":
+                        return float(value.rstrip("$"))
+                except ValueError:
+                    return 0
+            elif column in ["MCAP_at_Call", "Aktuelles_MCAP"]:
+                # Konvertiere K/M Notation zu float
+                try:
+                    return formatters.parse_km(value)
+                except ValueError:
+                    return 0
+            elif column == "Invest":
+                # Konvertiere zu float
+                try:
+                    return float(value)
+                except ValueError:
+                    return 0
+            # Für Datum und Symbol: alphabetische Sortierung
+            return value
+        
+        # Sortiere die Daten
+        data.sort(key=sort_by_value, reverse=reverse)
+        
+        # Neu anordnen der Elemente im Treeview
+        for i, item in enumerate(data):
+            self.calls_tree.move(item[0], '', i)
+        
+        # Aktualisiere den Sortierungsstatus
+        self.sort_status = {"column": column, "reverse": reverse}
+        
+        # Ändere den Headingtext, um die Sortierrichtung anzuzeigen
+        if reverse:
+            self.calls_tree.heading(column, text=f"{self.get_original_heading(column)} ▼", 
+                                  command=lambda c=column: self.sort_treeview(c, False))
+        else:
+            self.calls_tree.heading(column, text=f"{self.get_original_heading(column)} ▲", 
+                                  command=lambda c=column: self.sort_treeview(c, True))
+        
+        # Stelle sicher, dass alle anderen Spaltenüberschriften keine Pfeile haben
+        for col in self.calls_tree["columns"]:
+            if col != column:
+                self.calls_tree.heading(col, text=self.get_original_heading(col), 
+                                      command=lambda c=col: self.sort_treeview(c, False))
+        
+        # Stelle die Auswahl wieder her
+        if selected_items:
+            for item in selected_items:
+                try:
+                    self.calls_tree.selection_add(item)
+                except:
+                    pass  # Item existiert möglicherweise nicht mehr
+    
+    def get_original_heading(self, column):
+        """Gibt den ursprünglichen Spaltennamen ohne Sortierpfeile zurück"""
+        headings = {
+            "Datum": "Datum",
+            "Symbol": "Symbol",
+            "MCAP_at_Call": "MCAP at Call",
+            "Aktuelles_MCAP": "Live MCAP",
+            "X_Factor": "X-Factor",
+            "PL_Percent": "% P/L",
+            "PL_Dollar": "$ P/L",
+            "Invest": "Invest"
+        }
+        return headings.get(column, column)
     
     def on_treeview_click(self, event):
         """Behandelt Klicks auf die Treeview und ändert die Hintergrundfarbe basierend auf Profitabilität"""
@@ -193,6 +284,12 @@ class CallsTreeView:
     
     def update_tree(self):
         """Aktualisiert den Treeview im 'Meine Calls'-Tab mit den gespeicherten Calls."""
+        # Speichere die aktuelle Auswahl, bevor wir die Daten aktualisieren
+        selected_item_values = None
+        if self.calls_tree.selection():
+            item_id = self.calls_tree.selection()[0]
+            selected_item_values = self.calls_tree.item(item_id, "values")
+        
         self.calls_tree.delete(*self.calls_tree.get_children())
         
         # Stil für aktive/inaktive Auswahl konfigurieren
@@ -210,6 +307,9 @@ class CallsTreeView:
                     font=("Arial", 9))
         style.map('unprofitable.Treeview', 
               background=[('selected', '#f48a8a')])  # Dunkleres Rot
+        
+        # Dictionary zum Speichern der IDs nach Symbol und Datum für die Wiederherstellung der Auswahl
+        id_map = {}
         
         for call in storage.load_call_data():
             # Überspringe abgeschlossene Calls
@@ -239,14 +339,18 @@ class CallsTreeView:
             # 3) Sonst, falls $ P/L < 0 => ganze Zeile hellrot
             else:
                 row_tag = "row_red"
+            
+            # Symbol und Datum für die Identifikation des Calls
+            symbol = call.get("Symbol", "")
+            datum = call.get("Datum", "")
                 
             # Einfügen der Werte in den Treeview
-            self.calls_tree.insert(
+            item_id = self.calls_tree.insert(
                 "",
                 "end",
                 values=(
-                    call.get("Datum", ""),
-                    call.get("Symbol", ""),
+                    datum,
+                    symbol,
                     call.get("MCAP_at_Call", ""),
                     call.get("Aktuelles_MCAP", ""),
                     call.get("X_Factor", ""),
@@ -256,14 +360,41 @@ class CallsTreeView:
                 ),
                 tags=(row_tag,)
             )
+            
+            # Speichere die ID für die spätere Wiederherstellung der Auswahl
+            id_map[(datum, symbol)] = item_id
         
-        # Setze die gespeicherte Auswahl zurück
-        if self.current_selected_item:
-            try:
-                self.calls_tree.selection_set(self.current_selected_item)
-            except:
-                self.current_selected_item = None
-                self.current_selected_tag = None
+        # Wende die aktuelle Sortierung an, falls vorhanden
+        if self.sort_status["column"]:
+            self.sort_treeview(self.sort_status["column"], self.sort_status["reverse"])
+        
+        # Stelle die Auswahl wieder her, falls zuvor eine Auswahl vorhanden war
+        if selected_item_values:
+            # Versuche, das Element anhand von Datum und Symbol zu finden
+            datum = selected_item_values[0]
+            symbol = selected_item_values[1]
+            if (datum, symbol) in id_map:
+                item_id = id_map[(datum, symbol)]
+                self.calls_tree.selection_set(item_id)
+                self.current_selected_item = item_id
+                # Bestimme den Tag basierend auf der Profitabilität
+                try:
+                    pl_dollar_str = selected_item_values[6]  # PL_Dollar ist an Position 6
+                    if pl_dollar_str:
+                        pl_dollar = float(pl_dollar_str.rstrip("$"))
+                        is_profitable = pl_dollar >= 0
+                    else:
+                        is_profitable = False
+                except (ValueError, IndexError):
+                    is_profitable = False
+                
+                self.current_selected_tag = "profitable" if is_profitable else "unprofitable"
+                
+                # Setze den Stil basierend auf der Profitabilität
+                if is_profitable:
+                    style.map('Treeview', background=[('selected', '#64c264')])  # Dunkleres Grün
+                else:
+                    style.map('Treeview', background=[('selected', '#f48a8a')])  # Dunkleres Rot
     
     def on_treeview_double_click(self, event):
         """Reagiert auf Doppelklick in der Treeview"""

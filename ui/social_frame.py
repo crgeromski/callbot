@@ -34,15 +34,25 @@ class SocialFrame:
         data_container.columnconfigure(1, weight=1)
         
         # Datenzeilen mit vorhandenem Styling
-        # Datenzeilen mit vorhandenem Styling
-        styles.create_link_row(data_container, "DexLink", self.shared_vars['dexscreener_var'], 1)
-        styles.create_link_row(data_container, "Website", self.shared_vars['website_var'], 2, 
+        # DexLink-Zeile entfernt!
+        styles.create_link_row(data_container, "Website", self.shared_vars['website_var'], 1, 
                               token_name_var=self.shared_vars['token_name_var'], is_website=True)
-        styles.create_link_row(data_container, "Twitter", self.shared_vars['twitter_var'], 3)
-        styles.create_link_row(data_container, "Telegram", self.shared_vars['telegram_var'], 4)
-        styles.create_link_row(data_container, "Discord", self.shared_vars['discord_var'], 5)
-
-        # Wir entfernen den Screenshot Button von hier und verschieben ihn in den XPostFrame
+        styles.create_link_row(data_container, "Twitter", self.shared_vars['twitter_var'], 2)
+        styles.create_link_row(data_container, "Telegram", self.shared_vars['telegram_var'], 3)
+        styles.create_link_row(data_container, "Discord", self.shared_vars['discord_var'], 4)
+        
+        # X-Suche Button hinzufügen
+        x_search_frame = tk.Frame(data_container, bg="white")
+        x_search_frame.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+        
+        x_search_button = tk.Button(
+            x_search_frame, 
+            text="$ und CA X Suche", 
+            font=("Arial", 10, "bold"),
+            height=2,
+            command=self.open_x_search
+        )
+        x_search_button.pack(fill="x", expand=True, pady=(5, 0))
 
     def take_chart_screenshot(self):
         """Erstellt einen Screenshot des Dexscreener-Charts"""
@@ -149,3 +159,35 @@ class SocialFrame:
                 "Es ist ein Fehler beim Erstellen des Screenshots aufgetreten.\n"
                 "Bitte stelle sicher, dass der Dexscreener-Link gültig ist."
             )
+            
+    def open_x_search(self):
+        """Öffnet X (Twitter) mit Suche nach Symbol ODER Contract-Adresse"""
+        import urllib.parse
+        import webbrowser
+        
+        # Hole Symbol und Adresse aus den Shared Vars
+        symbol = self.shared_vars['token_symbol_var'].get()
+        address = self.shared_vars['token_address_var'].get()
+        
+        if not symbol or not address or symbol == "N/A" or address == "N/A":
+            from tkinter import messagebox
+            messagebox.showerror("Fehler", "Symbol oder Contract-Adresse nicht verfügbar.")
+            return
+        
+        # Entferne $ vom Symbol, falls vorhanden, und füge es wieder hinzu
+        if symbol.startswith('$'):
+            symbol_clean = symbol
+        else:
+            symbol_clean = '$' + symbol
+        
+        # Erstelle den Suchquery im Format "($SYMBOL OR ADRESSE)"
+        search_query = f"({symbol_clean} OR {address})"
+        
+        # URL-encode des Suchbegriffs
+        encoded_query = urllib.parse.quote(search_query)
+        
+        # Erstelle die vollständige URL mit dem "Neuste" Filter (f=live)
+        url = f"https://x.com/search?q={encoded_query}&src=typed_query&f=live"
+        
+        # Öffne die URL im Standardbrowser
+        webbrowser.open(url)

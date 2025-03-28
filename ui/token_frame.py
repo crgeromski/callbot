@@ -1,6 +1,7 @@
 # Token-Daten-Frame
 import tkinter as tk
 import ui.styles as styles
+import utils.browser as browser
 
 class TokenFrame:
     def __init__(self, parent, shared_vars, main_window=None):
@@ -34,3 +35,25 @@ class TokenFrame:
         styles.create_data_row(data_container, "Token-Name", self.shared_vars['token_name_var'], 2)
         styles.create_data_row(data_container, "Symbol", self.shared_vars['token_symbol_var'], 3)
         styles.create_data_row(data_container, "Token-Adresse", self.shared_vars['token_address_var'], 4)
+        
+        # Erstelle einen Button für DexScreener Link - NEUER CODE
+        dexlink_frame = tk.Frame(data_container, bg="white")
+        dexlink_frame.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+        
+        dexscreener_button = tk.Button(
+            dexlink_frame, 
+            text="DexScreener Link", 
+            font=("Arial", 10, "bold"),
+            height=2,
+            command=lambda: self.open_dexscreener()
+        )
+        dexscreener_button.pack(fill="x", expand=True, pady=(5, 0))
+    
+    def open_dexscreener(self):
+        """Öffnet den DexScreener Link im Browser"""
+        link = self.shared_vars['dexscreener_var'].get()
+        if link and link != "N/A":
+            browser.open_link(link)
+        else:
+            from tkinter import messagebox
+            messagebox.showerror("Fehler", "Kein gültiger DexScreener-Link vorhanden.")
