@@ -66,13 +66,14 @@ class CallsTreeView:
         # Gesamtbreite verfügbar: 630px, weniger Padding und Scrollbar ~ 600px
         # 8 Spalten: Datum, Symbol, MCAP_at_Call, Aktuelles_MCAP, X_Factor, PL_Percent, PL_Dollar, Invest
         self.calls_tree.column("Datum", width=60, minwidth=60, anchor="center")         # 60px
-        self.calls_tree.column("Symbol", width=80, minwidth=80, anchor="center")        # 80px
+        self.calls_tree.column("Symbol", width=80, minwidth=80, anchor="w")             # Änderung: anchor="w" für linksbündig
         self.calls_tree.column("MCAP_at_Call", width=100, minwidth=100, anchor="center") # 100px
         self.calls_tree.column("Aktuelles_MCAP", width=90, minwidth=90, anchor="center") # 90px
         self.calls_tree.column("X_Factor", width=70, minwidth=70, anchor="center")      # 70px
         self.calls_tree.column("PL_Percent", width=70, minwidth=70, anchor="center")    # 70px
         self.calls_tree.column("PL_Dollar", width=70, minwidth=70, anchor="center")     # 70px
         self.calls_tree.column("Invest", width=60, minwidth=60, anchor="center")        # 60px
+        
         # Summe: 600px
 
         # Packe den Treeview in den Tab
