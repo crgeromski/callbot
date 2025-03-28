@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 # Importiere Konfiguration
-from config import CALLS_FILE, BUDGET_FILE, DEFAULT_BUDGET
+from config import CALLS_FILE, BUDGET_FILE, DEFAULT_BUDGET, WATCHLIST_FILE
 
 def load_call_data() -> List[Dict[str, Any]]:
     """Lädt die gespeicherten Call-Daten aus der JSON-Datei."""
@@ -42,6 +42,40 @@ def create_new_call(symbol: str, mcap: str, liquidity: str, link: str) -> Dict[s
         "Invest": "10"       # Fester Investitionswert: 10$
     }
 
+def load_watchlist_data() -> List[Dict[str, Any]]:
+    """Lädt die gespeicherten Beobachtungsliste-Daten aus der JSON-Datei."""
+    if os.path.exists(WATCHLIST_FILE):
+        with open(WATCHLIST_FILE, "r") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return []
+    return []
+
+def save_watchlist_data(watchlist: List[Dict[str, Any]]) -> None:
+    """Speichert die Beobachtungsliste-Daten in der JSON-Datei."""
+    with open(WATCHLIST_FILE, "w") as f:
+        json.dump(watchlist, f, indent=4)
+
+def save_new_watchlist_item(item_data: Dict[str, Any]) -> None:
+    """Speichert einen neuen Beobachtungsliste-Eintrag in der JSON-Datei."""
+    watchlist = load_watchlist_data()
+    watchlist.append(item_data)
+    save_watchlist_data(watchlist)
+
+def create_new_watchlist_item(symbol: str, mcap: str, link: str) -> Dict[str, Any]:
+    """Erstellt einen neuen Beobachtungsliste-Eintrag mit den notwendigen Daten."""
+    return {
+        "Datum": datetime.now().strftime("%d.%m."),
+        "Symbol": symbol,
+        "MCAP_at_Call": mcap,
+        "Link": link,
+        "Aktuelles_MCAP": mcap,  # initial gleich MCAP_at_Call
+        "X_Factor": "1.0X",      # initialer X-Factor: 1.0
+        "PL_Percent": "0%",      # initial 0%
+        "PL_Dollar": "0.00$",    # initial 0.00$
+        "Invest": "10"           # fiktiver Invest-Wert für Anzeige
+    }
 
 def load_budget() -> float:
     """Lädt den gespeicherten Kontostand."""
@@ -105,7 +139,11 @@ def find_call_by_symbol(symbol: str, data=None):
     target_call = next((call for call in calls if call.get("Symbol", "") == symbol), None)
     
     if not target_call:
-        return None
+        # Wenn nicht in den Calls gefunden, suche in der Watchlist
+        watchlist = load_watchlist_data()
+        target_call = next((item for item in watchlist if item.get("Symbol", "") == symbol), None)
+        if not target_call:
+            return None
     
     # Wenn kein Datenparameter übergeben wurde, rufe Daten von API ab
     if not data:

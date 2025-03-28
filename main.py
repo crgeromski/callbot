@@ -6,6 +6,7 @@ from ui.stats_frame import StatsFrame
 from ui.social_frame import SocialFrame
 from ui.recommendation_frame import RecommendationFrame
 from ui.calls_tree import CallsTreeView
+from ui.watchlist_tree import WatchlistTreeView
 from ui.archived_calls_tree import ArchivedCallsTreeView
 from ui.main_bot import MainBot
 
@@ -32,12 +33,15 @@ def main():
     
     # Erstelle die Treeviews für die Call-Tabs
     calls_tree = CallsTreeView(main_window.tabs['calls'], main_window)
+    watchlist_tree = WatchlistTreeView(main_window.tabs['watchlist'], main_window)
     archived_calls_tree = ArchivedCallsTreeView(main_window.tabs['archived'], main_window)
     
     # Speichere Referenzen für den späteren Zugriff
     main_window.calls_tree = calls_tree
+    main_window.watchlist_tree = watchlist_tree
     main_window.archived_calls_tree = archived_calls_tree
     main_window.update_calls_tree = calls_tree.update_tree
+    main_window.update_watchlist_tree = watchlist_tree.update_tree
     main_window.update_archived_calls_tree = archived_calls_tree.update_tree
     
     # Initialisiere den Main Bot (Hauptfunktionalität)
@@ -45,6 +49,7 @@ def main():
     
     # Aktualisiere die Treeviews beim Start
     calls_tree.update_tree()
+    watchlist_tree.update_tree()
     archived_calls_tree.update_tree()
     
     # Auto-Refresh starten

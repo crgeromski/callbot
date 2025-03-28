@@ -146,16 +146,19 @@ class MainWindow:
         self.tab1 = tk.Frame(self.notebook, bg="white")
         self.tab2 = tk.Frame(self.notebook, bg="white")
         self.tab3 = tk.Frame(self.notebook, bg="white")
+        self.tab4 = tk.Frame(self.notebook, bg="white")
         
         # Füge die Tabs dem Notebook hinzu
         self.notebook.add(self.tab1, text="Main Bot")
         self.notebook.add(self.tab2, text="Meine Calls")
-        self.notebook.add(self.tab3, text="Abgeschlossene Calls")
+        self.notebook.add(self.tab3, text="Beobachtungsliste")
+        self.notebook.add(self.tab4, text="Abgeschlossene Calls")
         
         # Speichere Tabs im Dictionary für Zugriff aus anderen Modulen
         self.tabs['main'] = self.tab1
         self.tabs['calls'] = self.tab2
-        self.tabs['archived'] = self.tab3
+        self.tabs['watchlist'] = self.tab3
+        self.tabs['archived'] = self.tab4
         
         # Erstelle die drei Hauptcontainer im Main-Tab
         self.create_main_containers()

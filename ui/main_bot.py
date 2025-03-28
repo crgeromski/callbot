@@ -199,6 +199,7 @@ class MainBot:
             messagebox.showinfo("Erfolg", "Der Kontostand wurde auf 500$ zurückgesetzt.")
             
     def auto_refresh_calls(self):
+        # Aktualisiere Calls
         calls = storage.load_call_data()
         updated_calls = []
         for call in calls:
@@ -238,23 +239,46 @@ class MainBot:
         # Speichern der aktualisierten Calls
         storage.save_call_data(updated_calls)
         
+        # Aktualisiere Watchlist
+        watchlist = storage.load_watchlist_data()
+        updated_watchlist = []
+        for item in watchlist:
+            try:
+                # Rufe Daten basierend auf dem Symbol ab
+                symbol = item.get("Symbol")
+                data = storage.find_call_by_symbol(symbol)
+                
+                if data:
+                    market_cap = data.get("marketCap", data.get("mcap", data.get("fdv", "N/A")))
+                    item["Aktuelles_MCAP"] = formatters.format_k(market_cap)
+                    
+                    # Berechne X-Factor, PL_Percent und PL_Dollar
+                    initial_mcap = formatters.parse_km(item.get("MCAP_at_Call", "0"))
+                    current_mcap = formatters.parse_km(item.get("Aktuelles_MCAP", "0"))
+                    if initial_mcap > 0:
+                        x_factor = current_mcap / initial_mcap
+                        pl_percent = (x_factor - 1) * 100
+                        pl_dollar = 10.0 * x_factor - 10.0  # basierend auf fiktivem Invest-Wert (10$)
+                    else:
+                        x_factor = 0
+                        pl_percent = 0
+                        pl_dollar = 0
+                    item["X_Factor"] = f"{x_factor:.1f}X"
+                    item["PL_Percent"] = f"{pl_percent:.0f}%"
+                    item["PL_Dollar"] = f"{pl_dollar:.2f}$"
+            except Exception as e:
+                print(f"Fehler beim Aktualisieren des Watchlist-Items ({symbol}): {e}")
+                
+            updated_watchlist.append(item)
+            
+        # Speichern der aktualisierten Watchlist
+        storage.save_watchlist_data(updated_watchlist)
+        
         # Aktualisiere UI
         self.update_ui_stats()
         
         # Plane den nächsten Update-Aufruf
         self.live_update_after_id = self.main_window.root.after(UPDATE_INTERVAL, self.auto_refresh_calls)
-        
-        # Speichere das aktuelle Budget
-        try:
-            label_text = self.main_window.current_balance_label.cget("text")
-            if ":" in label_text:
-                balance_text = label_text.split(":", 1)[1].strip().rstrip("$")
-                storage.save_budget(float(balance_text))
-        except Exception as e:
-            print(f"Fehler beim Speichern des Budgets: {e}")
-            # Wir versuchen, auf den gespeicherten Wert zurückzugreifen
-            current_budget = storage.load_budget()
-            storage.save_budget(current_budget)
 
     def update_ui_stats(self):
         """Aktualisiert die statistischen Daten im UI"""

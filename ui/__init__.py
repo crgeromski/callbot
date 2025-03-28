@@ -7,6 +7,7 @@ from . import social_frame
 from . import xpost_frame
 from . import call_frame
 from . import calls_tree
+from . import watchlist_tree
 from . import archived_calls_tree
 from . import main_bot
 from . import dexlink_frame
