@@ -1,4 +1,4 @@
-# Neue version für ui/recommendation_frame.py
+# Empfehlungsframe ohne RugCheck-Verweise
 import tkinter as tk
 import ui.styles as styles
 
@@ -10,8 +10,8 @@ class RecommendationFrame:
         self.create_frame()
         
     def create_frame(self):
-        """Erstellt einen leeren Frame für zukünftige Empfehlungen"""
-        # Wir erstellen einen einfachen leeren Frame mit temporärer Hintergrundfarbe
+        """Erstellt einen Frame für Empfehlungen"""
+        # Wir erstellen einen einfachen Frame mit einheitlicher Hintergrundfarbe
         self.frame = tk.Frame(
             self.parent, 
             bg="#ebebeb",  
@@ -20,7 +20,7 @@ class RecommendationFrame:
         )
         self.frame.pack(fill="both", expand=True)
         
-        # Überschrift mit neuer Typografie
+        # Überschrift mit Typografie
         title_label = tk.Label(
             self.frame,
             text="",
@@ -28,11 +28,11 @@ class RecommendationFrame:
             bg="#ebebeb",
             fg="#888888"
         )
-        # Neue Typografie-Anwendung
+        # Typografie-Anwendung
         styles.apply_typography(title_label, 'section_header')
         title_label.pack(anchor="center", pady=(10,5))
         
-        # Optional: Text-Label, um zu bestätigen, dass der Container existiert
+        # Informations-Label
         info_label = tk.Label(
             self.frame,
             text="",

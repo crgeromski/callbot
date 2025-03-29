@@ -1,4 +1,4 @@
-# Hauptanwendung mit korrekter RugCheck-Referenzierung
+# Hauptanwendung
 import tkinter as tk
 from ui.main_window import MainWindow
 from ui.token_frame import TokenFrame
@@ -23,10 +23,10 @@ def main():
                             main_window.time_price_vars, main_window.time_buys_vars, main_window.time_sells_vars)
     social_frame = SocialFrame(main_window.main_containers['middle_right'], main_window.shared_vars, main_window)
     
-    # RugCheck und Recommendation-Frames
+    # Recommendation-Frame
     recommendation_frame = RecommendationFrame(main_window.main_containers['bottom_right'], main_window.shared_vars, main_window)
     
-    # Speichere Referenzen für den späteren Zugriff - WICHTIG!
+    # Speichere Referenzen für den späteren Zugriff
     main_window.stats_frame = stats_frame
     main_window.social_frame = social_frame
     main_window.recommendation_frame = recommendation_frame

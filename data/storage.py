@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 # Importiere Konfiguration
-from config import CALLS_FILE, BUDGET_FILE, DEFAULT_BUDGET, WATCHLIST_FILE
+from config import CALLS_FILE, BUDGET_FILE, DEFAULT_BUDGET, WATCHLIST_FILE, BACKUP_FILE
 
 def load_call_data() -> List[Dict[str, Any]]:
     """Lädt die gespeicherten Call-Daten aus der JSON-Datei."""
@@ -21,6 +21,8 @@ def save_call_data(calls: List[Dict[str, Any]]) -> None:
     """Speichert die Call-Daten in der JSON-Datei."""
     with open(CALLS_FILE, "w") as f:
         json.dump(calls, f, indent=4)
+    # Nach dem Speichern der Calls auch das Backup aktualisieren
+    create_backup()
 
 def save_new_call(call_data: Dict[str, Any]) -> None:
     """Speichert einen neuen Call in der JSON-Datei."""
@@ -56,6 +58,8 @@ def save_watchlist_data(watchlist: List[Dict[str, Any]]) -> None:
     """Speichert die Beobachtungsliste-Daten in der JSON-Datei."""
     with open(WATCHLIST_FILE, "w") as f:
         json.dump(watchlist, f, indent=4)
+    # Nach dem Speichern der Watchlist auch das Backup aktualisieren
+    create_backup()
 
 def save_new_watchlist_item(item_data: Dict[str, Any]) -> None:
     """Speichert einen neuen Beobachtungsliste-Eintrag in der JSON-Datei."""
@@ -92,8 +96,64 @@ def save_budget(budget: float) -> None:
     try:
         with open(BUDGET_FILE, "w") as f:
             f.write(str(budget))
+        # Nach dem Speichern des Budgets auch das Backup aktualisieren
+        create_backup()
     except Exception as e:
         print(f"Budget-Backup fehlgeschlagen: {e}")
+
+def create_backup() -> None:
+    """
+    Erstellt ein umfassendes Backup aller wichtigen Daten.
+    Enthält: Kontostand, aktive Calls, Beobachtungsliste und Timestamp.
+    """
+    try:
+        # Lade alle benötigten Daten
+        budget = load_budget()
+        calls = load_call_data()
+        watchlist = load_watchlist_data()
+        
+        # Erstelle Backup-Struktur
+        backup_data = {
+            "timestamp": datetime.now().isoformat(),
+            "budget": budget,
+            "calls": calls,
+            "watchlist": watchlist
+        }
+        
+        # Speichere Backup-Daten
+        with open(BACKUP_FILE, "w") as f:
+            json.dump(backup_data, f, indent=4)
+    except Exception as e:
+        print(f"Vollständiges Backup fehlgeschlagen: {e}")
+
+def restore_from_backup() -> bool:
+    """
+    Stellt Daten aus dem Backup wieder her.
+    
+    Returns:
+        bool: True bei erfolgreicher Wiederherstellung, sonst False
+    """
+    try:
+        if not os.path.exists(BACKUP_FILE):
+            return False
+            
+        # Lade Backup-Daten
+        with open(BACKUP_FILE, "r") as f:
+            backup_data = json.load(f)
+            
+        # Prüfe, ob alle erforderlichen Daten vorhanden sind
+        if not all(key in backup_data for key in ["budget", "calls", "watchlist"]):
+            return False
+            
+        # Stelle Daten wieder her
+        save_budget(backup_data["budget"])
+        save_call_data(backup_data["calls"])
+        save_watchlist_data(backup_data["watchlist"])
+        
+        return True
+    except Exception as e:
+        print(f"Wiederherstellung aus Backup fehlgeschlagen: {e}")
+        return False
 
 def calculate_total_profit() -> float:
     """

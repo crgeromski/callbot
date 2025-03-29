@@ -5,6 +5,7 @@ import os
 CALLS_FILE = "calls.json"
 BUDGET_FILE = "budget_backup.txt"
 WATCHLIST_FILE = "watchlist.json"
+BACKUP_FILE = "complete_backup.json"  # Neue umfassende Backup-Datei
 
 # Standardwerte
 DEFAULT_BUDGET = 500.0
