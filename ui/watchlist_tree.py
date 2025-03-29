@@ -1,6 +1,6 @@
 # Watchlist TreeView
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 import webbrowser
 import data.storage as storage
 import utils.formatters as formatters
@@ -83,6 +83,8 @@ class WatchlistTreeView:
         self.watchlist_tree.bind("<Button-3>", self.show_context_menu)
         
         # Einträge zum Kontextmenü hinzufügen
+        self.context_menu.add_command(label="MCAP at Safe ändern", command=self.edit_mcap_at_call)
+        self.context_menu.add_separator()
         self.context_menu.add_command(label="Entfernen", command=self.delete_selected_watchlist_item)
         self.context_menu.add_command(label="Call erstellen", command=self.create_call_from_watchlist)
         
@@ -92,6 +94,87 @@ class WatchlistTreeView:
         
         # Sortierungsstatus initialisieren
         self.sort_status = {"column": None, "reverse": False}
+    
+    def edit_mcap_at_call(self):
+        """Bearbeitet den MCAP at Safe Wert des ausgewählten Eintrags"""
+        selected_items = self.watchlist_tree.selection()
+        if not selected_items:
+            messagebox.showinfo("Hinweis", "Bitte wähle zuerst einen Eintrag aus.")
+            return
+            
+        # Wenn mehrere ausgewählt sind, nur den ersten bearbeiten
+        item = selected_items[0]
+        values = self.watchlist_tree.item(item, "values")
+        
+        # Datum, Symbol und MCAP_at_Call aus den Werten extrahieren
+        datum = values[0]
+        symbol = values[1]
+        current_mcap = values[2]
+        
+        # Dialog zur Eingabe des neuen MCAP-Wertes
+        new_mcap = simpledialog.askstring(
+            "MCAP at Safe ändern",
+            f"Neuen MCAP-Wert für {symbol} eingeben (z.B. 500K, 1.2M):",
+            initialvalue=current_mcap
+        )
+        
+        if not new_mcap:
+            return  # Abbruch, wenn keine Eingabe
+            
+        # Prüfe, ob der MCAP-Wert gültig ist (K/M Format)
+        try:
+            parsed_value = formatters.parse_km(new_mcap)
+            if parsed_value <= 0:
+                messagebox.showerror("Fehler", "Bitte gib einen gültigen MCAP-Wert ein (z.B. 500K, 1.2M)")
+                return
+        except:
+            messagebox.showerror("Fehler", "Bitte gib einen gültigen MCAP-Wert ein (z.B. 500K, 1.2M)")
+            return
+            
+        # Formatiere den neuen Wert im K/M Format
+        formatted_mcap = formatters.format_k(parsed_value)
+        
+        # Lade alle Watchlist-Einträge
+        watchlist_items = storage.load_watchlist_data()
+        
+        # Finde den entsprechenden Eintrag und aktualisiere den MCAP-Wert
+        item_found = False
+        for item in watchlist_items:
+            if item.get("Datum") == datum and item.get("Symbol") == symbol:
+                # MCAP-Wert aktualisieren
+                item["MCAP_at_Call"] = formatted_mcap
+                
+                # X-Factor, PL_Percent und PL_Dollar neu berechnen
+                initial_mcap = formatters.parse_km(formatted_mcap)
+                current_mcap = formatters.parse_km(item.get("Aktuelles_MCAP", "0"))
+                
+                if initial_mcap > 0 and current_mcap > 0:
+                    x_factor = current_mcap / initial_mcap
+                    pl_percent = (x_factor - 1) * 100
+                    
+                    # Fiktiver Invest-Wert für die Anzeige (10$)
+                    invest = 10.0
+                    pl_dollar = invest * x_factor - invest
+                    
+                    item["X_Factor"] = f"{x_factor:.1f}X"
+                    item["PL_Percent"] = f"{pl_percent:.0f}%"
+                    item["PL_Dollar"] = f"{pl_dollar:.2f}$"
+                
+                item_found = True
+                break
+                
+        if not item_found:
+            messagebox.showerror("Fehler", f"Der Eintrag für {symbol} konnte nicht gefunden werden.")
+            return
+            
+        # Speichere die aktualisierten Watchlist-Einträge
+        storage.save_watchlist_data(watchlist_items)
+        
+        # Aktualisiere die Anzeige
+        self.update_tree()
+            
+        # Bestätigungsmeldung
+        messagebox.showinfo("Erfolg", f"Der MCAP-Wert für {symbol} wurde auf {formatted_mcap} geändert.")
     
     def sort_treeview(self, column, reverse):
         """Sortiert die Treeview nach der angegebenen Spalte"""
@@ -254,10 +337,10 @@ class WatchlistTreeView:
             style = ttk.Style()
             if is_positive:
                 style.map('Treeview', 
-                      background=[('selected', '#64c264')])  # Dunkleres Grün
+                    background=[('selected', '#64c264')])  # Dunkleres Grün
             else:
                 style.map('Treeview', 
-                      background=[('selected', '#f48a8a')])  # Dunkleres Rot
+                    background=[('selected', '#f48a8a')])  # Dunkleres Rot
             
             # Aktualisiere Referenzen
             self.current_selected_item = item

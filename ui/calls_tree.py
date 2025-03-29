@@ -1,6 +1,6 @@
 # Calls TreeView
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 import webbrowser
 import data.storage as storage
 import utils.formatters as formatters
@@ -90,6 +90,8 @@ class CallsTreeView:
         self.calls_tree.bind("<Button-3>", self.show_context_menu)
         
         # Einträge zum Kontextmenü hinzufügen
+        self.context_menu.add_command(label="MCAP at Call ändern", command=self.edit_mcap_at_call)
+        self.context_menu.add_separator()
         self.context_menu.add_command(label="Call abschließen", command=self.close_selected_call)
         self.context_menu.add_command(label="Call löschen", command=self.delete_selected_call)
         
@@ -100,6 +102,101 @@ class CallsTreeView:
         # Sortierungsstatus initialisieren
         self.sort_status = {"column": None, "reverse": False}
     
+    def edit_mcap_at_call(self):
+        """Bearbeitet den MCAP at Call Wert des ausgewählten Eintrags"""
+        selected_items = self.calls_tree.selection()
+        if not selected_items:
+            messagebox.showinfo("Hinweis", "Bitte wähle zuerst einen Call aus.")
+            return
+            
+        # Wenn mehrere ausgewählt sind, nur den ersten bearbeiten
+        item = selected_items[0]
+        values = self.calls_tree.item(item, "values")
+        
+        # Datum, Symbol und MCAP_at_Call aus den Werten extrahieren
+        datum = values[0]
+        symbol = values[1]
+        current_mcap = values[2]
+        
+        # Dialog zur Eingabe des neuen MCAP-Wertes
+        new_mcap = simpledialog.askstring(
+            "MCAP at Call ändern",
+            f"Neuen MCAP-Wert für {symbol} eingeben (z.B. 500K, 1.2M):",
+            initialvalue=current_mcap
+        )
+        
+        if not new_mcap:
+            return  # Abbruch, wenn keine Eingabe
+            
+        # Prüfe, ob der MCAP-Wert gültig ist (K/M Format)
+        try:
+            parsed_value = formatters.parse_km(new_mcap)
+            if parsed_value <= 0:
+                messagebox.showerror("Fehler", "Bitte gib einen gültigen MCAP-Wert ein (z.B. 500K, 1.2M)")
+                return
+        except:
+            messagebox.showerror("Fehler", "Bitte gib einen gültigen MCAP-Wert ein (z.B. 500K, 1.2M)")
+            return
+            
+        # Formatiere den neuen Wert im K/M Format
+        formatted_mcap = formatters.format_k(parsed_value)
+        
+        # Lade alle Calls
+        calls = storage.load_call_data()
+        
+        # Finde den entsprechenden Call und aktualisiere den MCAP-Wert
+        call_found = False
+        for call in calls:
+            # Überspringe abgeschlossene Calls
+            if call.get("abgeschlossen", False):
+                continue
+                
+            if call.get("Datum") == datum and call.get("Symbol") == symbol:
+                # MCAP-Wert aktualisieren
+                call["MCAP_at_Call"] = formatted_mcap
+                
+                # X-Factor, PL_Percent und PL_Dollar neu berechnen
+                initial_mcap = formatters.parse_km(formatted_mcap)
+                current_mcap = formatters.parse_km(call.get("Aktuelles_MCAP", "0"))
+                
+                if initial_mcap > 0 and current_mcap > 0:
+                    x_factor = current_mcap / initial_mcap
+                    pl_percent = (x_factor - 1) * 100
+                    
+                    # Invest-Wert aus dem Call verwenden oder auf 10$ setzen
+                    invest = 10.0
+                    try:
+                        invest_str = call.get("Invest", "10")
+                        invest = float(invest_str)
+                    except:
+                        invest = 10.0
+                        
+                    pl_dollar = invest * x_factor - invest
+                    
+                    call["X_Factor"] = f"{x_factor:.1f}X"
+                    call["PL_Percent"] = f"{pl_percent:.0f}%"
+                    call["PL_Dollar"] = f"{pl_dollar:.2f}$"
+                
+                call_found = True
+                break
+                
+        if not call_found:
+            messagebox.showerror("Fehler", f"Der Call für {symbol} konnte nicht gefunden werden.")
+            return
+            
+        # Speichere die aktualisierten Calls
+        storage.save_call_data(calls)
+        
+        # Aktualisiere die Anzeige
+        self.update_tree()
+        
+        # Optional: Aktualisiere den Kontostand im Hauptfenster
+        if hasattr(self.main_window, 'update_ui_stats'):
+            self.main_window.update_ui_stats()
+            
+        # Bestätigungsmeldung
+        messagebox.showinfo("Erfolg", f"Der MCAP-Wert für {symbol} wurde auf {formatted_mcap} geändert.")
+
     def sort_treeview(self, column, reverse):
         """Sortiert die Treeview nach der angegebenen Spalte"""
         # Speichere die aktuelle Auswahl, bevor wir sortieren

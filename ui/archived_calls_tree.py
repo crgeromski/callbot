@@ -1,6 +1,6 @@
 # Archivierte Calls TreeView
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 import webbrowser
 import data.storage as storage
 
@@ -84,8 +84,138 @@ class ArchivedCallsTreeView:
         self.archived_calls_tree.bind("<Button-3>", self.show_context_menu)
         
         # Einträge zum Kontextmenü hinzufügen
+        self.context_menu.add_command(label="MCAP at Call ändern", command=self.edit_mcap_at_call)
+        self.context_menu.add_separator()
         self.context_menu.add_command(label="Call löschen", command=self.delete_selected_archived_call)
     
+
+    def edit_mcap_at_call(self):
+        """Bearbeitet den MCAP at Call Wert des ausgewählten archivierten Eintrags"""
+        selected_items = self.archived_calls_tree.selection()
+        if not selected_items:
+            messagebox.showinfo("Hinweis", "Bitte wähle zuerst einen Call aus.")
+            return
+            
+        # Wenn mehrere ausgewählt sind, nur den ersten bearbeiten
+        item = selected_items[0]
+        values = self.archived_calls_tree.item(item, "values")
+        
+        # Datum, Symbol und MCAP_at_Call aus den Werten extrahieren
+        datum = values[0]
+        symbol = values[1]
+        current_mcap = values[2]
+        
+        # Dialog zur Eingabe des neuen MCAP-Wertes
+        new_mcap = simpledialog.askstring(
+            "MCAP at Call ändern",
+            f"Neuen MCAP-Wert für {symbol} eingeben (z.B. 500K, 1.2M):",
+            initialvalue=current_mcap
+        )
+        
+        if not new_mcap:
+            return  # Abbruch, wenn keine Eingabe
+        
+        # Vereinfachte Validierung
+        new_mcap = new_mcap.strip().upper()  # Entferne Leerzeichen und konvertiere zu Großbuchstaben
+        
+        # Direktes Parsen ohne zu strenge Validierung
+        try:
+            # Standardisiere das Format: Ersetze Komma durch Punkt
+            new_mcap = new_mcap.replace(",", ".")
+            
+            # Extrahiere den numerischen Teil
+            if new_mcap.endswith("K"):
+                parsed_value = float(new_mcap[:-1]) * 1000
+            elif new_mcap.endswith("M"):
+                parsed_value = float(new_mcap[:-1]) * 1000000
+            else:
+                # Versuche es als direkten Zahlenwert zu interpretieren
+                parsed_value = float(new_mcap)
+        except:
+            messagebox.showerror("Fehler", "Bitte gib einen gültigen MCAP-Wert ein (z.B. 500K, 1.2M)")
+            return
+        
+        # Einfache Positivprüfung
+        if parsed_value <= 0:
+            messagebox.showerror("Fehler", "Der MCAP-Wert muss positiv sein.")
+            return
+            
+        # Formatiere den neuen Wert im K/M Format
+        if parsed_value >= 1000000:
+            formatted_mcap = f"{parsed_value/1000000:.1f}M"
+        elif parsed_value >= 1000:
+            formatted_mcap = f"{parsed_value/1000:.0f}K"
+        else:
+            formatted_mcap = f"{parsed_value:.0f}"
+        
+        # Lade alle Calls
+        calls = storage.load_call_data()
+        
+        # Finde den entsprechenden Call und aktualisiere den MCAP-Wert
+        call_found = False
+        for call in calls:
+            # Nur abgeschlossene Calls prüfen
+            if not call.get("abgeschlossen", False):
+                continue
+                
+            if call.get("Datum") == datum and call.get("Symbol") == symbol:
+                # MCAP-Wert aktualisieren
+                call["MCAP_at_Call"] = formatted_mcap
+                
+                # X-Factor, PL_Percent und PL_Dollar neu berechnen
+                try:
+                    initial_mcap = parsed_value  # Verwende direkt unseren bereits geparsten Wert
+                    
+                    # Parse aktuelles MCAP
+                    current_mcap_str = call.get("Aktuelles_MCAP", "0")
+                    if current_mcap_str.endswith("K"):
+                        current_mcap = float(current_mcap_str[:-1]) * 1000
+                    elif current_mcap_str.endswith("M"):
+                        current_mcap = float(current_mcap_str[:-1]) * 1000000
+                    else:
+                        current_mcap = float(current_mcap_str)
+                    
+                    if initial_mcap > 0 and current_mcap > 0:
+                        x_factor = current_mcap / initial_mcap
+                        pl_percent = (x_factor - 1) * 100
+                        
+                        # Invest-Wert aus dem Call verwenden oder auf 10$ setzen
+                        invest = 10.0
+                        try:
+                            invest_str = call.get("Invest", "10")
+                            invest = float(invest_str)
+                        except:
+                            invest = 10.0
+                            
+                        pl_dollar = invest * x_factor - invest
+                        
+                        call["X_Factor"] = f"{x_factor:.1f}X"
+                        call["PL_Percent"] = f"{pl_percent:.0f}%"
+                        call["PL_Dollar"] = f"{pl_dollar:.2f}$"
+                except Exception as e:
+                    messagebox.showerror("Fehler bei Berechnung", f"Fehler: {str(e)}")
+                    return
+                    
+                call_found = True
+                break
+                
+        if not call_found:
+            messagebox.showerror("Fehler", f"Der Call für {symbol} konnte nicht gefunden werden.")
+            return
+            
+        # Speichere die aktualisierten Calls
+        storage.save_call_data(calls)
+        
+        # Aktualisiere die Anzeige
+        self.update_tree()
+        
+        # Optional: Aktualisiere den Kontostand im Hauptfenster
+        if hasattr(self.main_window, 'update_ui_stats'):
+            self.main_window.update_ui_stats()
+            
+        # Bestätigungsmeldung
+        messagebox.showinfo("Erfolg", f"Der MCAP-Wert für {symbol} wurde auf {formatted_mcap} geändert.")
+
     def ensure_custom_selection(self, event):
         """Stellt sicher, dass ausgewählte Elemente die benutzerdefinierten Tags behalten"""
         for item in self.archived_calls_tree.selection():
