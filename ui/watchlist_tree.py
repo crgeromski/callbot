@@ -60,7 +60,7 @@ class WatchlistTreeView:
         # Gesamtbreite verfügbar: 630px, weniger Padding und Scrollbar ~ 600px
         # 8 Spalten: Datum, Symbol, MCAP_at_Call, Aktuelles_MCAP, X_Factor, PL_Percent, PL_Dollar, Invest
         self.watchlist_tree.column("Datum", width=60, minwidth=60, anchor="center")         # 60px
-        self.watchlist_tree.column("Symbol", width=80, minwidth=80, anchor="center")        # 80px
+        self.watchlist_tree.column("Symbol", width=80, minwidth=80, anchor="w")             # 80px, linksbündig
         self.watchlist_tree.column("MCAP_at_Call", width=100, minwidth=100, anchor="center") # 100px
         self.watchlist_tree.column("Aktuelles_MCAP", width=90, minwidth=90, anchor="center") # 90px
         self.watchlist_tree.column("X_Factor", width=70, minwidth=70, anchor="center")      # 70px
@@ -197,10 +197,28 @@ class WatchlistTreeView:
                     return float(value.rstrip("X"))
                 except ValueError:
                     return 0
+            elif column in ["PL_Percent"]:
+                # Entfernt '%' und konvertiert zu float
+                try:
+                    return float(value.rstrip("%"))
+                except ValueError:
+                    return 0
+            elif column in ["PL_Dollar"]:
+                # Entfernt '$' und konvertiert zu float
+                try:
+                    return float(value.rstrip("$"))
+                except ValueError:
+                    return 0
             elif column in ["MCAP_at_Call", "Aktuelles_MCAP"]:
                 # Konvertiere K/M Notation zu float
                 try:
                     return formatters.parse_km(value)
+                except ValueError:
+                    return 0
+            elif column in ["Invest"]:
+                # Konvertiere direkt zu float
+                try:
+                    return float(value)
                 except ValueError:
                     return 0
             # Für Datum und Symbol: alphabetische Sortierung
@@ -281,20 +299,20 @@ class WatchlistTreeView:
         # Auswahl setzen
         self.watchlist_tree.selection_set(item)
         
-        # Bestimme, ob der Watchlist-Eintrag positiven X-Faktor hat
+        # Bestimme, ob der Watchlist-Eintrag profitabel ist (basierend auf PL_Dollar wie bei Calls)
         values = self.watchlist_tree.item(item, "values")
         try:
-            x_factor_str = values[4]  # X_Factor ist an Position 4
-            if x_factor_str:
-                x_factor = float(x_factor_str.rstrip("X"))
-                is_positive = x_factor >= 1
+            pl_dollar_str = values[6]  # PL_Dollar ist an Position 6
+            if pl_dollar_str:
+                pl_dollar = float(pl_dollar_str.rstrip("$"))
+                is_profitable = pl_dollar >= 0
             else:
-                is_positive = False
+                is_profitable = False
         except (ValueError, IndexError):
-            is_positive = False
+            is_profitable = False
         
         # Ändere die Hintergrundfarbe direkt ohne Tags
-        if is_positive:
+        if is_profitable:
             self.watchlist_tree.configure(style="profitable.Treeview")
             
             # Manuell das Hintergrundstil-Tag ändern
@@ -311,7 +329,7 @@ class WatchlistTreeView:
         
         # Aktualisiere Referenzen
         self.current_selected_item = item
-        self.current_selected_tag = "profitable" if is_positive else "unprofitable"
+        self.current_selected_tag = "profitable" if is_profitable else "unprofitable"
     
     def show_context_menu(self, event):
         """Zeigt das Kontextmenü bei Rechtsklick an"""
@@ -321,21 +339,21 @@ class WatchlistTreeView:
             # Setze die Auswahl auf das Item unter dem Cursor
             self.watchlist_tree.selection_set(item)
             
-            # Bestimme, ob der Watchlist-Eintrag positiven X-Faktor hat
+            # Bestimme, ob der Watchlist-Eintrag profitabel ist (basierend auf PL_Dollar wie bei Calls)
             values = self.watchlist_tree.item(item, "values")
             try:
-                x_factor_str = values[4]  # X_Factor ist an Position 4
-                if x_factor_str:
-                    x_factor = float(x_factor_str.rstrip("X"))
-                    is_positive = x_factor >= 1
+                pl_dollar_str = values[6]  # PL_Dollar ist an Position 6
+                if pl_dollar_str:
+                    pl_dollar = float(pl_dollar_str.rstrip("$"))
+                    is_profitable = pl_dollar >= 0
                 else:
-                    is_positive = False
+                    is_profitable = False
             except (ValueError, IndexError):
-                is_positive = False
+                is_profitable = False
             
             # Ändere die Hintergrundfarbe direkt ohne Tags
             style = ttk.Style()
-            if is_positive:
+            if is_profitable:
                 style.map('Treeview', 
                     background=[('selected', '#64c264')])  # Dunkleres Grün
             else:
@@ -344,7 +362,7 @@ class WatchlistTreeView:
             
             # Aktualisiere Referenzen
             self.current_selected_item = item
-            self.current_selected_tag = "profitable" if is_positive else "unprofitable"
+            self.current_selected_tag = "profitable" if is_profitable else "unprofitable"
             
             # Zeige das Kontextmenü
             self.context_menu.post(event.x_root, event.y_root)
@@ -379,47 +397,37 @@ class WatchlistTreeView:
         id_map = {}
         
         for watchlist_item in storage.load_watchlist_data():
-            # Versuche, die Zahlenwerte aus dem Watchlist-Eintrag zu holen
+            # Versuche, die X-Factor und PL-Dollar Werte zu parsen
             try:
-                x_factor_str = watchlist_item.get("X_Factor") or "0"
-                # Entferne das "X", damit wir float-Werte haben
+                x_factor_str = watchlist_item.get("X_Factor", "1.0X")
                 x_factor_val = float(x_factor_str.rstrip("X"))
                 
-                # Berechne PL_Percent und PL_Dollar
-                initial_mcap = formatters.parse_km(watchlist_item.get("MCAP_at_Call", "0"))
-                current_mcap = formatters.parse_km(watchlist_item.get("Aktuelles_MCAP", "0"))
+                # WICHTIG: PL_Dollar aus dem gespeicherten Wert nehmen, nicht neu berechnen
+                # Dadurch wird die vorhandene Formatierung beibehalten
+                pl_dollar_str = watchlist_item.get("PL_Dollar", "0.00$")
+                pl_dollar_val = float(pl_dollar_str.rstrip("$"))
                 
-                if initial_mcap > 0 and x_factor_val > 0:
-                    pl_percent = (x_factor_val - 1) * 100
-                    # Fiktiver Invest Wert für Darstellung (wirkt sich nicht auf Gewinnrechner aus)
-                    invest = 10.0
-                    pl_dollar = invest * x_factor_val - invest
-                else:
-                    pl_percent = 0
-                    pl_dollar = 0
+                # PL_Percent aus dem gespeicherten Wert verwenden
+                pl_percent_str = watchlist_item.get("PL_Percent", "0%")
                 
-                pl_percent_str = f"{pl_percent:.0f}%"
-                pl_dollar_str = f"{pl_dollar:.2f}$"
-                invest_str = "10"  # Fiktiver Wert für Anzeige
-            except:
-                x_factor_val = 0
+                # Invest-Wert (fiktiv, für die Anzeige)
+                invest_str = watchlist_item.get("Invest", "10")
+            except (ValueError, TypeError):
+                # Bei Fehlern default-Werte verwenden
+                x_factor_val = 1.0
+                pl_dollar_val = 0.0
+                x_factor_str = "1.0X"
                 pl_percent_str = "0%"
                 pl_dollar_str = "0.00$"
                 invest_str = "10"
-                
-            # Standard-Tag (keine Färbung)
-            row_tag = ""
-                
-            # Falls X-Faktor >= 1 => ganze Zeile hellgrün, sonst hellrot
-            if x_factor_val >= 1:
-                row_tag = "row_green"
-            else:
-                row_tag = "row_red"
+            
+            # Zeilenfarbe basierend auf dem PL_Dollar-Wert (wie bei Calls)
+            row_tag = "row_green" if pl_dollar_val >= 0 else "row_red"
             
             # Symbol und Datum für die Identifikation des Watchlist-Eintrags
             symbol = watchlist_item.get("Symbol", "")
             datum = watchlist_item.get("Datum", "")
-                
+            
             # Einfügen der Werte in den Treeview
             item_id = self.watchlist_tree.insert(
                 "",
@@ -429,7 +437,7 @@ class WatchlistTreeView:
                     symbol,
                     watchlist_item.get("MCAP_at_Call", ""),
                     watchlist_item.get("Aktuelles_MCAP", ""),
-                    watchlist_item.get("X_Factor", ""),
+                    x_factor_str,
                     pl_percent_str,
                     pl_dollar_str,
                     invest_str
@@ -439,13 +447,9 @@ class WatchlistTreeView:
             
             # Speichere die ID für die spätere Wiederherstellung der Auswahl
             id_map[(datum, symbol)] = item_id
-
-        # Fügen Sie diese Zeile hinzu, um standardmäßig nach $ P/L zu sortieren
-        self.sort_treeview("PL_Dollar", True)
         
-        # Wende die aktuelle Sortierung an, falls vorhanden
-        if self.sort_status["column"]:
-            self.sort_treeview(self.sort_status["column"], self.sort_status["reverse"])
+        # Standardmäßig nach $ P/L sortieren, absteigend
+        self.sort_treeview("PL_Dollar", True)
         
         # Stelle die Auswahl wieder her, falls zuvor eine Auswahl vorhanden war
         if selected_item_values:
@@ -456,21 +460,22 @@ class WatchlistTreeView:
                 item_id = id_map[(datum, symbol)]
                 self.watchlist_tree.selection_set(item_id)
                 self.current_selected_item = item_id
-                # Bestimme den Tag basierend auf X-Faktor
+                
+                # Bestimme die Profitabilität basierend auf PL_Dollar (wie bei Calls)
                 try:
-                    x_factor_str = selected_item_values[4]  # X_Factor ist an Position 4
-                    if x_factor_str:
-                        x_factor = float(x_factor_str.rstrip("X"))
-                        is_positive = x_factor >= 1
+                    pl_dollar_str = selected_item_values[6]  # PL_Dollar ist an Position 6
+                    if pl_dollar_str:
+                        pl_dollar = float(pl_dollar_str.rstrip("$"))
+                        is_profitable = pl_dollar >= 0
                     else:
-                        is_positive = False
+                        is_profitable = False
                 except (ValueError, IndexError):
-                    is_positive = False
+                    is_profitable = False
                 
-                self.current_selected_tag = "profitable" if is_positive else "unprofitable"
+                self.current_selected_tag = "profitable" if is_profitable else "unprofitable"
                 
-                # Setze den Stil basierend auf dem X-Faktor
-                if is_positive:
+                # Setze den Stil basierend auf der Profitabilität
+                if is_profitable:
                     style.map('Treeview', background=[('selected', '#64c264')])  # Dunkleres Grün
                 else:
                     style.map('Treeview', background=[('selected', '#f48a8a')])  # Dunkleres Rot
@@ -577,8 +582,8 @@ class WatchlistTreeView:
             "Aktuelles_MCAP": watchlist_item.get("Aktuelles_MCAP"),  # Aktuelles MCAP übernehmen
             "Invest": "10",  # Fester Investitionswert: 10$
             "X_Factor": watchlist_item.get("X_Factor", "1.0X"),
-            "PL_Percent": "0%",  # Initialer Wert
-            "PL_Dollar": "0.00$"  # Initialer Wert
+            "PL_Percent": watchlist_item.get("PL_Percent", "0%"),  # Werte aus Watchlist übernehmen
+            "PL_Dollar": watchlist_item.get("PL_Dollar", "0.00$")  # Werte aus Watchlist übernehmen
         }
         
         # Speichere den neuen Call
