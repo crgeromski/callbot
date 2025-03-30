@@ -135,6 +135,8 @@ class MainWindow:
         left_section.configure(height=button_height)
         right_section.configure(height=button_height)
 
+    # Hauptfenster (Auszug mit den notwendigen Änderungen)
+
     def create_notebook(self):
         """Erstellt das Notebook mit Tabs und die drei Hauptcontainer im Main-Tab"""
         self.notebook_frame = tk.Frame(self.root)
@@ -148,22 +150,26 @@ class MainWindow:
         self.tab2 = tk.Frame(self.notebook, bg="white")
         self.tab3 = tk.Frame(self.notebook, bg="white")
         self.tab4 = tk.Frame(self.notebook, bg="white")
+        self.tab5 = tk.Frame(self.notebook, bg="white")  # Neuer Tab für Coin Finder
         
         # Füge die Tabs dem Notebook hinzu
         self.notebook.add(self.tab1, text="Main Bot")
         self.notebook.add(self.tab2, text="Meine Calls")
         self.notebook.add(self.tab3, text="Beobachtungsliste")
         self.notebook.add(self.tab4, text="Abgeschlossene Calls")
+        self.notebook.add(self.tab5, text="Coin Finder")  # Neuer Tab für Coin Finder
         
         # Speichere Tabs im Dictionary für Zugriff aus anderen Modulen
         self.tabs['main'] = self.tab1
         self.tabs['calls'] = self.tab2
         self.tabs['watchlist'] = self.tab3
         self.tabs['archived'] = self.tab4
+        self.tabs['coin_finder'] = self.tab5  # Neuer Tab für Coin Finder
         
         # Erstelle die drei Hauptcontainer im Main-Tab
         self.create_main_containers()
 
+        
     def create_main_containers(self):
         """Erstellt die drei Hauptcontainer im Main-Tab"""
         # Main-Tab Konfiguration für vertikales Layout

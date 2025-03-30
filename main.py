@@ -1,4 +1,4 @@
-# Hauptanwendung
+# Hauptanwendung mit Coin Finder Integration
 import tkinter as tk
 from ui.main_window import MainWindow
 from ui.token_frame import TokenFrame
@@ -9,6 +9,7 @@ from ui.calls_tree import CallsTreeView
 from ui.watchlist_tree import WatchlistTreeView
 from ui.archived_calls_tree import ArchivedCallsTreeView
 from ui.main_bot import MainBot
+from ui.coin_finder import CoinFinderTab  # Neue Importanweisung
 
 def main():
     # Erstelle das Root-Fenster
@@ -35,6 +36,11 @@ def main():
     calls_tree = CallsTreeView(main_window.tabs['calls'], main_window)
     watchlist_tree = WatchlistTreeView(main_window.tabs['watchlist'], main_window)
     archived_calls_tree = ArchivedCallsTreeView(main_window.tabs['archived'], main_window)
+    
+    # NEU: Erstelle den Coin Finder Tab
+    coin_finder = CoinFinderTab(main_window.tabs['coin_finder'], main_window.shared_vars, main_window)
+    # Speichere die Referenz für den späteren Zugriff
+    main_window.coin_finder = coin_finder
     
     # Speichere Referenzen für den späteren Zugriff
     main_window.calls_tree = calls_tree
