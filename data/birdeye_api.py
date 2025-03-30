@@ -255,24 +255,31 @@ def get_filtered_tokens(
     
     return filtered_tokens
 
-def extract_token_info(token: Dict[str, Any]) -> Dict[str, Any]:
+def extract_token_info(token_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Extrahiert die relevanten Informationen aus einem Token-Objekt.
+    Extrahiert und berechnet die relevanten Informationen aus einem Token-Objekt
+    von /defi/tokenlist oder /defi/token_stat.
     
     Args:
-        token: Das Token-Objekt aus der API-Antwort
+        token_data: Das Token-Objekt aus der API-Antwort
         
     Returns:
         Ein Dictionary mit den relevanten Token-Informationen
     """
-    address = token.get("address", "")
-    symbol = token.get("symbol", "").upper()
-    name = token.get("name", "")
-    mcap = token.get("mc", 0)
-    liquidity = token.get("liquidity", 0)
-    price = token.get("price", 0)
-    volume_24h = token.get("v24h", 0)
-    price_change_24h = token.get("priceChange24h", 0)
+    # Versuche, die Daten aus verschiedenen möglichen Schlüsseln zu extrahieren
+    address = token_data.get("address", "")
+    symbol = token_data.get("symbol", "").upper()
+    name = token_data.get("name", "")
+    mcap = token_data.get("mc", 0)
+    liquidity = token_data.get("liquidity", 0)
+    price = token_data.get("price", 0)
+    volume_24h = token_data.get("v24h", token_data.get("volume_24h", 0)) # v24h oder volume_24h
+    
+    # Preisänderungen für verschiedene Zeiträume
+    price_change_1h = token_data.get("priceChange1h", token_data.get("price_change_1h", 0))
+    price_change_4h = token_data.get("priceChange4h", token_data.get("price_change_4h", 0))
+    price_change_12h = token_data.get("priceChange12h", token_data.get("price_change_12h", 0))
+    price_change_24h = token_data.get("priceChange24h", token_data.get("price_change_24h", 0))
     
     # Berechne zusätzliche Daten für die Strategie
     volume_to_mcap_ratio = volume_24h / mcap if mcap > 0 else 0
@@ -296,7 +303,64 @@ def extract_token_info(token: Dict[str, Any]) -> Dict[str, Any]:
         "price_change_24h_display": f"{price_change_24h:.2f}%"
     }
 
+def analyze_price_pattern(price_history_analysis: Dict[str, Any]) -> Tuple[int, List[str]]:
+    """
+    Analysiert das Preismuster basierend auf der historischen Analyse.
+    (Platzhalter - Implementierung erforderlich)
+    
+    Args:
+        price_history_analysis: Ergebnisse der Preishistorie-Analyse
+        
+    Returns:
+        Tuple mit (Score, Gründe)
+    """
+    pattern_score = 0
+    reasons = []
+    
+    dip_detected = price_history_analysis.get("dip_detected", False)
+    bounce_detected = price_history_analysis.get("bounce_detected", False)
+    dip_percentage = price_history_analysis.get("dip_percentage", 0)
+    stabilization_count = price_history_analysis.get("stabilization_count", 0)
+    recovery_percentage = price_history_analysis.get("recovery_percentage", 0)
+    
+    # Punkte für korrekten Dip (15-40%)
+    if dip_detected:
+        pattern_score += 15 # Grundpunkte für korrekten Dip
+        reasons.append(f"Dip von {dip_percentage:.1f}% erkannt (Ziel: 15-40%)")
+        
+        # Punkte für Stabilisierung (mindestens 3 Kerzen)
+        if stabilization_count >= 3:
+            stabilization_bonus = min(10, (stabilization_count - 2) * 5) # Bis zu 10 Punkte für 3+ Kerzen
+            pattern_score += stabilization_bonus
+            reasons.append(f"Preisstabilisierung über {stabilization_count} Kerzen nach Dip")
+        else:
+             reasons.append(f"Wenig Stabilisierung ({stabilization_count}) nach Dip (Ziel: 3-5)")
 
+        # Punkte für Bounce nach Dip und Stabilisierung
+        if bounce_detected:
+            bounce_bonus = min(15, 5 + int(recovery_percentage / 5)) # Bis zu 15 Punkte für Bounce Stärke
+            pattern_score += bounce_bonus
+            reasons.append(f"Second Bounce mit {recovery_percentage:.1f}% Erholung erkannt")
+        else:
+            reasons.append("Kein klarer Bounce nach Dip bisher")
+            
+    elif dip_percentage > 40:
+         pattern_score += 5 # Wenige Punkte für zu starken Dip
+         reasons.append(f"Dip zu stark ({dip_percentage:.1f}%), erhöhtes Risiko")
+    elif dip_percentage > 0: # Dip < 15%
+         pattern_score += 5 # Wenige Punkte für zu schwachen Dip
+         reasons.append(f"Dip zu gering ({dip_percentage:.1f}%), schwaches Signal")
+    else: # Kein Dip erkannt
+        reasons.append("Kein signifikanter Dip nach Höchststand erkannt")
+        # Optional: Punkte für generellen Aufwärtstrend, falls kein Dip/Bounce?
+        # Hier vorerst keine Punkte, da Fokus auf Dip/Bounce liegt.
+
+    # TODO: Kerzenmuster (Hammer/Doji) analysieren, falls OHLC-Daten verfügbar wären
+    
+    # Begrenze den Score auf maximal 40 Punkte
+    pattern_score = min(pattern_score, 40)
+    
+    return pattern_score, reasons
 
 def analyze_token_for_strategy(token_data, price_history=None):
     """
@@ -348,8 +412,11 @@ def analyze_token_for_strategy(token_data, price_history=None):
         result["dip_detected"] = result["price_history_analysis"].get("dip_detected", False)
         result["bounce_detected"] = result["price_history_analysis"].get("bounce_detected", False)
     else:
-        # Wenn keine historischen Daten verfügbar sind, verwende die einfachere 24h-Analyse
-        simple_pattern_analysis(token_info, result)
+        # Wenn keine historischen Daten verfügbar sind oder die Analyse fehlgeschlagen ist
+        result["reasons"].append("Keine ausreichenden historischen Preisdaten für Musteranalyse verfügbar.")
+        # Fallback auf einfache 24h-Analyse (optional, könnte man auch weglassen und 0 Punkte geben)
+        # simple_pattern_analysis(token_info, result) # Entfernt, da wir historische Daten priorisieren
+        result["score"]["pattern"] = 0 # Keine Punkte ohne historische Daten
     
     # 2. Volumen-Analyse (35 Punkte)
     volume_score, volume_reasons, volume_trend = analyze_volume_quality(token_info, result["price_history_analysis"])
@@ -428,7 +495,7 @@ def analyze_price_history(candles):
         lowest_idx_after_high = highest_idx + dip_segment.index(lowest_price_after_high)
         
         # Berechne den prozentualen Rückgang vom Höchststand
-        dip_percentage = (highest_price - lowest_price_after_high) / highest_price * 100
+        dip_percentage = (highest_price - lowest_price_after_high) / highest_price * 100 if highest_price > 0 else 0
         
         # Prüfe, ob der Dip zwischen 15% und 40% liegt (typisch für einen guten Einstiegspunkt)
         dip_detected = 15 <= dip_percentage <= 40
@@ -437,19 +504,38 @@ def analyze_price_history(candles):
         prices_after_dip = prices[lowest_idx_after_high:]
         if len(prices_after_dip) >= 3:  # Mindestens 3 Kerzen nach dem Tiefpunkt
             highest_after_dip = max(prices_after_dip)
-            recovery_percentage = (highest_after_dip - lowest_price_after_high) / lowest_price_after_high * 100
+            recovery_percentage = (highest_after_dip - lowest_price_after_high) / lowest_price_after_high * 100 if lowest_price_after_high > 0 else 0
             
-            # Prüfe auf Stabilisierung nach dem Dip
+            # Prüfe auf Stabilisierung nach dem Dip (über z.B. 5 Kerzen)
+            stabilization_candles = 5 # Anzahl der Kerzen für Stabilisierungsprüfung
+            stabilization_threshold = 0.05 # Maximale prozentuale Änderung für Stabilisierung
             stabilization_count = 0
-            for i in range(lowest_idx_after_high, min(lowest_idx_after_high + 5, len(prices) - 1)):
-                next_price = prices[i+1]
-                prev_price = prices[i]
-                # Wenn die Preisänderung weniger als 5% beträgt, betrachten wir es als stabilisiert
-                if abs(next_price - prev_price) / prev_price < 0.05:
-                    stabilization_count += 1
             
-            # Second Bounce erkannt, wenn der Preis nach dem Dip um mindestens 10% gestiegen ist
-            bounce_detected = recovery_percentage >= 10 and stabilization_count >= 2
+            # Stelle sicher, dass wir nicht über das Array-Ende hinausgehen
+            stabilization_end_idx = min(lowest_idx_after_high + stabilization_candles, len(prices) -1)
+            
+            # Beginne die Prüfung ab der Kerze *nach* dem Tiefpunkt
+            for i in range(lowest_idx_after_high + 1, stabilization_end_idx + 1):
+                # Stelle sicher, dass der vorherige Index gültig ist
+                if i > 0:
+                    current_close = prices[i]
+                    prev_close = prices[i-1]
+                    # Vermeide Division durch Null
+                    if prev_close > 0:
+                        price_change_percent = abs(current_close - prev_close) / prev_close
+                        if price_change_percent < stabilization_threshold:
+                            stabilization_count += 1
+                        else:
+                            # Breche ab, wenn eine Kerze nicht stabil ist
+                            break 
+                    else:
+                        # Wenn der vorherige Preis Null war, können wir keine prozentuale Änderung berechnen
+                        # Brechen wir hier ab oder behandeln es als stabil? Vorerst Abbruch.
+                        break 
+            
+            # Second Bounce erkannt, wenn Preis nach Dip um mind. 10% gestiegen ist UND Stabilisierung (mind. 3 Kerzen) stattfand
+            # Wir prüfen auf >= 3, da die Anforderung 3-5 Kerzen war.
+            bounce_detected = recovery_percentage >= 10 and stabilization_count >= 3 
         else:
             recovery_percentage = 0
             bounce_detected = False
@@ -462,10 +548,11 @@ def analyze_price_history(candles):
         dip_percentage = 0
         recovery_percentage = 0
         stabilization_count = 0
-    
+            
     # Prüfe auf Volumenspitzen während des Dips
     volume_pattern = "unknown"
-    if dip_detected and highest_idx < len(volumes) - 1 and lowest_idx_after_high < len(volumes):
+    # Stelle sicher, dass Indizes gültig sind
+    if dip_detected and highest_idx < len(volumes) and lowest_idx_after_high < len(volumes):
         # Durchschnittliches Volumen vor dem Höchststand
         avg_volume_before_high = sum(volumes[:highest_idx]) / max(1, highest_idx)
         
@@ -499,31 +586,9 @@ def analyze_price_history(candles):
         "volume_pattern": volume_pattern
     }
 
-def simple_pattern_analysis(token_info, result):
-    """
-    Führt eine einfache Musteranalyse basierend auf 24h-Daten durch, wenn keine
-    historischen Daten verfügbar sind.
-    
-    Args:
-        token_info: Basisinformationen zum Token
-        result: Das Ergebnis-Dictionary, das aktualisiert wird
-    """
-    # Preis-Änderung 24h als Indikator
-    price_change_24h = token_info["price_change_24h"]
-    
-    # Negative 24h-Änderung könnte auf einen Dip hindeuten
-    if -40 <= price_change_24h <= -15:  # 15-40% Dip
-        result["score"]["pattern"] += 20
-        result["dip_detected"] = True
-        result["reasons"].append(f"Preisdip von {abs(price_change_24h):.1f}% erkannt (optimal: 15-40%)")
-    elif price_change_24h < -40:  # Zu starker Dip
-        result["score"]["pattern"] += 5
-        result["reasons"].append(f"Starker Preisdip von {abs(price_change_24h):.1f}% (>40%, Vorsicht)")
-    elif price_change_24h > 0:  # Positiver Trend
-        bounce_score = min(int(price_change_24h), 30)  # Max 30 Punkte für positiven Trend
-        result["score"]["pattern"] += bounce_score
-        result["bounce_detected"] = True
-        result["reasons"].append(f"Positiver Preistrend ({price_change_24h:.1f}%)")
+# Entfernt, da wir die Analyse auf historischen Daten basieren
+# def simple_pattern_analysis(token_info, result):
+#     ...
 
 def analyze_volume_quality(token_info, price_history_analysis):
     """
@@ -608,41 +673,54 @@ def analyze_timeframes(token_info, price_history_analysis):
     timeframe_score = 0
     reasons = []
     
-    # Da wir nicht direkt auf 5M/1H/6H/24H-Daten zugreifen können,
-    # verwenden wir die 24h-Änderung und die Preishistorie-Analyse
+    # Verwende spezifische Zeitrahmen-Daten aus token_info, falls verfügbar
+    # Birdeye API liefert oft priceChange1h, priceChange4h, priceChange12h, priceChange24h
+    # Wir simulieren hier die Anforderung: 5M/1H negativ, 6H/24H positiv
     
-    price_change_24h = token_info["price_change_24h"]
+    # Hole die verfügbaren Preisänderungen (Standardwert 0, falls nicht vorhanden)
+    # Versuche, die Daten aus token_info zu holen. Die Namen können variieren, je nachdem,
+    # ob die Daten von /defi/tokenlist oder /defi/token_stat kommen.
+    price_change_1h = token_info.get("priceChange1h", token_info.get("price_change_1h", 0)) 
+    price_change_4h = token_info.get("priceChange4h", token_info.get("price_change_4h", 0)) # Als Annäherung für 6H
+    price_change_12h = token_info.get("priceChange12h", token_info.get("price_change_12h", 0)) # Als Annäherung für 6H/24H
+    price_change_24h = token_info.get("price_change_24h", 0) # Bereits extrahiert
     
-    # Wenn ein Dip erkannt wurde und der 24h-Wert trotzdem positiv ist,
-    # ist das ein starkes Indiz für die gewünschte Zeitrahmen-Divergenz
+    # Definiere kurzfristige und langfristige Indikatoren
+    # Annahme: 1H ist kurzfristig, 12H/24H sind langfristig
+    short_term_negative = price_change_1h < -2 # Erlaube leichten negativen Trend (-2%)
+    long_term_positive = price_change_12h > 0 or price_change_24h > 0
+    
+    # Ideale Divergenz: Kurzfristig negativ, Langfristig positiv
+    if short_term_negative and long_term_positive:
+        timeframe_score += 15
+        reasons.append(f"Ideale Zeitrahmen-Divergenz (1H: {price_change_1h:.1f}%, 12/24H positiv)")
+    # Gute Konstellation: Kurzfristig leicht negativ/neutral, Langfristig positiv
+    elif price_change_1h <= 0 and long_term_positive:
+        timeframe_score += 10
+        reasons.append(f"Gute Zeitrahmen-Konstellation (1H: {price_change_1h:.1f}%, 12/24H positiv)")
+    # Akzeptabel: Alles positiv (Aufwärtstrend)
+    elif price_change_1h > 0 and long_term_positive:
+        timeframe_score += 5
+        reasons.append(f"Genereller Aufwärtstrend (1H: {price_change_1h:.1f}%, 12/24H positiv)")
+    # Negativ: Langfristig negativ
+    elif not long_term_positive:
+        timeframe_score += 0 # Keine Punkte bei negativem Langzeittrend
+        reasons.append(f"Negativer Langzeit-Trend (12H: {price_change_12h:.1f}%, 24H: {price_change_24h:.1f}%)")
+    else:
+        # Andere Fälle (z.B. kurz positiv, lang negativ) - weniger ideal
+        timeframe_score += 2
+        reasons.append(f"Inkonsistente Zeitrahmen (1H: {price_change_1h:.1f}%, 12H: {price_change_12h:.1f}%, 24H: {price_change_24h:.1f}%)")
+
+    # Bonus, wenn 5M (aus price_history) positiv wird (falls Dip erkannt wurde)
+    # Dies erfordert Zugriff auf die 5M-Kerzen, was hier nicht direkt der Fall ist.
+    # Wir könnten es aus price_history_analysis ableiten, wenn dort die letzte Kerze positiv war.
     if price_history_analysis and price_history_analysis.get("dip_detected", False):
-        if price_change_24h > 0:
-            timeframe_score += 15
-            reasons.append("Ideale Zeitrahmen-Divergenz: Kurzfristiger Dip, langfristig positiv")
-        elif price_change_24h > -10 and price_change_24h <= 0:
-            timeframe_score += 10
-            reasons.append("Gute Zeitrahmen-Konstellation: Dip mit stabilem 24h-Trend")
-        elif price_change_24h > -30 and price_change_24h <= -10:
-            timeframe_score += 5
-            reasons.append("Mäßige Zeitrahmen-Konstellation: Dip mit mäßigem 24h-Rückgang")
-    elif price_history_analysis and price_history_analysis.get("bounce_detected", False):
-        # Wenn bereits ein Bounce erkannt wurde und 24h positiv ist
-        if price_change_24h > 0:
-            # Bonus basierend auf der Erholungsrate
-            recovery = price_history_analysis.get("recovery_percentage", 0)
-            if recovery >= 20:
-                timeframe_score += 15
-                reasons.append(f"Hervorragender Second Bounce: {recovery:.1f}% Erholung vom Dip")
-            elif recovery >= 10:
-                timeframe_score += 10
-                reasons.append(f"Guter Second Bounce: {recovery:.1f}% Erholung vom Dip")
-            else:
-                timeframe_score += 5
-                reasons.append(f"Beginnender Second Bounce: {recovery:.1f}% Erholung vom Dip")
-    elif price_change_24h > 0:
-        # Einfach positiver 24h-Trend, ohne erkannten Dip/Bounce
-        timeframe_score += 8
-        reasons.append(f"Positiver 24h-Trend: +{price_change_24h:.1f}%")
+         current_price = price_history_analysis.get("current_price", 0)
+         lowest_price = price_history_analysis.get("lowest_price", 0)
+         # Prüfe, ob der aktuelle Preis über dem Tiefpunkt liegt
+         if current_price > lowest_price:
+             timeframe_score = min(15, timeframe_score + 3) # Kleiner Bonus, max 15
+             reasons.append("Bonus: Preis beginnt sich vom Dip-Tief zu erholen")
     
     return timeframe_score, reasons
 
@@ -816,7 +894,19 @@ def scan_tokens_for_strategy(
     # Analyse jedes Tokens
     results = []
     for token in filtered_tokens:
-        analysis = analyze_token_for_strategy(token)
+        token_address = token.get("address")
+        if not token_address:
+            continue
+            
+        # Hole Preis-Historie (z.B. 5m Kerzen für die letzten 24 Stunden)
+        # Berechne Zeitstempel für die letzten 24 Stunden
+        to_ts = int(time.time())
+        from_ts = to_ts - 86400 # 24 * 60 * 60
+        
+        price_history = get_token_price_history(token_address, resolution="5m", from_ts=from_ts, to_ts=to_ts)
+        
+        # Führe die Analyse mit historischen Daten durch
+        analysis = analyze_token_for_strategy(token, price_history=price_history)
         results.append(analysis)
     
     # Sortiere nach Score (absteigend)
