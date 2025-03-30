@@ -233,64 +233,40 @@ def get_token_historical_trades(token_address: str, limit: int = 100) -> Optiona
     
     return get_cached_or_fetch(cache_key, fetch_token_trades, cache_expiry=30)  # Kürzere Ablaufzeit für Trades
 
-def get_trending_tokens(limit: int = 100) -> Optional[Dict[str, Any]]:
-    """
-    Ruft eine Liste der aktuell trendenden Tokens ab.
-    
-    Args:
-        limit: Maximale Anzahl der abzurufenden Tokens
-        
-    Returns:
-        Ein Dictionary mit trendenden Tokens oder None bei Fehler
-    """
-    api_key = get_api_key()
-    if not api_key:
-        return None
-    
-    cache_key = f"trending_tokens_{limit}"
-    
-    def fetch_trending_tokens():
-        rate_limit_wait()
-        url = f"{API_BASE_URL}/public/trending_list"
-        headers = DEFAULT_HEADERS.copy()
-        headers["X-API-KEY"] = api_key
-        
-        params = {
-            "limit": limit,
-        }
-        
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
-        
-        data = response.json()
-        return data
-    
-    return get_cached_or_fetch(cache_key, fetch_trending_tokens, cache_expiry=300)  # 5 Minuten Ablaufzeit
 
-def get_newly_added_tokens(limit: int = 100) -> Optional[Dict[str, Any]]:
+# Ersetze die get_trending_tokens und get_newly_added_tokens Funktionen in data/birdeye_api.py:
+
+def search_tokens(keyword="sol", limit=20, sort_by="volume_24h_usd", chain="solana") -> Optional[Dict[str, Any]]:
     """
-    Ruft eine Liste der zuletzt hinzugefügten Tokens ab.
+    Sucht nach Tokens basierend auf Schlüsselwort und anderen Parametern.
     
     Args:
-        limit: Maximale Anzahl der abzurufenden Tokens
+        keyword: Suchbegriff (z.B. "sol", "pepe", etc.)
+        limit: Maximale Anzahl der Ergebnisse
+        sort_by: Sortierkriterium (z.B. "volume_24h_usd")
+        chain: Blockchain (z.B. "solana", "ethereum")
         
     Returns:
-        Ein Dictionary mit neuen Tokens oder None bei Fehler
+        Ein Dictionary mit gefundenen Tokens oder None bei Fehler
     """
     api_key = get_api_key()
     if not api_key:
         return None
     
-    cache_key = f"new_tokens_{limit}"
+    cache_key = f"search_tokens_{keyword}_{limit}_{sort_by}_{chain}"
     
-    def fetch_new_tokens():
+    def fetch_search_results():
         rate_limit_wait()
-        url = f"{API_BASE_URL}/public/newly_added_list"
+        url = f"{API_BASE_URL}/defi/v3/search"
         headers = DEFAULT_HEADERS.copy()
         headers["X-API-KEY"] = api_key
         
         params = {
+            "keyword": keyword,
             "limit": limit,
+            "sort_by": sort_by,
+            "chain": chain,
+            "search_by": "symbol"
         }
         
         response = requests.get(url, headers=headers, params=params)
@@ -299,7 +275,77 @@ def get_newly_added_tokens(limit: int = 100) -> Optional[Dict[str, Any]]:
         data = response.json()
         return data
     
-    return get_cached_or_fetch(cache_key, fetch_new_tokens, cache_expiry=300)  # 5 Minuten Ablaufzeit
+    return get_cached_or_fetch(cache_key, fetch_search_results, cache_expiry=300)  # 5 Minuten Ablaufzeit
+
+# Anpassen der scan_tokens_for_strategy Funktion, um die neue search_tokens-Funktion zu verwenden:
+
+def scan_tokens_for_strategy(
+    mcap_min: float = 100000,
+    mcap_max: float = 3000000,
+    liquidity_min: float = 30000,
+    age_min: int = 0,
+    age_max: int = 5,
+    min_tx: int = 1000,
+    limit: int = 20
+) -> List[Dict[str, Any]]:
+    """
+    Scannt Tokens nach den Strategie-Kriterien.
+    
+    Args:
+        mcap_min: Minimale Marktkapitalisierung
+        mcap_max: Maximale Marktkapitalisierung
+        liquidity_min: Minimale Liquidität
+        age_min: Minimales Alter in Tagen
+        age_max: Maximales Alter in Tagen
+        min_tx: Minimale Anzahl an Transaktionen (24h)
+        limit: Maximale Anzahl der zu analysierenden Tokens
+        
+    Returns:
+        Eine Liste mit analysierten Token-Daten, sortiert nach Score
+    """
+    results = []
+    
+    # Suche nach neuen Tokens
+    keywords = ["sol", "meme", "pepe", "doge", "cat", "shib"]
+    all_tokens = []
+    
+    for keyword in keywords:
+        search_results = search_tokens(keyword=keyword, limit=10, sort_by="volume_24h_usd", chain="solana")
+        if search_results and "success" in search_results and search_results["success"]:
+            items = search_results.get("data", {}).get("items", [])
+            all_tokens.extend(items)
+    
+    # Entferne Duplikate (nach Adresse)
+    unique_tokens = []
+    seen_addresses = set()
+    for token in all_tokens:
+        address = token.get("address")
+        if address and address not in seen_addresses:
+            seen_addresses.add(address)
+            unique_tokens.append(token)
+    
+    # Begrenze auf die angegebene Anzahl
+    tokens_to_analyze = unique_tokens[:limit]
+    
+    # Analysiere jeden Token
+    for token in tokens_to_analyze:
+        token_address = token.get("address")
+        if not token_address:
+            continue
+            
+        # Hier würden wir die vollständigen Kriterien prüfen,
+        # für jetzt führen wir einfach eine grundlegende Analyse durch
+        analysis = analyze_token_for_strategy(token_address)
+        
+        if analysis["success"]:
+            results.append(analysis)
+    
+    # Sortiere nach Score (absteigend)
+    results.sort(key=lambda x: x["score"]["total"], reverse=True)
+    
+    return results
+
+
 
 def analyze_token_for_strategy(token_address: str) -> Dict[str, Any]:
     """
@@ -420,7 +466,7 @@ def scan_tokens_for_strategy(
     limit: int = 20
 ) -> List[Dict[str, Any]]:
     """
-    Scannt neue und trendende Tokens nach den Strategie-Kriterien.
+    Scannt Tokens nach den Strategie-Kriterien.
     
     Args:
         mcap_min: Minimale Marktkapitalisierung
@@ -436,52 +482,39 @@ def scan_tokens_for_strategy(
     """
     results = []
     
-    # Neue Tokens abrufen
-    new_tokens_data = get_newly_added_tokens(limit)
-    if new_tokens_data and "success" in new_tokens_data and new_tokens_data["success"]:
-        new_tokens = new_tokens_data.get("data", [])
-        
-        # Limitiere auf die angegebene Anzahl
-        new_tokens = new_tokens[:limit]
-        
-        # Analysiere jeden Token
-        for token in new_tokens:
-            token_address = token.get("address")
-            if not token_address:
-                continue
-                
-            # Hier würden wir die vollständigen Kriterien prüfen,
-            # für jetzt führen wir einfach eine grundlegende Analyse durch
-            analysis = analyze_token_for_strategy(token_address)
-            
-            if analysis["success"]:
-                results.append(analysis)
+    # Suche nach Tokens mit verschiedenen Keywords
+    keywords = ["sol", "meme", "pepe", "doge", "cat", "shib"]
+    all_tokens = []
     
-    # Trendende Tokens abrufen und analysieren (wenn noch Platz ist)
-    if len(results) < limit:
-        trending_tokens_data = get_trending_tokens(limit - len(results))
-        if trending_tokens_data and "success" in trending_tokens_data and trending_tokens_data["success"]:
-            trending_tokens = trending_tokens_data.get("data", [])
+    for keyword in keywords:
+        search_results = search_tokens(keyword=keyword, limit=10, sort_by="volume_24h_usd", chain="solana")
+        if search_results and "success" in search_results and search_results["success"]:
+            items = search_results.get("data", {}).get("items", [])
+            all_tokens.extend(items)
+    
+    # Entferne Duplikate (nach Adresse)
+    unique_tokens = []
+    seen_addresses = set()
+    for token in all_tokens:
+        address = token.get("address")
+        if address and address not in seen_addresses:
+            seen_addresses.add(address)
+            unique_tokens.append(token)
+    
+    # Begrenze auf die angegebene Anzahl
+    tokens_to_analyze = unique_tokens[:limit]
+    
+    # Analysiere jeden Token
+    for token in tokens_to_analyze:
+        token_address = token.get("address")
+        if not token_address:
+            continue
             
-            # Analysiere jeden Token
-            for token in trending_tokens:
-                token_address = token.get("address")
-                if not token_address:
-                    continue
-                    
-                # Prüfe, ob der Token bereits analysiert wurde
-                if any(result["token_address"] == token_address for result in results):
-                    continue
-                
-                # Hier würden wir die vollständigen Kriterien prüfen
-                analysis = analyze_token_for_strategy(token_address)
-                
-                if analysis["success"]:
-                    results.append(analysis)
-                    
-                # Breche ab, wenn wir das Limit erreicht haben
-                if len(results) >= limit:
-                    break
+        # Analyse durchführen
+        analysis = analyze_token_for_strategy(token_address)
+        
+        if analysis["success"]:
+            results.append(analysis)
     
     # Sortiere nach Score (absteigend)
     results.sort(key=lambda x: x["score"]["total"], reverse=True)

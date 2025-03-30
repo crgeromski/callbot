@@ -382,9 +382,10 @@ class CoinFinderTab:
                 # Wenn kein API-Key vorhanden ist, zeige Platzhalter-Daten
                 self.parent.after(0, self.insert_placeholder_data)
                 self.parent.after(0, lambda: messagebox.showinfo("API-Key fehlt", 
-                    "Kein Birdeye API-Key gefunden. Bitte speichere einen gültigen API-Key in der Datei 'ui/api_key.txt'."))
+                    "Kein Birdeye API-Key gefunden. Bitte speichere einen gültigen API-Key in der Datei unter dem Pfad:\n" + 
+                    f"{birdeye_api.API_KEY_FILE}"))
                 return
-                
+            
             # Scanne Tokens mit der Strategie
             limit = 20  # Maximale Anzahl der zu analysierenden Tokens
             
@@ -404,9 +405,12 @@ class CoinFinderTab:
             
             # Aktualisiere die UI im Hauptthread
             self.parent.after(0, lambda: self.update_ui_with_results(results))
+            
         except Exception as e:
+            # Speichere die Fehlermeldung
+            error_message = str(e)
             # Fehlermeldung im Hauptthread anzeigen
-            self.parent.after(0, lambda: messagebox.showerror("Fehler", f"Fehler beim Abrufen der Daten: {str(e)}"))
+            self.parent.after(0, lambda: messagebox.showerror("Fehler", f"Fehler beim Abrufen der Daten: {error_message}"))
 
     def update_ui_with_results(self, results):
         """Aktualisiert die UI mit den API-Ergebnissen"""
