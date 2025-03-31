@@ -220,25 +220,28 @@ def get_filtered_tokens(
     mcap_min: float = 100000,
     mcap_max: float = 3000000,
     liquidity_min: float = 30000,
-    limit: int = 20
+    limit: int = 20 # Dieses Limit bezieht sich auf die Anzahl der *zurückgegebenen*, gefilterten Tokens
 ) -> List[Dict[str, Any]]:
     """
-    Holt eine gefilterte Liste von Tokens basierend auf MCAP und Liquidität.
+    Holt eine Liste von Tokens von der API, filtert sie nach MCAP und gibt eine begrenzte Anzahl zurück.
     
     Args:
         mcap_min: Minimale Marktkapitalisierung
         mcap_max: Maximale Marktkapitalisierung
-        liquidity_min: Minimale Liquidität
-        limit: Maximale Anzahl der Ergebnisse
+        liquidity_min: Minimale Liquidität (wird an API übergeben)
+        limit: Maximale Anzahl der *zurückzugebenden* Tokens nach Filterung
         
     Returns:
-        Eine Liste mit gefilterten Token-Daten
+        Eine Liste mit gefilterten Token-Daten, maximal 'limit' Elemente.
     """
-    # Versuche mehr Tokens zu holen als wir benötigen (50), da einige gefiltert werden könnten
-    token_list = get_token_list(limit=50, min_liquidity=liquidity_min)
+    # Hole die maximal erlaubte Menge Tokens von der API (Limit ist 50)
+    fetch_limit = 50 
+    print(f"Rufe Top {fetch_limit} Tokens von Birdeye ab (min. Liquidität: {liquidity_min})...")
+    token_list = get_token_list(limit=fetch_limit, min_liquidity=liquidity_min)
     filtered_tokens = []
-    
+
     if token_list and token_list.get("success", False):
+        print(f"API-Antwort erhalten, verarbeite Tokens...")
         tokens = token_list.get("data", {}).get("tokens", [])
         
         for token in tokens:
