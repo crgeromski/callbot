@@ -14,7 +14,8 @@ CACHE_EXPIRY = 60  # 1 Minute
 
 # API-Konfiguration
 API_BASE_URL = "https://public-api.birdeye.so"
-API_KEY_FILE = r"C:\Users\Gerome PC\Desktop\callbot_github\api dateien\birdeye_api_key.txt"
+# Korrekter Pfad zur API-Key-Datei
+API_KEY_FILE = r"C:\Users\Gerome PC\Desktop\callbot_real\api_key.txt" 
 
 # Standard-Header für alle Anfragen
 DEFAULT_HEADERS = {
@@ -206,7 +207,7 @@ def get_token_info(token_address: str) -> Optional[Dict[str, Any]]:
     cache_key = f"token_info_{token_address}"
     
     def fetch_token_info():
-        endpoint = "/defi/token_stat"
+        endpoint = "/defi/token_overview" # Korrigierter Endpunkt
         params = {
             "address": token_address
         }
@@ -270,16 +271,17 @@ def extract_token_info(token_data: Dict[str, Any]) -> Dict[str, Any]:
     address = token_data.get("address", "")
     symbol = token_data.get("symbol", "").upper()
     name = token_data.get("name", "")
-    mcap = token_data.get("mc", 0)
+    # Felder aus /token_overview verwenden oder Fallback auf /tokenlist Felder
+    mcap = token_data.get("marketCap", token_data.get("mc", 0)) 
     liquidity = token_data.get("liquidity", 0)
     price = token_data.get("price", 0)
-    volume_24h = token_data.get("v24h", token_data.get("volume_24h", 0)) # v24h oder volume_24h
+    volume_24h = token_data.get("v24hUSD", token_data.get("v24h", 0)) # Verwende v24hUSD oder v24h
     
-    # Preisänderungen für verschiedene Zeiträume
-    price_change_1h = token_data.get("priceChange1h", token_data.get("price_change_1h", 0))
-    price_change_4h = token_data.get("priceChange4h", token_data.get("price_change_4h", 0))
-    price_change_12h = token_data.get("priceChange12h", token_data.get("price_change_12h", 0))
-    price_change_24h = token_data.get("priceChange24h", token_data.get("price_change_24h", 0))
+    # Preisänderungen für verschiedene Zeiträume (aus /token_overview oder /tokenlist)
+    price_change_1h = token_data.get("priceChange1hPercent", token_data.get("priceChange1h", 0))
+    price_change_4h = token_data.get("priceChange4hPercent", token_data.get("priceChange4h", 0))
+    price_change_12h = token_data.get("priceChange12hPercent", token_data.get("priceChange12h", 0))
+    price_change_24h = token_data.get("priceChange24hPercent", token_data.get("priceChange24h", 0))
     
     # Berechne zusätzliche Daten für die Strategie
     volume_to_mcap_ratio = volume_24h / mcap if mcap > 0 else 0
@@ -293,6 +295,9 @@ def extract_token_info(token_data: Dict[str, Any]) -> Dict[str, Any]:
         "liquidity": liquidity,
         "price": price,
         "volume_24h": volume_24h,
+        "price_change_1h": price_change_1h,
+        "price_change_4h": price_change_4h,
+        "price_change_12h": price_change_12h,
         "price_change_24h": price_change_24h,
         "volume_to_mcap_ratio": volume_to_mcap_ratio,
         "liquidity_to_mcap_ratio": liquidity_to_mcap_ratio,
@@ -300,21 +305,23 @@ def extract_token_info(token_data: Dict[str, Any]) -> Dict[str, Any]:
         "mcap_display": formatters.format_k(mcap),
         "liquidity_display": formatters.format_k(liquidity),
         "volume_24h_display": formatters.format_k(volume_24h),
-        "price_change_24h_display": f"{price_change_24h:.2f}%"
+        "price_change_24h_display": f"{price_change_24h:.2f}%" # Ist bereits Prozentwert
     }
 
-def analyze_price_pattern(price_history_analysis: Dict[str, Any]) -> Tuple[int, List[str]]:
+def analyze_price_pattern(price_history_analysis: Dict[str, Any], max_score: int = 40) -> Tuple[int, List[str]]:
     """
     Analysiert das Preismuster basierend auf der historischen Analyse.
-    (Platzhalter - Implementierung erforderlich)
     
     Args:
         price_history_analysis: Ergebnisse der Preishistorie-Analyse
+        max_score: Die maximal erreichbare Punktzahl für diese Kategorie (Gewichtung)
         
     Returns:
         Tuple mit (Score, Gründe)
     """
-    pattern_score = 0
+    # Interner Maximalwert, auf den die Logik ursprünglich ausgelegt war
+    internal_max_score = 40
+    raw_score = 0 # Rohpunkte basierend auf der internen Logik
     reasons = []
     
     dip_detected = price_history_analysis.get("dip_detected", False)
@@ -325,13 +332,13 @@ def analyze_price_pattern(price_history_analysis: Dict[str, Any]) -> Tuple[int, 
     
     # Punkte für korrekten Dip (15-40%)
     if dip_detected:
-        pattern_score += 15 # Grundpunkte für korrekten Dip
+        raw_score += 15 # Grundpunkte für korrekten Dip
         reasons.append(f"Dip von {dip_percentage:.1f}% erkannt (Ziel: 15-40%)")
         
         # Punkte für Stabilisierung (mindestens 3 Kerzen)
         if stabilization_count >= 3:
             stabilization_bonus = min(10, (stabilization_count - 2) * 5) # Bis zu 10 Punkte für 3+ Kerzen
-            pattern_score += stabilization_bonus
+            raw_score += stabilization_bonus
             reasons.append(f"Preisstabilisierung über {stabilization_count} Kerzen nach Dip")
         else:
              reasons.append(f"Wenig Stabilisierung ({stabilization_count}) nach Dip (Ziel: 3-5)")
@@ -339,30 +346,45 @@ def analyze_price_pattern(price_history_analysis: Dict[str, Any]) -> Tuple[int, 
         # Punkte für Bounce nach Dip und Stabilisierung
         if bounce_detected:
             bounce_bonus = min(15, 5 + int(recovery_percentage / 5)) # Bis zu 15 Punkte für Bounce Stärke
-            pattern_score += bounce_bonus
+            raw_score += bounce_bonus
             reasons.append(f"Second Bounce mit {recovery_percentage:.1f}% Erholung erkannt")
         else:
             reasons.append("Kein klarer Bounce nach Dip bisher")
             
     elif dip_percentage > 40:
-         pattern_score += 5 # Wenige Punkte für zu starken Dip
+         raw_score += 5 # Wenige Punkte für zu starken Dip
          reasons.append(f"Dip zu stark ({dip_percentage:.1f}%), erhöhtes Risiko")
     elif dip_percentage > 0: # Dip < 15%
-         pattern_score += 5 # Wenige Punkte für zu schwachen Dip
+         raw_score += 5 # Wenige Punkte für zu schwachen Dip
          reasons.append(f"Dip zu gering ({dip_percentage:.1f}%), schwaches Signal")
     else: # Kein Dip erkannt
+        # Korrekte Einrückung hier:
         reasons.append("Kein signifikanter Dip nach Höchststand erkannt")
         # Optional: Punkte für generellen Aufwärtstrend, falls kein Dip/Bounce?
         # Hier vorerst keine Punkte, da Fokus auf Dip/Bounce liegt.
 
     # TODO: Kerzenmuster (Hammer/Doji) analysieren, falls OHLC-Daten verfügbar wären
     
-    # Begrenze den Score auf maximal 40 Punkte
-    pattern_score = min(pattern_score, 40)
+    # Skaliere den Roh-Score auf den maximal erlaubten Score (Gewichtung)
+    # Stelle sicher, dass internal_max_score nicht 0 ist, um Division durch Null zu vermeiden
+    if internal_max_score > 0:
+        scaled_score = round((raw_score / internal_max_score) * max_score)
+    else:
+        scaled_score = 0 # Wenn die interne Maximalpunktzahl 0 ist, ist der skalierte Score auch 0
+        
+    # Begrenze den Score auf maximal max_score Punkte
+    final_score = min(scaled_score, max_score)
     
-    return pattern_score, reasons
+    return final_score, reasons
 
-def analyze_token_for_strategy(token_data, price_history=None):
+def analyze_token_for_strategy(
+    token_data, 
+    price_history=None,
+    pattern_weight: int = 40,
+    volume_weight: int = 35,
+    timeframe_weight: int = 15,
+    rugpull_weight: int = 10
+):
     """
     Analysiert Token-Daten nach den Kriterien der "Second Bounce Strategy".
     Die Analyse wird um historische Preisdaten erweitert, um Muster besser zu erkennen.
@@ -370,6 +392,10 @@ def analyze_token_for_strategy(token_data, price_history=None):
     Args:
         token_data: Die Token-Daten aus der API
         price_history: Historische Preis- und Volumendaten (optional)
+        pattern_weight: Gewichtung für Mustererkennung
+        volume_weight: Gewichtung für Volumenbestätigung
+        timeframe_weight: Gewichtung für Zeitrahmenübereinstimmung
+        rugpull_weight: Gewichtung für Rugpull-Sicherheit
         
     Returns:
         Ein Dictionary mit der Analyse und dem Score
@@ -382,11 +408,17 @@ def analyze_token_for_strategy(token_data, price_history=None):
         "token_address": token_address,
         "token_info": token_info,
         "score": {
-            "pattern": 0,  # Max 40 Punkte
-            "volume": 0,   # Max 35 Punkte
-            "timeframe": 0,  # Max 15 Punkte
-            "rugpull": 0,    # Max 10 Punkte
+            "pattern": 0,
+            "volume": 0,
+            "timeframe": 0,
+            "rugpull": 0,
             "total": 0
+        },
+        "weights": { # Speichere die verwendeten Gewichte für die UI-Anzeige
+            "pattern": pattern_weight,
+            "volume": volume_weight,
+            "timeframe": timeframe_weight,
+            "rugpull": rugpull_weight
         },
         "reasons": [],
         "potential": "→1X",
@@ -398,50 +430,55 @@ def analyze_token_for_strategy(token_data, price_history=None):
     }
     
     # Wenn historische Preisdaten vorhanden sind, analysiere sie
-    if price_history and isinstance(price_history, dict) and "data" in price_history and "candles" in price_history["data"]:
-        candles = price_history["data"]["candles"]
-        # Analysiere Preishistorie für Pattern-Erkennung
-        result["price_history_analysis"] = analyze_price_history(candles)
+    # if price_history and isinstance(price_history, dict) and "data" in price_history and "candles" in price_history["data"]:
+    #     candles = price_history["data"]["candles"]
+    #     # Analysiere Preishistorie für Pattern-Erkennung
+    #     result["price_history_analysis"] = analyze_price_history(candles)
         
-        # 1. Muster-Analyse (40 Punkte) - Verbessert mit historischen Daten
-        pattern_score, pattern_reasons = analyze_price_pattern(result["price_history_analysis"])
-        result["score"]["pattern"] = pattern_score
-        result["reasons"].extend(pattern_reasons)
+    #     # 1. Muster-Analyse (Gewichtet) - Verbessert mit historischen Daten
+    #     pattern_score, pattern_reasons = analyze_price_pattern(result["price_history_analysis"], max_score=pattern_weight)
+    #     result["score"]["pattern"] = pattern_score
+    #     result["reasons"].extend(pattern_reasons)
         
-        # Setze dip_detected und bounce_detected basierend auf der Analyse
-        result["dip_detected"] = result["price_history_analysis"].get("dip_detected", False)
-        result["bounce_detected"] = result["price_history_analysis"].get("bounce_detected", False)
-    else:
-        # Wenn keine historischen Daten verfügbar sind oder die Analyse fehlgeschlagen ist
-        result["reasons"].append("Keine ausreichenden historischen Preisdaten für Musteranalyse verfügbar.")
-        # Fallback auf einfache 24h-Analyse (optional, könnte man auch weglassen und 0 Punkte geben)
-        # simple_pattern_analysis(token_info, result) # Entfernt, da wir historische Daten priorisieren
-        result["score"]["pattern"] = 0 # Keine Punkte ohne historische Daten
+    #     # Setze dip_detected und bounce_detected basierend auf der Analyse
+    #     result["dip_detected"] = result["price_history_analysis"].get("dip_detected", False)
+    #     result["bounce_detected"] = result["price_history_analysis"].get("bounce_detected", False)
+    # else:
+    #     # Wenn keine historischen Daten verfügbar sind oder die Analyse fehlgeschlagen ist
+    #     result["reasons"].append("Keine ausreichenden historischen Preisdaten für Musteranalyse verfügbar.")
+    #     # Fallback auf einfache 24h-Analyse (optional, könnte man auch weglassen und 0 Punkte geben)
+    #     # simple_pattern_analysis(token_info, result) # Entfernt, da wir historische Daten priorisieren
+    result["score"]["pattern"] = 0 # Keine Punkte ohne historische Daten
+    result["reasons"].append("Preismuster-Analyse deaktiviert (API-Limit)")
     
-    # 2. Volumen-Analyse (35 Punkte)
-    volume_score, volume_reasons, volume_trend = analyze_volume_quality(token_info, result["price_history_analysis"])
+    # 2. Volumen-Analyse (Gewichtet)
+    volume_score, volume_reasons, volume_trend = analyze_volume_quality(token_info, result.get("price_history_analysis", {}), max_score=volume_weight)
     result["score"]["volume"] = volume_score
     result["reasons"].extend(volume_reasons)
     result["volume_trend"] = volume_trend
     
-    # 3. Zeitrahmen-Analyse (15 Punkte)
-    timeframe_score, timeframe_reasons = analyze_timeframes(token_info, result["price_history_analysis"])
+    # 3. Zeitrahmen-Analyse (Gewichtet)
+    timeframe_score, timeframe_reasons = analyze_timeframes(token_info, result.get("price_history_analysis", {}), max_score=timeframe_weight)
     result["score"]["timeframe"] = timeframe_score
     result["reasons"].extend(timeframe_reasons)
     
-    # 4. Rugpull-Sicherheit (10 Punkte)
-    safety_score, safety_reasons = analyze_rugpull_safety(token_info)
+    # 4. Rugpull-Sicherheit (Gewichtet)
+    safety_score, safety_reasons = analyze_rugpull_safety(token_info, max_score=rugpull_weight)
     result["score"]["rugpull"] = safety_score
     result["reasons"].extend(safety_reasons)
     
-    # Gesamtpunktzahl berechnen
+    # Gesamtpunktzahl berechnen (Summe der gewichteten Scores)
     result["score"]["total"] = sum(result["score"].values())
     
     # Potenzial basierend auf dem Score und anderen Faktoren
-    potential_factor = calculate_potential_factor(result["score"]["total"], 
-                                                 result["dip_detected"], 
-                                                 result["bounce_detected"],
-                                                 result["volume_trend"])
+    total_weight = sum(result["weights"].values())
+    potential_factor = calculate_potential_factor(
+        result["score"]["total"], 
+        total_weight,
+        result["dip_detected"], 
+        result["bounce_detected"], 
+        result["volume_trend"]
+    )
     result["potential"] = potential_factor
     
     # Hauptgrund bestimmen
@@ -576,6 +613,8 @@ def analyze_price_history(candles):
     return {
         "dip_detected": dip_detected,
         "bounce_detected": bounce_detected,
+        "dip_detected": dip_detected,
+        "bounce_detected": bounce_detected,
         "price_pattern": "second_bounce" if bounce_detected else "dip" if dip_detected else "other",
         "highest_price": highest_price,
         "lowest_price": lowest_price_after_high,
@@ -590,18 +629,20 @@ def analyze_price_history(candles):
 # def simple_pattern_analysis(token_info, result):
 #     ...
 
-def analyze_volume_quality(token_info, price_history_analysis):
+def analyze_volume_quality(token_info, price_history_analysis, max_score: int = 35):
     """
     Analysiert die Volumenqualität anhand verschiedener Metriken.
     
     Args:
         token_info: Basisinformationen zum Token
         price_history_analysis: Ergebnisse der Preishistorie-Analyse
+        max_score: Die maximal erreichbare Punktzahl für diese Kategorie (Gewichtung)
         
     Returns:
         Tuple mit (Score, Gründe, Volume-Trend)
     """
-    volume_score = 0
+    internal_max_score = 35
+    raw_score = 0
     reasons = []
     volume_trend = "→"
     
@@ -610,26 +651,26 @@ def analyze_volume_quality(token_info, price_history_analysis):
     
     # Volumen-Qualität basierend auf dem Verhältnis zum MCAP
     if volume_to_mcap >= 0.3:  # Sehr hohes Volumen
-        volume_score += 35
+        raw_score += 35
         volume_trend = "↑↑"
         reasons.append(f"Außergewöhnlich hohes Handelsvolumen ({volume_to_mcap*100:.1f}% des MCAP)")
     elif volume_to_mcap >= 0.2:  # Hohes Volumen
-        volume_score += 30
+        raw_score += 30
         volume_trend = "↑"
         reasons.append(f"Sehr starkes Handelsvolumen ({volume_to_mcap*100:.1f}% des MCAP)")
     elif volume_to_mcap >= 0.1:  # Gutes Volumen
-        volume_score += 25
+        raw_score += 25
         volume_trend = "↑"
         reasons.append(f"Starkes Handelsvolumen ({volume_to_mcap*100:.1f}% des MCAP)")
     elif volume_to_mcap >= 0.05:  # Moderates Volumen
-        volume_score += 20
+        raw_score += 20
         volume_trend = "↑"
         reasons.append(f"Gutes Handelsvolumen ({volume_to_mcap*100:.1f}% des MCAP)")
     elif volume_to_mcap >= 0.02:  # Ausreichendes Volumen
-        volume_score += 15
+        raw_score += 15
         reasons.append(f"Moderate Handelsaktivität ({volume_to_mcap*100:.1f}% des MCAP)")
     elif volume_to_mcap > 0:
-        volume_score += 10
+        raw_score += 10
         volume_trend = "↓"
         reasons.append(f"Niedriges Handelsvolumen ({volume_to_mcap*100:.1f}% des MCAP)")
     else:
@@ -641,9 +682,9 @@ def analyze_volume_quality(token_info, price_history_analysis):
         volume_pattern = price_history_analysis["volume_pattern"]
         if volume_pattern == "high_dip_volume":
             # Bonus für hohes Volumen während eines Dips (starkes Kaufsignal)
-            bonus = min(5, 35 - volume_score)  # Maximal 5 Bonus-Punkte, aber nicht über 35 total
+            bonus = min(5, internal_max_score - raw_score)  # Maximal 5 Bonus-Punkte, aber nicht über internal_max_score total
             if bonus > 0:
-                volume_score += bonus
+                raw_score += bonus
                 reasons.append("Bonus: Erhöhtes Kaufvolumen während des Dips")
                 if volume_trend == "→":
                     volume_trend = "↑"
@@ -651,14 +692,21 @@ def analyze_volume_quality(token_info, price_history_analysis):
                     volume_trend = "→"
         elif volume_pattern == "increasing_after_dip":
             # Bonus für zunehmendes Volumen nach einem Dip (potentieller Bounce)
-            bonus = min(3, 35 - volume_score)  # Maximal 3 Bonus-Punkte
+            bonus = min(3, internal_max_score - raw_score)  # Maximal 3 Bonus-Punkte
             if bonus > 0:
-                volume_score += bonus
+                raw_score += bonus
                 reasons.append("Bonus: Zunehmendes Volumen nach dem Dip")
-    
-    return volume_score, reasons, volume_trend
 
-def analyze_timeframes(token_info, price_history_analysis):
+    # Skaliere und begrenze den Score
+    if internal_max_score > 0:
+        scaled_score = round((raw_score / internal_max_score) * max_score)
+    else:
+        scaled_score = 0
+    final_score = min(scaled_score, max_score)
+    
+    return final_score, reasons, volume_trend
+
+def analyze_timeframes(token_info, price_history_analysis, max_score: int = 15):
     """
     Analysiert die verschiedenen Zeitrahmen für eine Divergenz.
     Idealerweise: kurzfristig (5M/1H) negativ, langfristig (6H/24H) positiv.
@@ -666,24 +714,22 @@ def analyze_timeframes(token_info, price_history_analysis):
     Args:
         token_info: Basisinformationen zum Token
         price_history_analysis: Ergebnisse der Preishistorie-Analyse
+        max_score: Die maximal erreichbare Punktzahl für diese Kategorie (Gewichtung)
         
     Returns:
         Tuple mit (Score, Gründe)
     """
-    timeframe_score = 0
+    internal_max_score = 15
+    raw_score = 0
     reasons = []
     
-    # Verwende spezifische Zeitrahmen-Daten aus token_info, falls verfügbar
-    # Birdeye API liefert oft priceChange1h, priceChange4h, priceChange12h, priceChange24h
-    # Wir simulieren hier die Anforderung: 5M/1H negativ, 6H/24H positiv
+    # Verwende spezifische Zeitrahmen-Daten aus token_info (jetzt aus /token_overview)
+    # priceChange*hPercent Felder werden verwendet
     
     # Hole die verfügbaren Preisänderungen (Standardwert 0, falls nicht vorhanden)
-    # Versuche, die Daten aus token_info zu holen. Die Namen können variieren, je nachdem,
-    # ob die Daten von /defi/tokenlist oder /defi/token_stat kommen.
-    price_change_1h = token_info.get("priceChange1h", token_info.get("price_change_1h", 0)) 
-    price_change_4h = token_info.get("priceChange4h", token_info.get("price_change_4h", 0)) # Als Annäherung für 6H
-    price_change_12h = token_info.get("priceChange12h", token_info.get("price_change_12h", 0)) # Als Annäherung für 6H/24H
-    price_change_24h = token_info.get("price_change_24h", 0) # Bereits extrahiert
+    price_change_1h = token_info.get("price_change_1h", 0) # Bereits extrahiert als priceChange1hPercent
+    price_change_12h = token_info.get("price_change_12h", 0) # Bereits extrahiert als priceChange12hPercent
+    price_change_24h = token_info.get("price_change_24h", 0) # Bereits extrahiert als priceChange24hPercent
     
     # Definiere kurzfristige und langfristige Indikatoren
     # Annahme: 1H ist kurzfristig, 12H/24H sind langfristig
@@ -692,49 +738,59 @@ def analyze_timeframes(token_info, price_history_analysis):
     
     # Ideale Divergenz: Kurzfristig negativ, Langfristig positiv
     if short_term_negative and long_term_positive:
-        timeframe_score += 15
+        raw_score += 15
         reasons.append(f"Ideale Zeitrahmen-Divergenz (1H: {price_change_1h:.1f}%, 12/24H positiv)")
     # Gute Konstellation: Kurzfristig leicht negativ/neutral, Langfristig positiv
     elif price_change_1h <= 0 and long_term_positive:
-        timeframe_score += 10
+        raw_score += 10
         reasons.append(f"Gute Zeitrahmen-Konstellation (1H: {price_change_1h:.1f}%, 12/24H positiv)")
     # Akzeptabel: Alles positiv (Aufwärtstrend)
     elif price_change_1h > 0 and long_term_positive:
-        timeframe_score += 5
+        raw_score += 5
         reasons.append(f"Genereller Aufwärtstrend (1H: {price_change_1h:.1f}%, 12/24H positiv)")
     # Negativ: Langfristig negativ
     elif not long_term_positive:
-        timeframe_score += 0 # Keine Punkte bei negativem Langzeittrend
+        raw_score += 0 # Keine Punkte bei negativem Langzeittrend
         reasons.append(f"Negativer Langzeit-Trend (12H: {price_change_12h:.1f}%, 24H: {price_change_24h:.1f}%)")
     else:
         # Andere Fälle (z.B. kurz positiv, lang negativ) - weniger ideal
-        timeframe_score += 2
+        raw_score += 2
         reasons.append(f"Inkonsistente Zeitrahmen (1H: {price_change_1h:.1f}%, 12H: {price_change_12h:.1f}%, 24H: {price_change_24h:.1f}%)")
 
     # Bonus, wenn 5M (aus price_history) positiv wird (falls Dip erkannt wurde)
-    # Dies erfordert Zugriff auf die 5M-Kerzen, was hier nicht direkt der Fall ist.
     # Wir könnten es aus price_history_analysis ableiten, wenn dort die letzte Kerze positiv war.
     if price_history_analysis and price_history_analysis.get("dip_detected", False):
          current_price = price_history_analysis.get("current_price", 0)
          lowest_price = price_history_analysis.get("lowest_price", 0)
          # Prüfe, ob der aktuelle Preis über dem Tiefpunkt liegt
          if current_price > lowest_price:
-             timeframe_score = min(15, timeframe_score + 3) # Kleiner Bonus, max 15
-             reasons.append("Bonus: Preis beginnt sich vom Dip-Tief zu erholen")
-    
-    return timeframe_score, reasons
+             bonus = min(3, internal_max_score - raw_score) # Kleiner Bonus, max 3
+             if bonus > 0:
+                 raw_score += bonus
+                 reasons.append("Bonus: Preis beginnt sich vom Dip-Tief zu erholen")
 
-def analyze_rugpull_safety(token_info):
+    # Skaliere und begrenze den Score
+    if internal_max_score > 0:
+        scaled_score = round((raw_score / internal_max_score) * max_score)
+    else:
+        scaled_score = 0
+    final_score = min(scaled_score, max_score)
+    
+    return final_score, reasons
+
+def analyze_rugpull_safety(token_info, max_score: int = 10):
     """
     Analysiert die Sicherheit gegen Rugpulls anhand verschiedener Metriken.
     
     Args:
         token_info: Basisinformationen zum Token
+        max_score: Die maximal erreichbare Punktzahl für diese Kategorie (Gewichtung)
         
     Returns:
         Tuple mit (Score, Gründe)
     """
-    safety_score = 0
+    internal_max_score = 10
+    raw_score = 0
     reasons = []
     
     # Liquidität im Verhältnis zur Marktkapitalisierung
@@ -742,31 +798,39 @@ def analyze_rugpull_safety(token_info):
     
     # Gesunde Liquidität im Verhältnis zur Marktkapitalisierung
     if liquidity_to_mcap >= 0.3:  # Sehr hohe Liquidität
-        safety_score += 10
+        raw_score += 10
         reasons.append(f"Hervorragende Liquidität ({liquidity_to_mcap*100:.1f}% des MCAP)")
     elif liquidity_to_mcap >= 0.2:  # Hohe Liquidität
-        safety_score += 8
+        raw_score += 8
         reasons.append(f"Sehr gute Liquidität ({liquidity_to_mcap*100:.1f}% des MCAP)")
     elif liquidity_to_mcap >= 0.1:  # Gute Liquidität
-        safety_score += 6
+        raw_score += 6
         reasons.append(f"Gute Liquidität ({liquidity_to_mcap*100:.1f}% des MCAP)")
     elif liquidity_to_mcap >= 0.05:  # Ausreichende Liquidität
-        safety_score += 4
+        raw_score += 4
         reasons.append(f"Ausreichende Liquidität ({liquidity_to_mcap*100:.1f}% des MCAP)")
     elif liquidity_to_mcap >= 0.02:  # Minimale Liquidität
-        safety_score += 2
+        raw_score += 2
         reasons.append(f"Niedrige Liquidität ({liquidity_to_mcap*100:.1f}% des MCAP)")
     else:
         reasons.append(f"Sehr geringe Liquidität ({liquidity_to_mcap*100:.1f}% des MCAP) - Rugpull-Risiko")
-    
-    return safety_score, reasons
 
-def calculate_potential_factor(total_score, dip_detected, bounce_detected, volume_trend):
+    # Skaliere und begrenze den Score
+    if internal_max_score > 0:
+        scaled_score = round((raw_score / internal_max_score) * max_score)
+    else:
+        scaled_score = 0
+    final_score = min(scaled_score, max_score)
+    
+    return final_score, reasons
+
+def calculate_potential_factor(total_score, total_weight, dip_detected, bounce_detected, volume_trend):
     """
     Berechnet das potenzielle X-Multiple basierend auf dem Score und anderen Faktoren.
     
     Args:
-        total_score: Gesamtpunktzahl des Tokens
+        total_score: Gesamtpunktzahl des Tokens (Summe der gewichteten Scores)
+        total_weight: Summe der Gewichtungen (normalerweise 100)
         dip_detected: Wurde ein Dip erkannt?
         bounce_detected: Wurde ein Bounce erkannt?
         volume_trend: Volumen-Trend (↑, →, ↓)
@@ -774,43 +838,40 @@ def calculate_potential_factor(total_score, dip_detected, bounce_detected, volum
     Returns:
         String mit dem potenziellen X-Multiple
     """
-    # Basis-Potential basierend auf dem Score
-    if total_score >= 90:
+    # Berechne den prozentualen Score relativ zur Gesamtgewichtung
+    percentage_score = (total_score / total_weight * 100) if total_weight > 0 else 0
+    
+    # Basis-Potential basierend auf dem prozentualen Score
+    if percentage_score >= 90:
         potential = "→10X"
-    elif total_score >= 85:
+    elif percentage_score >= 85:
         potential = "→7X"
-    elif total_score >= 80:
+    elif percentage_score >= 80:
         potential = "→5X"
-    elif total_score >= 75:
+    elif percentage_score >= 75:
         potential = "→3X"
-    elif total_score >= 70:
+    elif percentage_score >= 70:
         potential = "→2X"
-    elif total_score >= 60:
+    elif percentage_score >= 60:
         potential = "→1.5X"
     else:
         potential = "→1X"
     
     # Anpassen basierend auf anderen Faktoren
-    if bounce_detected and volume_trend in ["↑", "↑↑"] and total_score >= 75:
-        # Wenn bereits ein Bounce erkannt wurde und das Volumen stark ist, 
+    if bounce_detected and volume_trend in ["↑", "↑↑"] and percentage_score >= 75:
+        # Wenn bereits ein Bounce erkannt wurde und das Volumen stark ist,
         # könnte das Potential höher sein
-        if potential == "→5X":
-            potential = "→7X"
-        elif potential == "→3X":
-            potential = "→5X"
-        elif potential == "→2X":
-            potential = "→3X"
+        if potential == "→5X": potential = "→7X"
+        elif potential == "→3X": potential = "→5X"
+        elif potential == "→2X": potential = "→3X"
     elif dip_detected and not bounce_detected and volume_trend in ["↑", "↑↑"]:
         # Wenn ein Dip erkannt wurde, aber noch kein Bounce, ist das ein guter Einstiegspunkt
         # mit möglicherweise höherem Potential
-        if total_score >= 70:
-            if potential == "→3X":
-                potential = "→5X"
-            elif potential == "→2X":
-                potential = "→3X"
-            elif potential == "→1.5X":
-                potential = "→2X"
-    elif volume_trend == "↓↓" and total_score < 75:
+        if percentage_score >= 70:
+            if potential == "→3X": potential = "→5X"
+            elif potential == "→2X": potential = "→3X"
+            elif potential == "→1.5X": potential = "→2X"
+    elif volume_trend == "↓↓" and percentage_score < 75:
         # Bei sehr niedrigem Volumen ist das Potential begrenzt
         if potential != "→1X":
             potential = "→1X"
@@ -828,48 +889,70 @@ def determine_main_reason(result):
         String mit dem Hauptgrund
     """
     scores = result["score"]
-    total = scores["total"]
+    weights = result["weights"]
+    total_score = scores["total"]
+    total_weight = sum(weights.values())
+    percentage_score = (total_score / total_weight * 100) if total_weight > 0 else 0
+
+    # Berechne prozentuale Scores für jede Kategorie
+    pattern_perc = (scores["pattern"] / weights["pattern"] * 100) if weights["pattern"] > 0 else 0
+    volume_perc = (scores["volume"] / weights["volume"] * 100) if weights["volume"] > 0 else 0
+    timeframe_perc = (scores["timeframe"] / weights["timeframe"] * 100) if weights["timeframe"] > 0 else 0
+    rugpull_perc = (scores["rugpull"] / weights["rugpull"] * 100) if weights["rugpull"] > 0 else 0
     
-    # Fälle für hohe Scores
-    if total >= 85:
+    # Fälle für hohe Scores (>= 85%)
+    if percentage_score >= 85:
         if result["bounce_detected"] and result["volume_trend"] in ["↑", "↑↑"]:
             return "Second Bounce mit starkem Volumen"
-        elif scores["pattern"] >= 30 and scores["volume"] >= 25:
+        elif pattern_perc >= 75 and volume_perc >= 70: # Hohe % in Pattern & Volume
             return "Optimales Kurs- und Volumenmuster"
         else:
             return "Hervorragende Gesamtwerte"
     
-    # Fälle für mittlere Scores
-    elif total >= 70:
+    # Fälle für mittlere Scores (70-84%)
+    elif percentage_score >= 70:
         if result["dip_detected"] and not result["bounce_detected"]:
             return "Dip erkannt - potenzieller Einstiegspunkt"
         elif result["bounce_detected"]:
             return "Second Bounce im Gange"
-        elif scores["volume"] >= 25:
+        elif volume_perc >= 70: # Hohe % in Volume
             return "Starkes Handelsvolumen"
         else:
             return "Solide Gesamtwerte"
     
-    # Fälle für niedrige Scores
+    # Fälle für niedrige Scores (< 70%)
     else:
-        if scores["rugpull"] <= 2:
+        # Priorisiere die wichtigsten negativen Gründe
+        if rugpull_perc < 20: # Sehr niedrige Rugpull-Sicherheit
             return "Hohes Rugpull-Risiko"
-        elif scores["volume"] < 15:
+        elif volume_perc < 40: # Sehr niedriges Volumen
             return "Zu geringes Handelsvolumen"
-        elif scores["pattern"] < 10:
+        elif pattern_perc < 25: # Sehr schwaches Muster
             return "Kein klares Kursmuster erkennbar"
-        elif result["dip_detected"] and scores["volume"] < 20:
+        elif result["dip_detected"] and volume_perc < 50: # Dip mit schwachem Volumen
             return "Dip mit schwachem Volumen"
         else:
-            return "Unzureichende Gesamtwerte"
-
+            # Finde die Kategorie mit dem relativ niedrigsten Score
+            lowest_cat = min(weights.keys(), key=lambda k: (scores[k] / weights[k]) if weights[k] > 0 else 1)
+            if lowest_cat == "rugpull": return "Geringe Rugpull-Sicherheit"
+            if lowest_cat == "volume": return "Schwaches Volumen"
+            if lowest_cat == "pattern": return "Schwaches Muster"
+            if lowest_cat == "timeframe": return "Ungünstige Zeitrahmen"
+            return "Unzureichende Gesamtwerte" # Fallback
 
 
 def scan_tokens_for_strategy(
     mcap_min: float = 100000,
     mcap_max: float = 3000000,
     liquidity_min: float = 30000,
-    limit: int = 10
+    age_min: int = 0, # Hinzugefügt
+    age_max: int = 5, # Hinzugefügt
+    min_tx: int = 1000, # Hinzugefügt
+    limit: int = 10,
+    pattern_weight: int = 40,
+    volume_weight: int = 35,
+    timeframe_weight: int = 15,
+    rugpull_weight: int = 10
 ) -> List[Dict[str, Any]]:
     """
     Scannt Tokens nach den Strategie-Kriterien.
@@ -878,38 +961,91 @@ def scan_tokens_for_strategy(
         mcap_min: Minimale Marktkapitalisierung
         mcap_max: Maximale Marktkapitalisierung
         liquidity_min: Minimale Liquidität
+        age_min: Minimales Token-Alter in Tagen
+        age_max: Maximales Token-Alter in Tagen
+        min_tx: Minimale Anzahl Transaktionen in 24h
         limit: Maximale Anzahl der zu analysierenden Tokens
+        pattern_weight: Gewichtung für Mustererkennung
+        volume_weight: Gewichtung für Volumenbestätigung
+        timeframe_weight: Gewichtung für Zeitrahmenübereinstimmung
+        rugpull_weight: Gewichtung für Rugpull-Sicherheit
         
     Returns:
         Eine Liste mit analysierten Token-Daten, sortiert nach Score
     """
-    # Hole gefilterte Tokens
+    # Hole gefilterte Tokens (Filterung nach Alter und TX erfolgt später)
     filtered_tokens = get_filtered_tokens(
         mcap_min=mcap_min,
         mcap_max=mcap_max,
         liquidity_min=liquidity_min,
-        limit=limit
+        limit=limit * 2 # Hole mehr Tokens, da wir noch nach Alter/TX filtern
     )
     
     # Analyse jedes Tokens
     results = []
+    analyzed_count = 0
     for token in filtered_tokens:
+        if analyzed_count >= limit:
+            break
+
         token_address = token.get("address")
         if not token_address:
             continue
-            
+
+        # Überspringe den Aufruf von get_token_info und die Filter für Alter und TX,
+        # da /defi/token_overview nicht im Standard-Plan verfügbar ist.
+        # und wir die 401-Fehler vermeiden wollen.
+        
+        # # Hole zusätzliche Token-Infos für Alter und TX (nicht im Standard-Tokenlist-Endpunkt)
+        # # Nutze Cache, um API-Aufrufe zu minimieren
+        # token_stat = get_token_info(token_address)
+        # if not token_stat or not token_stat.get("success", False):
+        # #   print(f"Konnte Token-Stat für {token_address} nicht abrufen.")
+        #     continue
+        
+        # # token_stat_data = token_stat.get("data", {})
+
+        # # Filter nach Alter (AUSKOMMENTIERT, da 'created_at' in /token_overview fehlt)
+        # # created_at = token_stat_data.get("created_at", 0) 
+        # # if created_at:
+        # #     from datetime import datetime, timezone
+        # #     created_dt = datetime.fromtimestamp(created_at, tz=timezone.utc)
+        # #     now = datetime.now(tz=timezone.utc)
+        # #     age_days = (now - created_dt).days
+        # #     if not (age_min <= age_days <= age_max):
+        # #       # print(f"Token {token_address} nach Alter gefiltert ({age_days} Tage)") # Debugging
+        # #         continue
+        # # else:
+        # #   print(f"Kein Erstellungsdatum für {token_address} gefunden (Altersfilter übersprungen).")
+        #     # continue # Ohne Alter können wir nicht filtern - Vorerst überspringen statt filtern
+
+        # # Filter nach Transaktionen (verwende 'trade24h' aus /token_overview)
+        # # tx_24h = token_stat_data.get("trade24h", 0) # Geändert von tx24h zu trade24h
+        # # if tx_24h < min_tx:
+        # #   # print(f"Token {token_address} nach TX gefiltert ({tx_24h} TX)") # Debugging
+        # #     continue
+
         # Hole Preis-Historie (z.B. 5m Kerzen für die letzten 24 Stunden)
-        # Berechne Zeitstempel für die letzten 24 Stunden
-        to_ts = int(time.time())
-        from_ts = to_ts - 86400 # 24 * 60 * 60
+        # to_ts = int(time.time())
+        # from_ts = to_ts - 86400 # 24 * 60 * 60
         
-        price_history = get_token_price_history(token_address, resolution="5m", from_ts=from_ts, to_ts=to_ts)
-        
-        # Führe die Analyse mit historischen Daten durch
-        analysis = analyze_token_for_strategy(token, price_history=price_history)
+        # price_history = get_token_price_history(token_address, resolution="5m", from_ts=from_ts, to_ts=to_ts)
+        price_history = None # Deaktiviere Price History
+
+        # Führe die Analyse mit historischen Daten und Gewichtungen durch
+        # Verwende token_stat_data, da es mehr Infos enthält als das token-Objekt aus der Liste
+        analysis = analyze_token_for_strategy(
+            token, 
+            price_history=price_history,
+            pattern_weight=pattern_weight,
+            volume_weight=volume_weight,
+            timeframe_weight=timeframe_weight,
+            rugpull_weight=rugpull_weight
+        )
         results.append(analysis)
+        analyzed_count += 1
     
-    # Sortiere nach Score (absteigend)
+    # Sortiere nach Gesamt-Score (absteigend)
     results.sort(key=lambda x: x["score"]["total"], reverse=True)
     
     return results
@@ -927,12 +1063,22 @@ def extract_token_data_for_ui(analysis: Dict[str, Any]) -> tuple:
     token_info = analysis["token_info"]
     symbol = f"${token_info['symbol']}"
     mcap_str = token_info["mcap_display"]
-    score = str(analysis["score"]["total"])
-    potential = analysis["potential"]
+    # Zeige Score relativ zur Gesamtgewichtung an
+    total_score = analysis["score"]["total"]
+    total_weight = sum(analysis["weights"].values())
+    score_display = f"{total_score}/{total_weight}" if total_weight > 0 else f"{total_score}"
+    
+    potential = calculate_potential_factor(
+        total_score, 
+        total_weight, 
+        analysis["dip_detected"], 
+        analysis["bounce_detected"], 
+        analysis["volume_trend"]
+    )
     volume_trend = analysis["volume_trend"]
     main_reason = analysis["main_reason"]
     
-    return (symbol, mcap_str, score, potential, volume_trend, main_reason)
+    return (symbol, mcap_str, score_display, potential, volume_trend, main_reason)
 
 # Test-Funktion, wenn direkt ausgeführt
 if __name__ == "__main__":
@@ -944,6 +1090,7 @@ if __name__ == "__main__":
         print(f"API-Key gefunden: {api_key[:5]}..." + "*" * (len(api_key) - 5))
     else:
         print("Kein API-Key gefunden!")
+        exit() # Beenden, wenn kein Key vorhanden ist
     
     print("\n=== Token-Liste Test ===")
     token_list = get_token_list(limit=3)
@@ -955,23 +1102,32 @@ if __name__ == "__main__":
         print("Fehler beim Abrufen der Token-Liste")
     
     print("\n=== Strategie-Scan Test ===")
+    # Test mit Standard-Gewichtungen
     results = scan_tokens_for_strategy(
         mcap_min=50000,     # 50K
         mcap_max=5000000,   # 5M
         liquidity_min=10000, # 10K
-        limit=3
+        age_min=0,
+        age_max=7,
+        min_tx=500,
+        limit=5 # Teste mit 5 Tokens
     )
     
     print(f"Anzahl analysierter Tokens: {len(results)}")
     
     for i, analysis in enumerate(results):
         token_data = extract_token_data_for_ui(analysis)
-        print(f"\nToken {i+1}: {token_data[0]}")
-        print(f"MCAP: {token_data[1]}")
-        print(f"Score: {token_data[2]}/100")
-        print(f"Potential: {token_data[3]}")
-        print(f"Volume-Trend: {token_data[4]}")
-        print(f"Hauptgrund: {token_data[5]}")
-        print(f"Gründe:")
-        for reason in analysis["reasons"]:
-            print(f"  - {reason}")
+        print(f"\n--- Token {i+1}: {token_data[0]} ---")
+        print(f"  MCAP: {token_data[1]}")
+        print(f"  Score: {token_data[2]}")
+        print(f"  Potential: {token_data[3]}")
+        print(f"  Volume-Trend: {token_data[4]}")
+        print(f"  Hauptgrund: {token_data[5]}")
+        print(f"  Score-Details:")
+        print(f"    - Muster:   {analysis['score']['pattern']}/{analysis['weights']['pattern']}")
+        print(f"    - Volumen:  {analysis['score']['volume']}/{analysis['weights']['volume']}")
+        print(f"    - Zeit:     {analysis['score']['timeframe']}/{analysis['weights']['timeframe']}")
+        print(f"    - Sicherheit: {analysis['score']['rugpull']}/{analysis['weights']['rugpull']}")
+        # print(f"  Gründe:") # Optional: Detaillierte Gründe ausgeben
+        # for reason in analysis["reasons"]:
+        #     print(f"    - {reason}")

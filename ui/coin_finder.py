@@ -218,8 +218,8 @@ class CoinFinderTab:
         self.coins_tree.bind("<Double-1>", self.on_coin_double_click)
         self.coins_tree.bind("<<TreeviewSelect>>", self.on_coin_select)
         
-        # Zeige Platzhalter-Daten für die Demo
-        self.insert_placeholder_data()
+        # # Zeige Platzhalter-Daten für die Demo
+        # self.insert_placeholder_data()
     
     def create_detail_area(self):
         """Erstellt den Detailbereich für ausgewählte Coins"""
@@ -324,29 +324,6 @@ class CoinFinderTab:
         watch_button = tk.Button(action_frame, text="Zur Watchlist hinzufügen", command=self.add_to_watchlist)
         watch_button.pack(side="left")
     
-    def insert_placeholder_data(self):
-        """Fügt Platzhalter-Daten in die Treeview ein (nur für das Layout)"""
-        # Lösche vorhandene Daten
-        self.coins_tree.delete(*self.coins_tree.get_children())
-        
-        # Demo-Daten
-        placeholder_data = [
-            ("$MEMECOIN", "450K", "92", "→5X", "↑", "Starkes Buy-Volumen im Dip", "green"),
-            ("$SOLCAT", "280K", "78", "→3X", "↑", "Stabilisierung nach Dip", "yellow"),
-            ("$FLOKI", "1.8M", "72", "→2X", "→", "Positiver 6H/24H Trend", "yellow"),
-            ("$PEPE", "550K", "65", "→1.5X", "↓", "Schwache Buy/Sell Ratio", "red"),
-            ("$DOGE", "750K", "55", "→1X", "↓", "Übermäßiger Dip (45%)", "red")
-        ]
-        
-        # Füge Platzhalter-Daten ein
-        for coin_data in placeholder_data:
-            self.coins_tree.insert(
-                "",
-                "end",
-                values=coin_data[:-1],
-                tags=(coin_data[-1],)
-            )
-    
     def refresh_data(self):
         """Aktualisiert die Coin-Daten basierend auf der aktuellen Konfiguration"""
         # Update des Refresh-Labels mit aktuellem Timestamp
@@ -367,20 +344,48 @@ class CoinFinderTab:
                 age_min = int(self.strategy_vars['coin_age_min_var'].get())
                 age_max = int(self.strategy_vars['coin_age_max_var'].get())
                 min_tx = int(self.strategy_vars['tx_minimum_var'].get())
+                
+                # Gewichtungen auslesen (mit Fehlerbehandlung für ungültige Eingaben)
+                try:
+                    pattern_weight = int(self.strategy_vars['pattern_weight_var'].get())
+                except ValueError:
+                    pattern_weight = 40 # Standardwert
+                    self.strategy_vars['pattern_weight_var'].set("40")
+                try:
+                    volume_weight = int(self.strategy_vars['volume_weight_var'].get())
+                except ValueError:
+                    volume_weight = 35 # Standardwert
+                    self.strategy_vars['volume_weight_var'].set("35")
+                try:
+                    timeframe_weight = int(self.strategy_vars['timeframe_weight_var'].get())
+                except ValueError:
+                    timeframe_weight = 15 # Standardwert
+                    self.strategy_vars['timeframe_weight_var'].set("15")
+                try:
+                    rugpull_weight = int(self.strategy_vars['rugpull_weight_var'].get())
+                except ValueError:
+                    rugpull_weight = 10 # Standardwert
+                    self.strategy_vars['rugpull_weight_var'].set("10")
+
             except ValueError:
-                # Standard-Werte bei Fehler
+                # Standard-Werte bei Fehler für Filter
                 mcap_min = 100000    # 100K
                 mcap_max = 3000000   # 3M
                 liquidity_min = 30000  # 30K
                 age_min = 0
                 age_max = 5
                 min_tx = 1000
+                # Standard-Gewichtungen bei Fehler
+                pattern_weight = 40
+                volume_weight = 35
+                timeframe_weight = 15
+                rugpull_weight = 10
             
             # Prüfe, ob ein API-Key vorhanden ist
             api_key = birdeye_api.get_api_key()
             if not api_key:
                 # Wenn kein API-Key vorhanden ist, zeige Platzhalter-Daten
-                self.parent.after(0, self.insert_placeholder_data)
+                # self.parent.after(0, self.insert_placeholder_data) # Auskommentiert
                 self.parent.after(0, lambda: messagebox.showinfo("API-Key fehlt", 
                     "Kein Birdeye API-Key gefunden. Bitte speichere einen gültigen API-Key in der Datei unter dem Pfad:\n" + 
                     f"{birdeye_api.API_KEY_FILE}"))
@@ -397,7 +402,12 @@ class CoinFinderTab:
                 age_min=age_min,
                 age_max=age_max,
                 min_tx=min_tx,
-                limit=limit
+                limit=limit,
+                # Gewichtungen übergeben
+                pattern_weight=pattern_weight,
+                volume_weight=volume_weight,
+                timeframe_weight=timeframe_weight,
+                rugpull_weight=rugpull_weight
             )
             
             # Speichere die Ergebnisse für später
@@ -427,7 +437,11 @@ class CoinFinderTab:
             ui_data = birdeye_api.extract_token_data_for_ui(result)
             
             # Bestimme die Farbe basierend auf dem Score
-            score = int(ui_data[2])
+            score_str = ui_data[2]
+            if "/" in score_str:
+                score = int(score_str.split("/")[0])  # Extrahiere den Score vor dem "/"
+            else:
+                score = int(score_str) # Fallback, falls kein "/" vorhanden
             if score >= 85:
                 tag = "green"
             elif score >= 70:
@@ -439,7 +453,7 @@ class CoinFinderTab:
             self.coins_tree.insert(
                 "",
                 "end",
-                values=ui_data,
+                values=ui_data, # ui_data enthält jetzt Score als "X/Y"
                 tags=(tag,)
             )
     
@@ -506,18 +520,25 @@ class CoinFinderTab:
         # Finde die vollständigen Daten in coins_data
         selected_analysis = None
         for analysis in self.coins_data:
-            token_symbol = analysis.get("token_info", {}).get("data", {}).get("symbol", "")
+            # Versuche, den Symbolnamen aus der Analyse zu extrahieren
+            # Beachte, dass die Struktur von 'analysis' jetzt anders sein könnte
+            token_info = analysis.get("token_info", {})
+            token_symbol = token_info.get("symbol", "") # Direkt aus token_info
+            if not token_symbol: # Fallback, falls nicht in token_info
+                 token_symbol = analysis.get("symbol", "") # Direkt aus analysis
+
             if f"${token_symbol}" == values[0]:
                 selected_analysis = analysis
                 break
         
         if not selected_analysis:
+            print(f"Keine Analyse für {values[0]} gefunden.")
             return
         
         # Extrahiere Daten aus der Analyse
-        token_info = selected_analysis.get("token_info", {}).get("data", {})
-        price_info = selected_analysis.get("price_info", {}).get("data", {})
-        holder_info = selected_analysis.get("holder_info", {}).get("data", {})
+        token_info = selected_analysis.get("token_info", {})
+        # price_info = selected_analysis.get("price_info", {}).get("data", {}) # Nicht mehr verfügbar
+        # holder_info = selected_analysis.get("holder_info", {}).get("data", {}) # Nicht mehr verfügbar
         
         # Aktualisiere die Detailansicht
         self.detail_vars['symbol_var'].set(values[0])
@@ -525,23 +546,23 @@ class CoinFinderTab:
         self.detail_vars['mcap_var'].set(values[1])  # MCAP aus der Treeview
         
         # Liquidität
-        liquidity = price_info.get("liquidity", 0)
+        liquidity = token_info.get("liquidity", 0)
         self.detail_vars['liquidity_var'].set(formatters.format_k(liquidity))
         
-        # Alter (in Tagen) - berechnen aus dem Erstellungszeitpunkt
-        created_at = token_info.get("created_at", 0)
-        if created_at:
-            from datetime import datetime, timezone
-            created_dt = datetime.fromtimestamp(created_at, tz=timezone.utc)
-            now = datetime.now(tz=timezone.utc)
-            age_days = (now - created_dt).days
-            self.detail_vars['age_var'].set(str(age_days))
-        else:
-            self.detail_vars['age_var'].set("N/A")
+        # Alter (in Tagen) - Nicht mehr verfügbar
+        # created_at = token_info.get("created_at", 0)
+        # if created_at:
+        #     from datetime import datetime, timezone
+        #     created_dt = datetime.fromtimestamp(created_at, tz=timezone.utc)
+        #     now = datetime.now(tz=timezone.utc)
+        #     age_days = (now - created_dt).days
+        #     self.detail_vars['age_var'].set(str(age_days))
+        # else:
+        self.detail_vars['age_var'].set("N/A")
         
-        # Anzahl der Holder
-        holders_count = len(holder_info.get("items", []))
-        self.detail_vars['holders_var'].set(str(holders_count))
+        # Anzahl der Holder - Nicht mehr verfügbar
+        # holders_count = len(holder_info.get("items", []))
+        self.detail_vars['holders_var'].set("N/A")
         
         # Score-Details
         pattern_score = selected_analysis["score"]["pattern"]
@@ -550,11 +571,19 @@ class CoinFinderTab:
         rugpull_score = selected_analysis["score"]["rugpull"]
         total_score = selected_analysis["score"]["total"]
         
-        self.detail_vars['pattern_score_var'].set(f"{pattern_score}/40")
-        self.detail_vars['volume_score_var'].set(f"{volume_score}/35")
-        self.detail_vars['timeframe_score_var'].set(f"{timeframe_score}/15")
-        self.detail_vars['rugpull_score_var'].set(f"{rugpull_score}/10")
-        self.detail_vars['total_score_var'].set(f"{total_score}/100")
+        # Hole die verwendeten Gewichtungen aus der Analyse
+        weights = selected_analysis.get("weights", {})
+        pattern_weight = weights.get("pattern", 40)
+        volume_weight = weights.get("volume", 35)
+        timeframe_weight = weights.get("timeframe", 15)
+        rugpull_weight = weights.get("rugpull", 10)
+        total_weight = sum(weights.values()) if weights else 100
+
+        self.detail_vars['pattern_score_var'].set(f"{pattern_score}/{pattern_weight}")
+        self.detail_vars['volume_score_var'].set(f"{volume_score}/{volume_weight}")
+        self.detail_vars['timeframe_score_var'].set(f"{timeframe_score}/{timeframe_weight}")
+        self.detail_vars['rugpull_score_var'].set(f"{rugpull_score}/{rugpull_weight}")
+        self.detail_vars['total_score_var'].set(f"{total_score}/{total_weight}")
         
         # Hauptgrund
         self.detail_vars['main_reason_var'].set(selected_analysis["main_reason"])
@@ -577,7 +606,12 @@ class CoinFinderTab:
         # Finde die vollständigen Daten in coins_data
         selected_analysis = None
         for analysis in self.coins_data:
-            token_symbol = analysis.get("token_info", {}).get("data", {}).get("symbol", "")
+            # Versuche, den Symbolnamen aus der Analyse zu extrahieren
+            token_info = analysis.get("token_info", {})
+            token_symbol = token_info.get("symbol", "") # Direkt aus token_info
+            if not token_symbol: # Fallback, falls nicht in token_info
+                 token_symbol = analysis.get("symbol", "") # Direkt aus analysis
+
             if f"${token_symbol}" == values[0]:
                 selected_analysis = analysis
                 break
@@ -611,7 +645,12 @@ class CoinFinderTab:
         # Finde die vollständigen Daten in coins_data
         selected_analysis = None
         for analysis in self.coins_data:
-            token_symbol = analysis.get("token_info", {}).get("data", {}).get("symbol", "")
+            # Versuche, den Symbolnamen aus der Analyse zu extrahieren
+            token_info = analysis.get("token_info", {})
+            token_symbol = token_info.get("symbol", "") # Direkt aus token_info
+            if not token_symbol: # Fallback, falls nicht in token_info
+                 token_symbol = analysis.get("symbol", "") # Direkt aus analysis
+
             if f"${token_symbol}" == values[0]:
                 selected_analysis = analysis
                 break
@@ -629,7 +668,8 @@ class CoinFinderTab:
         dex_link = f"https://dexscreener.com/solana/{token_address}"
         
         # Liquidität aus der Analyse
-        liquidity = selected_analysis.get("price_info", {}).get("data", {}).get("liquidity", 0)
+        token_info = selected_analysis.get("token_info", {})
+        liquidity = token_info.get("liquidity", 0)
         liquidity_str = formatters.format_k(liquidity)
         
         # Erstelle neuen Call
@@ -661,7 +701,12 @@ class CoinFinderTab:
         # Finde die vollständigen Daten in coins_data
         selected_analysis = None
         for analysis in self.coins_data:
-            token_symbol = analysis.get("token_info", {}).get("data", {}).get("symbol", "")
+            # Versuche, den Symbolnamen aus der Analyse zu extrahieren
+            token_info = analysis.get("token_info", {})
+            token_symbol = token_info.get("symbol", "") # Direkt aus token_info
+            if not token_symbol: # Fallback, falls nicht in token_info
+                 token_symbol = analysis.get("symbol", "") # Direkt aus analysis
+
             if f"${token_symbol}" == values[0]:
                 selected_analysis = analysis
                 break
